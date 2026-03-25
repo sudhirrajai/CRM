@@ -1,0 +1,80 @@
+/* Bootstrap theme styles are loaded via app.blade.php */
+/* Override Tailwind/PostCSS interference with Bootstrap form layout */
+
+/* Restore gutters for better form column spacing */
+.row {
+    --bs-gutter-x: 1.5rem !important;
+    --bs-gutter-y: 0;
+}
+
+/* Force padding on columns if theme is resetting it */
+.row>[class*="col-"] {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+.form-control,
+.form-select {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important; /* Neutralize theme negative margins */
+    left: 0 !important;        /* Reset any theme centering */
+    box-sizing: border-box;
+    /* Height normalization to match theme standard */
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: .375rem .75rem !important;
+    line-height: 1.5 !important;
+}
+
+
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.15rem rgba(55, 98, 234, 0.25);
+}
+
+.form-label {
+    display: block !important;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    min-height: 1.2rem;
+    /* Ensure labels have consistent vertical space */
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+/* Action icon styles for Index page tables */
+.action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 18px;
+}
+
+.action-icon:hover {
+    color: #3762ea;
+    background-color: rgba(55, 98, 234, 0.1);
+}
+
+.action-icon.text-danger:hover {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
