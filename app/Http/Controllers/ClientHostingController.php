@@ -15,7 +15,7 @@ class ClientHostingController extends Controller
     public function index()
     {
         return Inertia::render('Hostings/Index', [
-            'hostings' => $this->hostingRepo->all()->load(['client', 'server', 'currency'])
+            'hostings' => $this->hostingRepo->all()->load(['client', 'server', 'currency', 'project'])
         ]);
     }
 
@@ -25,6 +25,7 @@ class ClientHostingController extends Controller
             'clients' => \App\Models\Client::where('status', 'active')->get(),
             'servers' => \App\Models\Server::where('status', 'active')->get(),
             'currencies' => \App\Models\Currency::all(),
+            'projects' => \App\Models\Project::all(),
         ]);
     }
 
@@ -33,11 +34,12 @@ class ClientHostingController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'server_id' => 'required|exists:servers,id',
+            'project_id' => 'nullable|exists:projects,id',
             'domain' => 'required|string|max:255',
             'plan_details' => 'nullable|string',
             'price' => 'required|numeric',
             'currency_id' => 'required|exists:currencies,id',
-            'billing_cycle' => 'required|in:monthly,yearly',
+            'billing_cycle' => 'required|in:monthly,quarterly,semi_annually,annually',
             'next_due_date' => 'nullable|date',
             'status' => 'required|string',
         ]);
@@ -49,7 +51,7 @@ class ClientHostingController extends Controller
     public function show($id)
     {
         return Inertia::render('Hostings/Show', [
-            'hosting' => $this->hostingRepo->find($id)->load(['client', 'server', 'currency'])
+            'hosting' => $this->hostingRepo->find($id)->load(['client', 'server', 'currency', 'project'])
         ]);
     }
 
@@ -60,6 +62,7 @@ class ClientHostingController extends Controller
             'clients' => \App\Models\Client::where('status', 'active')->get(),
             'servers' => \App\Models\Server::where('status', 'active')->get(),
             'currencies' => \App\Models\Currency::all(),
+            'projects' => \App\Models\Project::all(),
         ]);
     }
 
@@ -68,11 +71,12 @@ class ClientHostingController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'server_id' => 'required|exists:servers,id',
+            'project_id' => 'nullable|exists:projects,id',
             'domain' => 'required|string|max:255',
             'plan_details' => 'nullable|string',
             'price' => 'required|numeric',
             'currency_id' => 'required|exists:currencies,id',
-            'billing_cycle' => 'required|in:monthly,yearly',
+            'billing_cycle' => 'required|in:monthly,quarterly,semi_annually,annually',
             'next_due_date' => 'nullable|date',
             'status' => 'required|string',
         ]);

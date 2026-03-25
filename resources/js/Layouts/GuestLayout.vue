@@ -10,7 +10,7 @@ import { Link } from '@inertiajs/vue3';
                 <div class="card overflow-hidden text-center h-100 p-xxl-4 p-3 mb-0 shadow-lg">
                     <div class="auth-brand mb-3">
                         <Link href="/" class="d-inline-block">
-                            <img src="/assets/images/logo-dark.png" alt="dark logo" height="30" class="logo-dark">
+                            <img src="/assets/images/vmcore.png" alt="dark logo" height="30" class="logo-dark">
                         </Link>
                     </div>
                     <slot />

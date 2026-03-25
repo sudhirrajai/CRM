@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignUuid('client_id')->nullable()->constrained()->nullOnDelete();
+        Schema::create('milestones', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -21,9 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['client_id']);
-            $table->dropColumn('client_id');
-        });
+        Schema::dropIfExists('milestones');
     }
 };

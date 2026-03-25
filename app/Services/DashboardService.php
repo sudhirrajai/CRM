@@ -24,19 +24,31 @@ class DashboardService
         $user = auth()->user();
 
         if ($user && $user->hasRole('client') && $user->client_id) {
+            $clientId = $user->client_id;
             return [
                 'total_clients' => 1,
-                'active_projects' => collect($this->projectRepo->getByClient($user->client_id))->where('status', 'in_progress')->count(),
-                'total_invoices' => collect($this->invoiceRepo->getByClient($user->client_id))->count(),
-                'servers_count' => collect($this->hostingRepo->getByClient($user->client_id))->count(),
+                'active_projects' => $this->projectRepo->getByClient($clientId)->where('status', 'in_progress')->count(),
+                'total_invoices' => $this->invoiceRepo->getByClient($clientId)->count(),
+                'servers_count' => $this->hostingRepo->getByClient($clientId)->count(),
+                'recent_invoices' => $this->invoiceRepo->getRecentByClient($clientId),
+                'recent_projects' => $this->projectRepo->getRecentByClient($clientId),
+                'revenue_overview' => $this->invoiceRepo->getMonthlyRevenueByClient($clientId),
+                'project_stats' => $this->projectRepo->getStatusCountsByClient($clientId),
+                'is_admin' => false,
             ];
         }
 
         return [
-            'total_clients' => collect($this->clientRepo->all())->count(),
-            'active_projects' => collect($this->projectRepo->all())->where('status', 'in_progress')->count(),
-            'total_invoices' => collect($this->invoiceRepo->all())->count(),
-            'servers_count' => collect($this->serverRepo->all())->count(),
+            'total_clients' => $this->clientRepo->all()->count(),
+            'active_projects' => $this->projectRepo->all()->where('status', 'in_progress')->count(),
+            'total_invoices' => $this->invoiceRepo->all()->count(),
+            'servers_count' => $this->serverRepo->all()->count(),
+            'recent_invoices' => $this->invoiceRepo->getRecent(),
+            'recent_projects' => $this->projectRepo->getRecent(),
+            'recent_clients' => $this->clientRepo->getRecent(),
+            'revenue_overview' => $this->invoiceRepo->getMonthlyRevenue(),
+            'project_stats' => $this->projectRepo->getStatusCounts(),
+            'is_admin' => true,
         ];
     }
 }

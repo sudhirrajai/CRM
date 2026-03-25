@@ -61,8 +61,8 @@ const deleteRecord = (id, name) => {
                                             </span>
                                         </td>
                                         <td>
-                                            <Link :href="route('clients.edit', client.id)" class="action-icon" title="Edit"> <i class="ti ti-edit"></i></Link>
-                                            <Link :href="route('clients.show', client.id)" class="action-icon" title="View"> <i class="ti ti-eye"></i></Link>
+                                            <Link :href="route('clients.show', client.id)" class="action-icon text-info" title="View Details"> <i class="ti ti-eye"></i></Link>
+                                            <Link :href="route('clients.edit', client.id)" class="action-icon text-primary" title="Edit"> <i class="ti ti-edit"></i></Link>
                                             <button @click="deleteRecord(client.id, client.name)" class="action-icon text-danger" title="Delete" v-if="$page.props.auth.roles.includes('admin')"> <i class="ti ti-trash"></i></button>
                                         </td>
                                     </tr>

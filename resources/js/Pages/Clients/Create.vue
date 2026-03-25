@@ -17,6 +17,8 @@ const form = useForm({
     address: '',
     currency_id: '',
     status: 'active',
+    password: '',
+    send_credentials: true,
 });
 
 const submit = () => {
@@ -96,6 +98,22 @@ const submit = () => {
                                         <option value="lead">Lead</option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.status">{{ form.errors.status }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" id="password" v-model="form.password" class="form-control" autocomplete="new-password" :class="{ 'is-invalid': form.errors.password }">
+                                    <div class="invalid-feedback" v-if="form.errors.password">{{ form.errors.password }}</div>
+                                    <small class="form-text text-muted">Leave blank if you do not want to create a portal account for this client.</small>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-center mt-3 mt-md-0">
+                                    <div class="form-check mt-md-3">
+                                        <input type="checkbox" id="send_credentials" v-model="form.send_credentials" class="form-check-input" :class="{ 'is-invalid': form.errors.send_credentials }">
+                                        <label for="send_credentials" class="form-check-label">Send login credentials via email</label>
+                                        <div class="invalid-feedback" v-if="form.errors.send_credentials">{{ form.errors.send_credentials }}</div>
+                                    </div>
                                 </div>
                             </div>
 

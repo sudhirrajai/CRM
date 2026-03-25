@@ -6,12 +6,12 @@ import { Link } from '@inertiajs/vue3';
     <div class="sidenav-menu">
         <Link :href="route('dashboard')" class="logo">
             <span class="logo-light">
-                <span class="logo-lg"><img src="/assets/images/logo.png" alt="logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="logo"></span>
+                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo"></span>
             </span>
             <span class="logo-dark">
-                <span class="logo-lg"><img src="/assets/images/logo-dark.png" alt="dark logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="dark logo"></span>
+                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo"></span>
             </span>
         </Link>
 

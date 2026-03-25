@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignUuid('client_id')->nullable()->constrained()->nullOnDelete();
+        Schema::table('client_hostings', function (Blueprint $table) {
+            $table->foreignUuid('project_id')->nullable()->after('server_id')->constrained('projects')->nullOnDelete();
         });
     }
 
@@ -21,9 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['client_id']);
-            $table->dropColumn('client_id');
+        Schema::table('client_hostings', function (Blueprint $table) {
+            $table->dropForeign(['project_id']);
+            $table->dropColumn('project_id');
         });
     }
 };

@@ -13,13 +13,13 @@ const activeMenu = ref(null);
         <!-- Brand Logo -->
         <Link :href="route('dashboard')" class="logo">
             <span class="logo-light">
-                <span class="logo-lg"><img src="/assets/images/logo.png" alt="logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                <span class="logo-lg"><img src="/assets/images/vmcore-light.png" alt="logo" style="width: 100%; height: 100%;"></span>
+                <span class="logo-sm text-center"><img src="/assets/images/vmcore-light.png" alt="small logo" style="width: 100%; height: 100%;"></span>
             </span>
 
             <span class="logo-dark">
-                <span class="logo-lg"><img src="/assets/images/logo-dark.png" alt="dark logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="dark logo" style="width: 100%; height: 100%;"></span>
+                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo" style="width: 100%; height: 100%;"></span>
             </span>
         </Link>
 
@@ -42,7 +42,6 @@ const activeMenu = ref(null);
                     <Link :href="route('dashboard')" class="side-nav-link" :class="{ 'active': $page.component === 'Dashboard' }">
                         <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
                         <span class="menu-text"> Dashboard </span>
-                        <span class="badge bg-success rounded-pill">5</span>
                     </Link>
                 </li>
 

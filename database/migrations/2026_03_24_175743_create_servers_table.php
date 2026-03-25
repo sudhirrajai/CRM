@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('servers', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
              $table->string('name');
             $table->string('provider');
             $table->string('ip_address')->nullable();
             $table->text('credentials')->nullable();
             $table->decimal('monthly_cost', 10, 2)->default(0);
-            $table->foreignId('currency_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('currency_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default('active');
             $table->date('renewal_date')->nullable();
             $table->timestamps();

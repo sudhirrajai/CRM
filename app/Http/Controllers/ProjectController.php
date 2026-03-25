@@ -14,8 +14,17 @@ class ProjectController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+        $query = $this->projectRepo->all();
+
+        if (!$user->hasRole(['admin', 'staff'])) {
+            $projects = $this->projectRepo->getByClient($user->client_id)->load('client');
+        } else {
+            $projects = $query->load('client');
+        }
+
         return Inertia::render('Projects/Index', [
-            'projects' => $this->projectRepo->all()->load('client')
+            'projects' => $projects
         ]);
     }
 
@@ -43,15 +52,42 @@ class ProjectController extends Controller
 
     public function show($id)
     {
+        $project = $this->projectRepo->find($id)->load(['client', 'invoices.currency', 'milestones']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
+            abort(403);
+        }
+
         return Inertia::render('Projects/Show', [
-            'project' => $this->projectRepo->find($id)->load('client')
+            'project' => $project
         ]);
     }
 
     public function edit($id)
     {
+        $project = $this->projectRepo->find($id)->load('milestones');
+        
+        // Format dates for the HTML5 date input
+        if ($project->start_date) {
+            $project->start_date = $project->start_date->format('Y-m-d');
+        }
+        if ($project->end_date) {
+            $project->end_date = $project->end_date->format('Y-m-d');
+        }
+
+        // Format milestone dates
+        foreach ($project->milestones as $milestone) {
+            if ($milestone->start_date) {
+                $milestone->start_date = $milestone->start_date->format('Y-m-d');
+            }
+            if ($milestone->end_date) {
+                $milestone->end_date = $milestone->end_date->format('Y-m-d');
+            }
+        }
+
         return Inertia::render('Projects/Edit', [
-            'project' => $this->projectRepo->find($id),
+            'project' => $project,
             'clients' => \App\Models\Client::where('status', 'active')->get(),
         ]);
     }
@@ -65,9 +101,41 @@ class ProjectController extends Controller
             'status' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'milestones' => 'nullable|array',
+            'milestones.*.id' => 'nullable|string',
+            'milestones.*.name' => 'required|string|max:255',
+            'milestones.*.start_date' => 'required|date',
+            'milestones.*.end_date' => 'required|date',
+            'milestones.*.hours' => 'nullable|numeric',
+            'milestones.*.description' => 'nullable|string',
         ]);
 
-        $this->projectRepo->update($id, $validated);
+        $project = $this->projectRepo->update($id, array_diff_key($validated, ['milestones' => '']));
+
+        // Handle milestones
+        if (isset($validated['milestones'])) {
+            $projectModel = \App\Models\Project::find($id);
+            $existingIds = $projectModel->milestones()->pluck('id')->toArray();
+            $newIds = [];
+
+            foreach ($validated['milestones'] as $milestoneData) {
+                if (isset($milestoneData['id'])) {
+                    $milestone = \App\Models\Milestone::find($milestoneData['id']);
+                    if ($milestone) {
+                        $milestone->update($milestoneData);
+                        $newIds[] = $milestone->id;
+                    }
+                } else {
+                    $milestone = $projectModel->milestones()->create($milestoneData);
+                    $newIds[] = $milestone->id;
+                }
+            }
+
+            // Delete removed milestones
+            $toDelete = array_diff($existingIds, $newIds);
+            \App\Models\Milestone::whereIn('id', $toDelete)->delete();
+        }
+
         return redirect()->route('projects.index');
     }
 

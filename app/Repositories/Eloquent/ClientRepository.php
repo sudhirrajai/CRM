@@ -16,4 +16,9 @@ class ClientRepository extends BaseRepository implements ClientRepositoryInterfa
     {
         return $this->model->with(['currency', 'projects', 'invoices', 'hostings'])->get();
     }
+
+    public function getRecent($limit = 5)
+    {
+        return $this->model->latest()->limit($limit)->get();
+    }
 }

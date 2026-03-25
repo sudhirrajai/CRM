@@ -17,8 +17,16 @@ class InvoiceController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+        
+        if (!$user->hasRole(['admin', 'staff'])) {
+            $invoices = $this->invoiceRepo->getByClient($user->client_id)->load(['client', 'project', 'currency']);
+        } else {
+            $invoices = $this->invoiceRepo->all()->load(['client', 'project', 'currency']);
+        }
+
         return Inertia::render('Invoices/Index', [
-            'invoices' => $this->invoiceRepo->all()->load(['client', 'project', 'currency'])
+            'invoices' => $invoices
         ]);
     }
 
@@ -61,8 +69,15 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
+        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+            abort(403);
+        }
+
         return Inertia::render('Invoices/Show', [
-            'invoice' => $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items'])
+            'invoice' => $invoice
         ]);
     }
 
@@ -112,6 +127,12 @@ class InvoiceController extends Controller
     public function viewPdf($id)
     {
         $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+            abort(403);
+        }
+
         $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
         return $pdf->stream('Invoice_' . $invoice->invoice_number . '.pdf');
     }
@@ -119,6 +140,12 @@ class InvoiceController extends Controller
     public function downloadPdf($id)
     {
         $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+            abort(403);
+        }
+
         $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
         return $pdf->download('Invoice_' . $invoice->invoice_number . '.pdf');
     }

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoice_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('invoice_id')->constrained()->cascadeOnDelete();
             $table->string('description');
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 15, 2)->default(0);

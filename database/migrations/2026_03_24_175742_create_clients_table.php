@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clients', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('company')->nullable();
             $table->text('address')->nullable();
-            $table->foreignId('currency_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('currency_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default('active');
             $table->timestamps();
         });

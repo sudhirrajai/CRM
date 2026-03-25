@@ -12,10 +12,10 @@ const logout = () => {
             <div class="d-flex align-items-center gap-2">
                 <Link :href="route('dashboard')" class="logo d-flex d-xl-none">
                     <span class="logo-light">
-                        <span class="logo-sm"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                        <span class="logo-sm"><img src="/assets/images/vmcore.png" alt="small logo"></span>
                     </span>
                     <span class="logo-dark">
-                        <span class="logo-sm"><img src="/assets/images/logo-sm.png" alt="small logo"></span>
+                        <span class="logo-sm"><img src="/assets/images/vmcore.png" alt="small logo"></span>
                     </span>
                 </Link>
 

@@ -14,6 +14,6 @@
 
     <br>
     <p>Best regards,<br>
-    CRM Team</p>
+    VMCore</p>
 </body>
 </html>

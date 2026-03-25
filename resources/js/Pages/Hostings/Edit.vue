@@ -10,18 +10,51 @@ const props = defineProps({
     clients: { type: Array, required: true },
     servers: { type: Array, required: true },
     currencies: { type: Array, required: true },
+    projects: { type: Array, required: true },
 });
+
+import { computed, watch } from 'vue';
 
 const form = useForm({
     client_id: props.hosting.client_id,
+    project_id: props.hosting.project_id || '',
     server_id: props.hosting.server_id,
     domain: props.hosting.domain,
     billing_cycle: props.hosting.billing_cycle,
     price: props.hosting.price,
     currency_id: props.hosting.currency_id,
+    start_date: props.hosting.created_at ? new Date(props.hosting.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    next_due_date: props.hosting.next_due_date ? new Date(props.hosting.next_due_date).toISOString().split('T')[0] : '',
     status: props.hosting.status,
     plan_details: props.hosting.plan_details || '',
 });
+
+const filteredProjects = computed(() => {
+    if (!form.client_id) return [];
+    return props.projects.filter(project => String(project.client_id) === String(form.client_id));
+});
+
+const calculateNextDue = () => {
+    if (!form.start_date) return;
+    const date = new Date(form.start_date);
+    switch (form.billing_cycle) {
+        case 'monthly':
+            date.setMonth(date.getMonth() + 1);
+            break;
+        case 'quarterly':
+            date.setMonth(date.getMonth() + 3);
+            break;
+        case 'semi_annually':
+            date.setMonth(date.getMonth() + 6);
+            break;
+        case 'annually':
+            date.setFullYear(date.getFullYear() + 1);
+            break;
+    }
+    form.next_due_date = date.toISOString().split('T')[0];
+};
+
+watch(() => [form.start_date, form.billing_cycle], calculateNextDue);
 
 const submit = () => {
     form.put(route('hostings.update', props.hosting.id), {
@@ -48,20 +81,30 @@ const submit = () => {
                     <div class="card-body">
                         <form @submit.prevent="submit">
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="domain" class="form-label">Domain Name / Hostname <span class="text-danger">*</span></label>
                                     <input type="text" id="domain" v-model="form.domain" class="form-control" :class="{ 'is-invalid': form.errors.domain }" required>
                                     <div class="invalid-feedback" v-if="form.errors.domain">{{ form.errors.domain }}</div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
-                                    <select id="client_id" v-model="form.client_id" class="form-select" :class="{ 'is-invalid': form.errors.client_id }" required>
+                                    <select id="client_id" v-model="form.client_id" class="form-select" :class="{ 'is-invalid': form.errors.client_id }" required @change="form.project_id = ''">
                                         <option value="" disabled>Select Client</option>
                                         <option v-for="client in clients" :key="client.id" :value="client.id">
                                             {{ client.name }} ({{ client.company || 'Individual' }})
                                         </option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.client_id">{{ form.errors.client_id }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="project_id" class="form-label">Project (Optional)</label>
+                                    <select id="project_id" v-model="form.project_id" class="form-select" :class="{ 'is-invalid': form.errors.project_id }" :disabled="!form.client_id">
+                                        <option value="">Select Project</option>
+                                        <option v-for="project in filteredProjects" :key="project.id" :value="project.id">
+                                            {{ project.name }}
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback" v-if="form.errors.project_id">{{ form.errors.project_id }}</div>
                                 </div>
                             </div>
 
@@ -88,7 +131,7 @@ const submit = () => {
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="billing_cycle" class="form-label">Billing Cycle <span class="text-danger">*</span></label>
                                     <select id="billing_cycle" v-model="form.billing_cycle" class="form-select" :class="{ 'is-invalid': form.errors.billing_cycle }" required>
                                         <option value="monthly">Monthly</option>
@@ -98,20 +141,19 @@ const submit = () => {
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.billing_cycle">{{ form.errors.billing_cycle }}</div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
                                     <input type="number" step="0.01" id="price" v-model="form.price" class="form-control" :class="{ 'is-invalid': form.errors.price }" required>
                                     <div class="invalid-feedback" v-if="form.errors.price">{{ form.errors.price }}</div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="currency_id" class="form-label">Currency <span class="text-danger">*</span></label>
-                                    <select id="currency_id" v-model="form.currency_id" class="form-select" :class="{ 'is-invalid': form.errors.currency_id }" required>
-                                        <option value="" disabled>Select Currency</option>
-                                        <option v-for="currency in currencies" :key="currency.id" :value="currency.id">
-                                            {{ currency.name }} ({{ currency.code }})
-                                        </option>
-                                    </select>
-                                    <div class="invalid-feedback" v-if="form.errors.currency_id">{{ form.errors.currency_id }}</div>
+                                <div class="col-md-3">
+                                    <label for="start_date" class="form-label">Start Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="start_date" v-model="form.start_date" class="form-control" :class="{ 'is-invalid': form.errors.start_date }" required>
+                                    <div class="invalid-feedback" v-if="form.errors.start_date">{{ form.errors.start_date }}</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="next_due_date" class="form-label">Next Due Date</label>
+                                    <input type="date" id="next_due_date" v-model="form.next_due_date" class="form-control" readonly>
                                 </div>
                             </div>
 

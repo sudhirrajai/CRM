@@ -44,6 +44,7 @@ const deleteRecord = (id, domain) => {
                                 <thead class="table-light">
                                     <tr>
                                         <th>Domain</th>
+                                        <th>Project</th>
                                         <th>Client</th>
                                         <th>Server</th>
                                         <th>Billing Cycle</th>
@@ -55,6 +56,7 @@ const deleteRecord = (id, domain) => {
                                 <tbody>
                                     <tr v-for="hosting in hostings" :key="hosting.id">
                                         <td>{{ hosting.domain }}</td>
+                                        <td>{{ hosting.project?.name || '-' }}</td>
                                         <td>{{ hosting.client?.name || '-' }}</td>
                                         <td>{{ hosting.server?.name || '-' }}</td>
                                         <td><span class="text-capitalize">{{ hosting.billing_cycle }}</span></td>
@@ -75,7 +77,7 @@ const deleteRecord = (id, domain) => {
                                         </td>
                                     </tr>
                                     <tr v-if="hostings.length === 0">
-                                        <td colspan="7" class="text-center py-4">No hosting allocations found.</td>
+                                        <td colspan="8" class="text-center py-4">No hosting allocations found.</td>
                                     </tr>
                                 </tbody>
                             </table>

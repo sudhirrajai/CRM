@@ -8,7 +8,21 @@ import { onMounted } from 'vue';
 onMounted(() => {
     // Initialize theme JS if needed
     if (window.App) {
-        window.App.init();
+        try {
+            const app = new window.App();
+            app.init();
+        } catch (e) {
+            console.error("Failed to initialize App:", e);
+        }
+    }
+
+    if (window.ThemeCustomizer) {
+        try {
+            const themeCustomizer = new window.ThemeCustomizer();
+            themeCustomizer.init();
+        } catch (e) {
+            console.error("Failed to initialize ThemeCustomizer:", e);
+        }
     }
 });
 </script>

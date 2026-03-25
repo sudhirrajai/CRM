@@ -85,7 +85,7 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <div class="company-name">CRM PLATFORM</div>
+                                <img src="/assets/images/vmcore.png" alt="VMCore Logo" style="height: 50px;">
                                 <div style="font-size: 14px; color: #555; margin-top: 5px;">Professional Services</div>
                             </td>
                             
@@ -118,10 +118,10 @@
                             
                             <td class="text-right">
                                 <strong>From:</strong><br>
-                                CRM Team<br>
-                                support@crmplatform.com<br>
-                                123 Business Avenue,<br>
-                                Tech City, TC 12345
+                                VMCore<br>
+                                support@vmcore.in<br>
+                                123 VMCore Plaza,<br>
+                                Mumbai, MH 400001
                             </td>
                         </tr>
                     </table>
@@ -178,7 +178,7 @@
         @endif
         
         <div class="mt-4 text-center text-muted" style="font-size: 13px; border-top: 1px solid #eee; padding-top: 15px;">
-            Thank you for your business! If you have any questions regarding this invoice, please contact us.
+            Thank you for your business with VmCore! If you have any questions regarding this invoice, please contact us.
         </div>
     </div>
 </body>

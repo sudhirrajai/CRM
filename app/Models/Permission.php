@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Permission extends SpatiePermission
 {
     use HasUuids;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 }

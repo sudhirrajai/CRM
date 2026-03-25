@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class Project extends Model
+class Milestone extends Model
 {
     use HasUuids;
 
     protected $fillable = [
-        'client_id',
+        'project_id',
         'name',
-        'description',
-        'status',
         'start_date',
         'end_date',
+        'hours',
+        'description',
     ];
 
     protected function casts(): array
@@ -23,21 +23,12 @@ class Project extends Model
         return [
             'start_date' => 'date:Y-m-d',
             'end_date' => 'date:Y-m-d',
+            'hours' => 'decimal:2',
         ];
     }
 
-    public function client()
+    public function project()
     {
-        return $this->belongsTo(Client::class);
-    }
-
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    public function milestones()
-    {
-        return $this->hasMany(Milestone::class);
+        return $this->belongsTo(Project::class);
     }
 }
