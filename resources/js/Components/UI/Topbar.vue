@@ -27,24 +27,24 @@ import { Link } from '@inertiajs/vue3';
                 </button>
 
                 <!-- Button Trigger Search Modal -->
-                <div class="topbar-search text-muted d-none d-xl-flex gap-2 align-items-center" data-bs-toggle="modal" data-bs-target="#searchModal" type="button">
+                <!-- <div class="topbar-search text-muted d-none d-xl-flex gap-2 align-items-center" data-bs-toggle="modal" data-bs-target="#searchModal" type="button">
                     <i class="ti ti-search fs-18"></i>
                     <span class="me-2">Search something..</span>
                     <button type="submit" class="ms-auto btn btn-sm btn-primary shadow-none">⌘K</button>
-                </div>
+                </div> -->
             </div>
 
             <div class="d-flex align-items-center gap-2">
 
                 <!-- Search for small devices -->
-                <div class="topbar-item d-flex d-xl-none">
+                <!-- <div class="topbar-item d-flex d-xl-none">
                     <button class="topbar-link btn btn-outline-primary btn-icon" data-bs-toggle="modal" data-bs-target="#searchModal" type="button">
                         <i class="ti ti-search fs-22"></i>
                     </button>
-                </div>
+                </div> -->
 
                 <!-- Notification Dropdown -->
-                <div class="topbar-item">
+                <!-- <div class="topbar-item">
                     <div class="dropdown">
                         <button class="topbar-link btn btn-outline-primary btn-icon dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,24" type="button" data-bs-auto-close="outside" aria-haspopup="false" aria-expanded="false">
                             <i class="ti ti-bell animate-ring fs-22"></i>
@@ -61,23 +61,23 @@ import { Link } from '@inertiajs/vue3';
                             </div>
 
                             <div class="position-relative z-2 rounded-0" style="max-height: 300px;" data-simplebar>
-                                <!-- Notification contents... -->
+                                
                             </div>
 
-                            <!-- All-->
+                            
                             <a href="javascript:void(0);" class="dropdown-item notification-item text-center text-reset text-decoration-underline link-offset-2 fw-bold notify-item border-top border-light py-2">
                                 View All
                             </a>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Light/Dark Mode Button -->
-                <div class="topbar-item d-none d-sm-flex">
+                <!-- <div class="topbar-item d-none d-sm-flex">
                     <button class="topbar-link btn btn-outline-primary btn-icon" id="light-dark-mode" type="button">
                         <i class="ti ti-moon fs-22"></i>
                     </button>
-                </div>
+                </div> -->
 
                 <!-- User Dropdown -->
                 <div class="topbar-item">
