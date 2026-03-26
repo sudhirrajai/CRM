@@ -13,13 +13,13 @@ const activeMenu = ref(null);
         <!-- Brand Logo -->
         <Link :href="route('dashboard')" class="logo">
             <span class="logo-light">
-                <span class="logo-lg"><img src="/assets/images/vmcore-light.png" alt="logo" style="width: 100%; height: 100%;"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/vmcore-light.png" alt="small logo" style="width: 100%; height: 100%;"></span>
+                <span class="logo-lg"><img :src="$page.props.menuLogo" alt="logo" :style="{ maxHeight: $page.props.menuLogoHeight + 'px', width: 'auto', objectFit: 'contain' }"></span>
+                <span class="logo-sm text-center"><img :src="$page.props.menuLogo" alt="small logo" style="max-height: 22px; width: auto; object-fit: contain;"></span>
             </span>
 
             <span class="logo-dark">
-                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="dark logo" style="width: 100%; height: 100%;"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo" style="width: 100%; height: 100%;"></span>
+                <span class="logo-lg"><img :src="$page.props.menuLogo" alt="dark logo" :style="{ maxHeight: $page.props.menuLogoHeight + 'px', width: 'auto', objectFit: 'contain' }"></span>
+                <span class="logo-sm text-center"><img :src="$page.props.menuLogo" alt="small logo" style="max-height: 22px; width: auto; object-fit: contain;"></span>
             </span>
         </Link>
 
@@ -68,6 +68,29 @@ const activeMenu = ref(null);
                     </Link>
                 </li>
 
+                <li class="side-nav-title mt-2 text-uppercase fs-12">Accounting</li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
+                    <Link :href="route('expenses.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
+                        <span class="menu-icon"><i class="ti ti-receipt"></i></span>
+                        <span class="menu-text"> Expenses </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
+                    <Link :href="route('expense-categories.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
+                        <span class="menu-icon"><i class="ti ti-category"></i></span>
+                        <span class="menu-text"> Categories </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
+                    <Link :href="route('reports.balance-sheet')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
+                        <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
+                        <span class="menu-text"> Balance Sheet </span>
+                    </Link>
+                </li>
+
                 <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">Infrastructure</li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Servers') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
@@ -81,6 +104,22 @@ const activeMenu = ref(null);
                     <Link :href="route('hostings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Hostings') }">
                         <span class="menu-icon"><i class="ti ti-cloud-network"></i></span>
                         <span class="menu-text"> Hosting / VPS </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin')">Administration</li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Users') }" v-if="$page.props.auth.roles.includes('admin')">
+                    <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users') }">
+                        <span class="menu-icon"><i class="ti ti-lock"></i></span>
+                        <span class="menu-text"> Users & Roles </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Settings') }" v-if="$page.props.auth.roles.includes('admin')">
+                    <Link :href="route('settings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Settings') }">
+                        <span class="menu-icon"><i class="ti ti-settings"></i></span>
+                        <span class="menu-text"> Settings </span>
                     </Link>
                 </li>
             </ul>

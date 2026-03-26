@@ -10,7 +10,7 @@ import { Link } from '@inertiajs/vue3';
                 <div class="card overflow-hidden text-center h-100 p-xxl-4 p-3 mb-0 shadow-lg">
                     <div class="auth-brand mb-3">
                         <Link href="/" class="d-inline-block">
-                            <img src="/assets/images/vmcore.png" alt="dark logo" height="30" class="logo-dark">
+                            <img :src="$page.props.appLogo" alt="Logo" :style="{ height: $page.props.appLogoHeight + 'px', width: 'auto' }">
                         </Link>
                     </div>
                     <slot />

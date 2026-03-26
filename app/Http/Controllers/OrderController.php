@@ -11,8 +11,17 @@ class OrderController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        $query = \App\Models\Order::with('client')->latest();
+
+        if ($user->hasRole('client')) {
+            $orders = $query->where('client_id', $user->client_id)->get();
+        } else {
+            $orders = $query->get();
+        }
+
         return \Inertia\Inertia::render('Orders/Index', [
-            'orders' => \App\Models\Order::with('client')->latest()->get()
+            'orders' => $orders
         ]);
     }
 
@@ -48,7 +57,16 @@ class OrderController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $order = \App\Models\Order::with('client')->findOrFail($id);
+        $user = auth()->user();
+
+        if ($user->hasRole('client') && $order->client_id !== $user->client_id) {
+            abort(403);
+        }
+
+        return \Inertia\Inertia::render('Orders/Show', [
+            'order' => $order
+        ]);
     }
 
     /**

@@ -19,6 +19,17 @@ const deleteRecord = (id, invoiceNumber) => {
         router.delete(route('invoices.destroy', id));
     }
 };
+
+const sendSuspension = (id) => {
+    if (confirm('Are you sure you want to send a suspension notification for this invoice?')) {
+        router.post(route('invoices.send-suspension', id));
+    }
+};
+
+const isOverdue = (dueDate) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+};
 </script>
 
 <template>
@@ -75,7 +86,15 @@ const deleteRecord = (id, invoiceNumber) => {
                                             <a :href="route('invoices.view-pdf', invoice.id)" class="action-icon text-success" target="_blank" title="View PDF"> <i class="ti ti-file-text"></i></a>
                                             <a :href="route('invoices.pdf', invoice.id)" class="action-icon text-info" title="Download PDF"> <i class="ti ti-download"></i></a>
                                             <Link :href="route('invoices.edit', invoice.id)" class="action-icon" title="Edit" v-if="!$page.props.auth.roles.includes('client')"> <i class="ti ti-edit"></i></Link>
-                                            <a :href="route('invoices.view-pdf', invoice.id)" class="action-icon" target="_blank" title="View Details"> <i class="ti ti-eye"></i></a>
+                                            
+                                            <!-- Suspension Notification Button -->
+                                            <button @click="sendSuspension(invoice.id)" 
+                                                    class="action-icon text-warning" 
+                                                    title="Send Suspension Notification"
+                                                    v-if="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) && isOverdue(invoice.due_date) && invoice.status !== 'paid'">
+                                                <i class="ti ti-alert-triangle"></i>
+                                            </button>
+
                                             <button @click="deleteRecord(invoice.id, invoice.invoice_number)" class="action-icon text-danger" title="Delete" v-if="$page.props.auth.roles.includes('admin')"> <i class="ti ti-trash"></i></button>
                                         </td>
                                     </tr>

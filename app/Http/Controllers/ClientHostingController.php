@@ -14,8 +14,15 @@ class ClientHostingController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+        if ($user->hasRole('client')) {
+            $hostings = $this->hostingRepo->all()->where('client_id', $user->client_id)->load(['client', 'server', 'currency', 'project']);
+        } else {
+            $hostings = $this->hostingRepo->all()->load(['client', 'server', 'currency', 'project']);
+        }
+
         return Inertia::render('Hostings/Index', [
-            'hostings' => $this->hostingRepo->all()->load(['client', 'server', 'currency', 'project'])
+            'hostings' => $hostings
         ]);
     }
 
@@ -42,6 +49,7 @@ class ClientHostingController extends Controller
             'billing_cycle' => 'required|in:monthly,quarterly,semi_annually,annually',
             'next_due_date' => 'nullable|date',
             'status' => 'required|string',
+            'reason' => 'nullable|string',
         ]);
 
         $this->hostingRepo->create($validated);
@@ -50,8 +58,15 @@ class ClientHostingController extends Controller
 
     public function show($id)
     {
+        $hosting = $this->hostingRepo->find($id)->load(['client', 'server', 'currency', 'project']);
+        $user = auth()->user();
+
+        if ($user->hasRole('client') && $hosting->client_id !== $user->client_id) {
+            abort(403);
+        }
+
         return Inertia::render('Hostings/Show', [
-            'hosting' => $this->hostingRepo->find($id)->load(['client', 'server', 'currency', 'project'])
+            'hosting' => $hosting
         ]);
     }
 
@@ -79,6 +94,7 @@ class ClientHostingController extends Controller
             'billing_cycle' => 'required|in:monthly,quarterly,semi_annually,annually',
             'next_due_date' => 'nullable|date',
             'status' => 'required|string',
+            'reason' => 'required_if:status,suspended,terminated,cancelled|nullable|string',
         ]);
 
         $this->hostingRepo->update($id, $validated);

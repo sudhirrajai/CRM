@@ -22,6 +22,7 @@ const form = useForm({
     start_date: new Date().toISOString().split('T')[0],
     next_due_date: '',
     status: 'active',
+    reason: '',
 });
 
 const filteredProjects = computed(() => {
@@ -121,8 +122,17 @@ const submit = () => {
                                         <option value="active">Active</option>
                                         <option value="suspended">Suspended</option>
                                         <option value="terminated">Terminated</option>
+                                        <option value="cancelled">Cancelled</option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.status">{{ form.errors.status }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3" v-if="['suspended', 'terminated', 'cancelled'].includes(form.status)">
+                                <div class="col-12">
+                                    <label for="reason" class="form-label">Reason for Status Change <span class="text-danger">*</span></label>
+                                    <textarea id="reason" v-model="form.reason" class="form-control" :class="{ 'is-invalid': form.errors.reason }" rows="3" placeholder="Enter reason for this status change..."></textarea>
+                                    <div class="invalid-feedback" v-if="form.errors.reason">{{ form.errors.reason }}</div>
                                 </div>
                             </div>
 

@@ -8,6 +8,9 @@ use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceMail;
+use App\Mail\HostingSuspensionMail;
+use App\Models\ClientHosting;
+use App\Models\Invoice;
 
 class InvoiceController extends Controller
 {
@@ -53,6 +56,11 @@ class InvoiceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // If sub_total is not provided, use total_amount
+        if (!isset($validated['sub_total'])) {
+            $validated['sub_total'] = $validated['total_amount'];
+        }
+
         $invoice = $this->invoiceRepo->create($validated);
 
         if ($request->boolean('send_email')) {
@@ -83,8 +91,14 @@ class InvoiceController extends Controller
 
     public function edit($id)
     {
+        $invoice = $this->invoiceRepo->find($id);
+        
+        // Format dates for HTML5 date input
+        $invoice->issue_date_formatted = $invoice->issue_date ? $invoice->issue_date->format('Y-m-d') : '';
+        $invoice->due_date_formatted = $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '';
+
         return Inertia::render('Invoices/Edit', [
-            'invoice' => $this->invoiceRepo->find($id),
+            'invoice' => $invoice,
             'clients' => \App\Models\Client::where('status', 'active')->get(),
             'projects' => \App\Models\Project::where('status', 'in_progress')->get(),
             'currencies' => \App\Models\Currency::all(),
@@ -104,6 +118,10 @@ class InvoiceController extends Controller
             'status' => 'required|string',
             'notes' => 'nullable|string',
         ]);
+
+        if (!isset($validated['sub_total'])) {
+            $validated['sub_total'] = $validated['total_amount'];
+        }
 
         $this->invoiceRepo->update($id, $validated);
 
@@ -148,5 +166,26 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
         return $pdf->download('Invoice_' . $invoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * Send suspension notification for an overdue invoice.
+     */
+    public function sendSuspensionNotification($id)
+    {
+        $invoice = Invoice::with(['client', 'project'])->findOrFail($id);
+        
+        // Find associated hosting
+        $hosting = ClientHosting::where('project_id', $invoice->project_id)
+            ->where('client_id', $invoice->client_id)
+            ->first();
+
+        if (!$hosting) {
+            return redirect()->back()->with('error', 'No associated hosting found for this invoice.');
+        }
+
+        Mail::to($invoice->client->email)->send(new HostingSuspensionMail($invoice, $hosting));
+
+        return redirect()->back()->with('success', 'Suspension notification sent to ' . $invoice->client->name);
     }
 }

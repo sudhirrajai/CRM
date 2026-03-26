@@ -21,6 +21,7 @@ class Invoice extends Model
         'issue_date',
         'due_date',
         'notes',
+        'last_reminder_type',
     ];
 
     protected function casts(): array

@@ -5,7 +5,7 @@
     <title>Invoice {{ $invoice->invoice_number }}</title>
     <style>
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             color: #333;
             margin: 0;
             padding: 20px;
@@ -85,8 +85,24 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <img src="/assets/images/vmcore.png" alt="VMCore Logo" style="height: 50px;">
-                                <div style="font-size: 14px; color: #555; margin-top: 5px;">Professional Services</div>
+                                @php
+                                    $settingLogo = \App\Models\Setting::getValue('pdf_logo', '/assets/images/vmcore.png');
+                                    $logoSrc = $settingLogo;
+                                    
+                                    // If it's a storage URL, convert to absolute path for DomPDF
+                                    if (str_starts_with($settingLogo, '/storage/')) {
+                                        $logoSrc = storage_path('app/public/' . substr($settingLogo, 9));
+                                    } elseif (str_starts_with($settingLogo, '/assets/')) {
+                                        $logoSrc = public_path(substr($settingLogo, 1));
+                                    }
+                                    
+                                    if (file_exists($logoSrc)) {
+                                        $logoData = base64_encode(file_get_contents($logoSrc));
+                                        $logoSrc = 'data:image/png;base64,' . $logoData;
+                                    }
+                                @endphp
+                                <img src="{{ $logoSrc }}" alt="Logo" style="height: {{ \App\Models\Setting::getValue('pdf_logo_height', '50') }}px; max-width: 250px; object-fit: contain;">
+                                <div style="font-size: 14px; color: #555; margin-top: 5px;">{{ \App\Models\Setting::getValue('brand_name', 'VMCore CRM') }}</div>
                             </td>
                             
                             <td class="text-right">
@@ -118,10 +134,10 @@
                             
                             <td class="text-right">
                                 <strong>From:</strong><br>
-                                VMCore<br>
-                                support@vmcore.in<br>
-                                123 VMCore Plaza,<br>
-                                Mumbai, MH 400001
+                                {{ \App\Models\Setting::getValue('brand_name', 'VMCore') }}<br>
+                                {{ \App\Models\Setting::getValue('contact_email', 'support@vmcore.in') }}<br>
+                                {!! nl2br(e(\App\Models\Setting::getValue('contact_address', "123 VMCore Plaza,\nMumbai, MH 400001"))) !!}<br>
+                                {{ \App\Models\Setting::getValue('contact_phone', '') }}
                             </td>
                         </tr>
                     </table>
@@ -148,15 +164,15 @@
                 <tr class="item last">
                     <td>Services Rendered</td>
                     <td class="text-right">1</td>
-                    <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total, 2) }}</td>
-                    <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total, 2) }}</td>
+                    <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
+                    <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
                 </tr>
             @endif
 
             <tr class="total">
                 <td colspan="2"></td>
                 <td class="text-right">Subtotal:</td>
-                <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total, 2) }}</td>
+                <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
             </tr>
             <tr>
                 <td colspan="2"></td>
@@ -178,7 +194,7 @@
         @endif
         
         <div class="mt-4 text-center text-muted" style="font-size: 13px; border-top: 1px solid #eee; padding-top: 15px;">
-            Thank you for your business with VmCore! If you have any questions regarding this invoice, please contact us.
+            Thank you for your business with {{ \App\Models\Setting::getValue('brand_name', 'VmCore') }}! If you have any questions regarding this invoice, please contact us.
         </div>
     </div>
 </body>

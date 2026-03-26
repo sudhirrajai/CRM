@@ -14,6 +14,11 @@ class ClientController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+        if ($user->hasRole('client')) {
+            return redirect()->route('clients.show', $user->client_id);
+        }
+
         return Inertia::render('Clients/Index', [
             'clients' => $this->clientRepo->getWithRelations()
         ]);
@@ -67,6 +72,11 @@ class ClientController extends Controller
 
     public function show($id)
     {
+        $user = auth()->user();
+        if ($user->hasRole('client') && $user->client_id !== $id) {
+            abort(403);
+        }
+
         $client = $this->clientRepo->find($id);
         $client->load(['projects', 'invoices.items', 'hostings', 'currency']);
         

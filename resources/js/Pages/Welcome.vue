@@ -12,15 +12,15 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Welcome to VMCore CRM" />
+    <Head :title="'Welcome to ' + $page.props.appName" />
 
     <div class="min-vh-100 bg-white text-dark d-flex flex-column font-sans" style="font-family: 'Inter', sans-serif; overflow-x: hidden;">
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg sticky-top bg-white/80 backdrop-blur-md border-bottom py-3">
             <div class="container d-flex justify-content-between align-items-center">
                 <Link :href="route('dashboard')" class="navbar-brand d-flex align-items-center gap-2">
-                    <img src="/assets/images/vmcore.png" alt="VMCore Logo" height="32">
-                    <span class="fw-bold fs-4 text-primary">VMCore</span>
+                    <img :src="$page.props.appLogo" alt="Logo" :style="{ height: $page.props.appLogoHeight + 'px', width: 'auto' }">
+                    <span class="fw-bold fs-4 text-primary">{{ $page.props.appName }}</span>
                 </Link>
 
                 <div class="d-flex align-items-center gap-3">
@@ -50,7 +50,7 @@ defineProps({
                             New: Professional Invoicing System
                         </span>
                         <h1 class="display-3 fw-900 text-dark mb-4 tracking-tight">
-                            Elevate Your Business with <span class="text-primary gradient-text">VMCore CRM</span>
+                            Elevate Your Business with <span class="text-primary gradient-text">{{ $page.props.appName }}</span>
                         </h1>
                         <p class="lead text-muted mb-5 fs-5 px-lg-5">
                             The all-in-one platform to manage clients, track projects, automate invoicing, and monitor hosting allocations. Designed for modern professional services.
@@ -129,7 +129,7 @@ defineProps({
                 <div class="bg-primary rounded-5 p-5 p-lg-10 shadow-lg position-relative overflow-hidden text-center">
                     <h2 class="display-5 fw-bold text-white mb-4">Ready to Transform Your Workflow?</h2>
                     <p class="text-white opacity-75 fs-5 mb-5 px-lg-10">
-                        Join companies that trust VMCore CRM for their daily operations. Start your free trial today.
+                        Join companies that trust {{ $page.props.appName }} for their daily operations. Start your free trial today.
                     </p>
                     <Link v-if="!$page.props.auth.user" :href="route('register')" class="btn btn-white btn-lg rounded-pill px-10 py-3 shadow-md fw-bold">
                         Create Account
@@ -147,10 +147,10 @@ defineProps({
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
                         <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
-                            <img src="/assets/images/vmcore.png" alt="VMCore" height="24">
-                            <span class="fw-bold text-primary">VMCore CRM</span>
+                            <img :src="$page.props.appLogo" alt="Logo" :style="{ height: '24px', width: 'auto' }">
+                            <span class="fw-bold text-primary">{{ $page.props.appName }}</span>
                         </div>
-                        <p class="text-muted small mb-0">&copy; {{ new Date().getFullYear() }} VMCore. All rights reserved.</p>
+                        <p class="text-muted small mb-0">&copy; {{ new Date().getFullYear() }} {{ $page.props.appName }}. All rights reserved.</p>
                     </div>
                     <div class="col-md-6 text-center text-md-end">
                         <div class="d-flex justify-content-center justify-content-md-end gap-3">

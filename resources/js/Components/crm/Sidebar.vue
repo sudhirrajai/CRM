@@ -6,12 +6,12 @@ import { Link } from '@inertiajs/vue3';
     <div class="sidenav-menu">
         <Link :href="route('dashboard')" class="logo">
             <span class="logo-light">
-                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo"></span>
+                <span class="logo-lg"><img :src="$page.props.appLogo" alt="logo"></span>
+                <span class="logo-sm text-center"><img :src="$page.props.appLogo" alt="small logo"></span>
             </span>
             <span class="logo-dark">
-                <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="dark logo"></span>
-                <span class="logo-sm text-center"><img src="/assets/images/vmcore.png" alt="small logo"></span>
+                <span class="logo-lg"><img :src="$page.props.appLogo" alt="dark logo"></span>
+                <span class="logo-sm text-center"><img :src="$page.props.appLogo" alt="small logo"></span>
             </span>
         </Link>
 
@@ -62,12 +62,42 @@ import { Link } from '@inertiajs/vue3';
                     </Link>
                 </li>
 
+                <li class="side-nav-title mt-2">Accounting</li>
+
+                <li class="side-nav-item">
+                    <Link :href="route('expenses.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
+                        <span class="menu-icon"><i class="ti ti-receipt"></i></span>
+                        <span class="menu-text"> Expenses </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item">
+                    <Link :href="route('expense-categories.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
+                        <span class="menu-icon"><i class="ti ti-category"></i></span>
+                        <span class="menu-text"> Categories </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item">
+                    <Link :href="route('reports.balance-sheet')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
+                        <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
+                        <span class="menu-text"> Balance Sheet </span>
+                    </Link>
+                </li>
+
                 <li class="side-nav-title mt-2">Administration</li>
 
                 <li class="side-nav-item">
                     <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users/') }">
                         <span class="menu-icon"><i class="ti ti-lock"></i></span>
                         <span class="menu-text"> Users & Roles </span>
+                    </Link>
+                </li>
+
+                <li class="side-nav-item">
+                    <Link :href="route('settings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Settings/') }">
+                        <span class="menu-icon"><i class="ti ti-settings"></i></span>
+                        <span class="menu-text"> Settings </span>
                     </Link>
                 </li>
             </ul>

@@ -3,7 +3,7 @@
         <div class="page-container">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    {{ new Date().getFullYear() }} © CRM - Developed by VmCore
+                    {{ new Date().getFullYear() }} © {{ $page.props.appName }}
                 </div>
                 <div class="col-md-6">
                     <div class="text-md-end footer-links d-none d-md-block">

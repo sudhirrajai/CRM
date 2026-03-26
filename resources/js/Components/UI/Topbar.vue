@@ -11,13 +11,13 @@ import { Link } from '@inertiajs/vue3';
                 <!-- Brand Logo -->
                 <Link :href="route('dashboard')" class="logo">
                     <span class="logo-light">
-                        <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="logo"></span>
-                        <span class="logo-sm"><img src="/assets/images/vmcore.png" alt="small logo"></span>
+                        <span class="logo-lg"><img :src="$page.props.appLogo" alt="logo" :style="{ maxHeight: $page.props.appLogoHeight + 'px' }"></span>
+                        <span class="logo-sm"><img :src="$page.props.appLogo" alt="small logo" style="max-height: 22px;"></span>
                     </span>
 
                     <span class="logo-dark">
-                        <span class="logo-lg"><img src="/assets/images/vmcore.png" alt="dark logo"></span>
-                        <span class="logo-sm"><img src="/assets/images/vmcore.png" alt="small logo"></span>
+                        <span class="logo-lg"><img :src="$page.props.appLogo" alt="dark logo" :style="{ maxHeight: $page.props.appLogoHeight + 'px' }"></span>
+                        <span class="logo-sm"><img :src="$page.props.appLogo" alt="small logo" style="max-height: 22px;"></span>
                     </span>
                 </Link>
 
