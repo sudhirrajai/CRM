@@ -62,6 +62,16 @@ const deleteExpense = (id) => {
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 };
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+    }).format(date);
+};
 </script>
 
 <template>
@@ -93,7 +103,7 @@ const formatCurrency = (amount) => {
                                 </thead>
                                 <tbody>
                                     <tr v-for="expense in expenses" :key="expense.id">
-                                        <td>{{ expense.date }}</td>
+                                        <td>{{ formatDate(expense.date) }}</td>
                                         <td><strong>{{ expense.name }}</strong></td>
                                         <td>
                                             <span class="badge bg-soft-info text-info">{{ expense.category.name }}</span>
