@@ -3,13 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\Interfaces\ClientHostingRepositoryInterface;
+use App\Repositories\Interfaces\InvoiceRepositoryInterface;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvoiceMail;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use Carbon\Carbon;
 
 class ClientHostingController extends Controller
 {
     public function __construct(
-        protected ClientHostingRepositoryInterface $hostingRepo
+        protected ClientHostingRepositoryInterface $hostingRepo,
+        protected InvoiceRepositoryInterface $invoiceRepo
     ) {}
 
     public function index()
@@ -52,7 +60,42 @@ class ClientHostingController extends Controller
             'reason' => 'nullable|string',
         ]);
 
-        $this->hostingRepo->create($validated);
+        $hosting = $this->hostingRepo->create($validated);
+
+        // Auto-generate invoice
+        $invoiceNumber = 'INV-H-' . strtoupper(substr(uniqid(), -6));
+        $issueDate = Carbon::now();
+        $dueDate = Carbon::now()->addDays(7); // Default 7 days due date
+
+        $invoiceData = [
+            'client_id' => $hosting->client_id,
+            'project_id' => $hosting->project_id,
+            'currency_id' => $hosting->currency_id,
+            'invoice_number' => $invoiceNumber,
+            'issue_date' => $issueDate,
+            'due_date' => $dueDate,
+            'sub_total' => $hosting->price,
+            'total_amount' => $hosting->price,
+            'status' => 'sent',
+            'notes' => "Subscription Invoice for domain: " . $hosting->domain . "\nPlan: " . ($hosting->plan_details ?: 'Standard Plan'),
+        ];
+
+        $invoice = Invoice::create($invoiceData);
+
+        // Add invoice item
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'description' => "Hosting Subscription - " . $hosting->domain . " (" . ucfirst($hosting->billing_cycle) . ")",
+            'quantity' => 1,
+            'unit_price' => $hosting->price,
+            'total' => $hosting->price,
+        ]);
+
+        // Send email with PDF
+        $invoice->load(['client', 'project', 'currency', 'items']);
+        $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
+        Mail::to($invoice->client->email)->send(new InvoiceMail($invoice, $pdf->output()));
+
         return redirect()->route('hostings.index');
     }
 

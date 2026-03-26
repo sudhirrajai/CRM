@@ -17,6 +17,7 @@ const form = useForm({
     due_date: '',
     total_amount: 0,
     status: 'draft',
+    notes: '',
     send_email: false,
 });
 
