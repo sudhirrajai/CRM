@@ -52,6 +52,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class)->only(['index', 'show']);
     Route::resource('hostings', \App\Http\Controllers\ClientHostingController::class)->only(['index', 'show']);
     
+    // Invoices PDF
+    Route::get('/invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
+    Route::get('/invoices/{invoice}/view-pdf', [\App\Http\Controllers\InvoiceController::class, 'viewPdf'])->name('invoices.view-pdf');
+    
     // Project Discussions
     Route::get('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'index'])->name('projects.discussions.index');
     Route::post('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'store'])->name('projects.discussions.store');
