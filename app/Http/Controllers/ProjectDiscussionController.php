@@ -20,8 +20,8 @@ class ProjectDiscussionController extends Controller
 
         $discussions = $project->discussions()
             ->with(['user', 'attachments', 'replies.user', 'replies.attachments'])
-            ->latest()
-            ->paginate(20);
+            ->oldest()
+            ->paginate(100);
 
         return response()->json($discussions);
     }

@@ -43,6 +43,6 @@ class Project extends Model
 
     public function discussions()
     {
-        return $this->hasMany(ProjectDiscussion::class)->whereNull('parent_id')->with(['user', 'attachments', 'replies'])->latest();
+        return $this->hasMany(ProjectDiscussion::class)->whereNull('parent_id')->with(['user', 'attachments', 'replies'])->oldest();
     }
 }

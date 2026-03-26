@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import axios from 'axios';
 import MessageList from './MessageList.vue';
 import MessageInput from './MessageInput.vue';
@@ -30,6 +30,15 @@ const fetchDiscussions = async () => {
     }
 };
 
+const scrollToBottom = () => {
+    nextTick(() => {
+        const container = document.getElementById('discussion-scroll');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    });
+};
+
 const handleMessageSent = (newMessage) => {
     if (newMessage.parent_id) {
         // Find parent and add reply
@@ -39,7 +48,8 @@ const handleMessageSent = (newMessage) => {
             parent.replies.push(newMessage);
         }
     } else {
-        discussions.value.unshift(newMessage);
+        discussions.value.push(newMessage);
+        scrollToBottom();
     }
 };
 
@@ -62,8 +72,9 @@ const filteredDiscussions = computed(() => {
     return filtered;
 });
 
-onMounted(() => {
-    fetchDiscussions();
+onMounted(async () => {
+    await fetchDiscussions();
+    scrollToBottom();
 });
 </script>
 
@@ -74,9 +85,9 @@ onMounted(() => {
                 <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
                     <h5 class="mb-0 fw-bold"><i class="ti ti-messages me-2 text-primary"></i> Project Discussion</h5>
                     <div class="d-flex gap-2">
-                        <div class="input-group input-group-sm" style="width: 200px;">
-                            <span class="input-group-text bg-light border-end-0"><i class="ti ti-search text-muted"></i></span>
-                            <input v-model="searchQuery" type="text" class="form-control bg-light border-start-0" placeholder="Search messages...">
+                        <div class="search-box position-relative" style="width: 250px;">
+                            <i class="ti ti-search position-absolute top-50 translate-middle-y ms-3 text-muted z-2"></i>
+                            <input v-model="searchQuery" type="text" class="form-control form-control-sm ps-5 bg-light border-0 rounded-pill shadow-none" placeholder="Search messages..." style="padding-left: 2.5rem !important;">
                         </div>
                     </div>
                 </div>

@@ -68,23 +68,23 @@ const activeMenu = ref(null);
                     </Link>
                 </li>
 
-                <li class="side-nav-title mt-2 text-uppercase fs-12">Accounting</li>
+                <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">Accounting</li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Index') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
                     <Link :href="route('expenses.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
                         <span class="menu-icon"><i class="ti ti-receipt"></i></span>
                         <span class="menu-text"> Expenses </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
                     <Link :href="route('expense-categories.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
                         <span class="menu-icon"><i class="ti ti-category"></i></span>
                         <span class="menu-text"> Categories </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
                     <Link :href="route('reports.balance-sheet')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
                         <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
                         <span class="menu-text"> Balance Sheet </span>
