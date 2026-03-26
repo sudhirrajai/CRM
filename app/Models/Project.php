@@ -40,4 +40,9 @@ class Project extends Model
     {
         return $this->hasMany(Milestone::class);
     }
+
+    public function discussions()
+    {
+        return $this->hasMany(ProjectDiscussion::class)->whereNull('parent_id')->with(['user', 'attachments', 'replies'])->latest();
+    }
 }

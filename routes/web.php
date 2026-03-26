@@ -52,7 +52,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class)->only(['index', 'show']);
     Route::resource('hostings', \App\Http\Controllers\ClientHostingController::class)->only(['index', 'show']);
     
-
+    // Project Discussions
+    Route::get('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'index'])->name('projects.discussions.index');
+    Route::post('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'store'])->name('projects.discussions.store');
+    Route::put('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'update'])->name('projects.discussions.update');
+    Route::delete('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'destroy'])->name('projects.discussions.destroy');
+    Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
 });
 
 require __DIR__.'/auth.php';

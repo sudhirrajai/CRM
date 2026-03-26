@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('milestones', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->decimal('hours', 8, 2)->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
