@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, Throwable $exception, \Illuminate\Http\Request $request) {
-            if (in_array($response->getStatusCode(), [500, 503, 404, 403])) {
+            if (in_array($response->getStatusCode(), [404, 403]) && !$request->is('api/*')) {
                 return \Inertia\Inertia::render('Error', ['status' => $response->getStatusCode()])
                     ->toResponse($request)
                     ->setStatusCode($response->getStatusCode());
