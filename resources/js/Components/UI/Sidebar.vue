@@ -107,17 +107,24 @@ const activeMenu = ref(null);
                     </Link>
                 </li>
 
-                <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin')">Administration</li>
+                <li v-if="$page.props.auth.permissions.includes('users.view') || $page.props.auth.permissions.includes('roles.view') || $page.props.auth.permissions.includes('settings.view')" class="side-nav-title mt-2 text-uppercase fs-12">Administration</li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Users') }" v-if="$page.props.auth.roles.includes('admin')">
-                    <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users') }">
-                        <span class="menu-icon"><i class="ti ti-lock"></i></span>
-                        <span class="menu-text"> Users & Roles </span>
+                <li v-if="$page.props.auth.permissions.includes('users.view')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Users/') }">
+                    <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users/') }">
+                        <span class="menu-icon"><i class="ti ti-users-group"></i></span>
+                        <span class="menu-text"> Users </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Settings') }" v-if="$page.props.auth.roles.includes('admin')">
-                    <Link :href="route('settings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Settings') }">
+                <li v-if="$page.props.auth.permissions.includes('roles.view')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Roles/') }">
+                    <Link :href="route('roles.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Roles/') }">
+                        <span class="menu-icon"><i class="ti ti-shield"></i></span>
+                        <span class="menu-text"> Roles & Permissions </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.permissions.includes('settings.view')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Settings/') }">
+                    <Link :href="route('settings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Settings/') }">
                         <span class="menu-icon"><i class="ti ti-settings"></i></span>
                         <span class="menu-text"> Settings </span>
                     </Link>

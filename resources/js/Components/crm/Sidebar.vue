@@ -87,9 +87,9 @@ import { Link } from '@inertiajs/vue3';
 
                 <li v-if="$page.props.auth.permissions.includes('users.view') || $page.props.auth.permissions.includes('roles.view') || $page.props.auth.permissions.includes('settings.view')" class="side-nav-title mt-2">Administration</li>
 
-                <li v-if="$page.props.auth.permissions.includes('users.view')" class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('users.view')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Users/') }">
                     <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users/') }">
-                        <span class="menu-icon"><i class="ti ti-lock"></i></span>
+                        <span class="menu-icon"><i class="ti ti-users-group"></i></span>
                         <span class="menu-text"> Users </span>
                     </Link>
                 </li>
