@@ -22,7 +22,7 @@ const acquisitionSeries = [{ name: 'New Clients', data: props.clientAcquisition.
 
 const hostingChartOptions = {
     chart: { type: 'pie' },
-    labels: props.hostingDistribution.map(h => h.type.toUpperCase()),
+    labels: props.hostingDistribution.map(h => h.billing_cycle.toUpperCase()),
     legend: { position: 'bottom' },
     colors: ['#3e60d5', '#47ad59', '#fab116', '#fa5c7c']
 };

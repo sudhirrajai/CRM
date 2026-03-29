@@ -178,8 +178,8 @@ class ReportController extends Controller
 
         $upcomingDeadlines = DB::table('projects')
             ->where('status', '!=', 'completed')
-            ->where('deadline', '>=', Carbon::now())
-            ->orderBy('deadline')
+            ->where('end_date', '>=', Carbon::now())
+            ->orderBy('end_date')
             ->take(10)
             ->get();
 
@@ -198,8 +198,8 @@ class ReportController extends Controller
             ->get();
 
         $hostingDistribution = DB::table('client_hostings')
-            ->select('type', DB::raw('count(*) as total'))
-            ->groupBy('type')
+            ->select('billing_cycle', DB::raw('count(*) as total'))
+            ->groupBy('billing_cycle')
             ->get();
 
         return Inertia::render('Reports/ClientReport', [

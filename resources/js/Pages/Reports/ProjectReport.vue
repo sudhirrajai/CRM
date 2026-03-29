@@ -82,7 +82,7 @@ const getDaysDiff = (date) => {
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Upcoming Deadlines & Project Tracking</h5>
+                        <h5 class="card-title mb-0">Upcoming End Dates & Project Tracking</h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -91,7 +91,7 @@ const getDaysDiff = (date) => {
                                     <tr>
                                         <th>Project Name</th>
                                         <th>Client</th>
-                                        <th>Deadline</th>
+                                        <th>End Date</th>
                                         <th>Status</th>
                                         <th>Urgency</th>
                                         <th>Action</th>
@@ -99,9 +99,9 @@ const getDaysDiff = (date) => {
                                 </thead>
                                 <tbody>
                                     <tr v-for="project in upcomingDeadlines" :key="project.id">
-                                        <td class="fw-bold">{{ project.title }}</td>
+                                        <td class="fw-bold">{{ project.name }}</td>
                                         <td><span class="badge bg-light text-dark">ClientID: {{ project.client_id }}</span></td>
-                                        <td>{{ formatDate(project.deadline) }}</td>
+                                        <td>{{ formatDate(project.end_date) }}</td>
                                         <td>
                                             <span class="badge" :class="{
                                                 'bg-soft-primary text-primary': project.status === 'in_progress',
@@ -111,16 +111,16 @@ const getDaysDiff = (date) => {
                                             }">{{ project.status.replace('_', ' ') }}</span>
                                         </td>
                                         <td>
-                                            <span v-if="getDaysDiff(project.deadline) < 0" class="text-danger fw-bold">Overdue</span>
-                                            <span v-else-if="getDaysDiff(project.deadline) < 7" class="text-warning fw-bold">Due in {{ getDaysDiff(project.deadline) }} Days</span>
-                                            <span v-else class="text-success fw-bold">{{ getDaysDiff(project.deadline) }} Days Left</span>
+                                            <span v-if="getDaysDiff(project.end_date) < 0" class="text-danger fw-bold">Overdue</span>
+                                            <span v-else-if="getDaysDiff(project.end_date) < 7" class="text-warning fw-bold">Ends in {{ getDaysDiff(project.end_date) }} Days</span>
+                                            <span v-else class="text-success fw-bold">{{ getDaysDiff(project.end_date) }} Days Left</span>
                                         </td>
                                         <td>
                                             <Link :href="route('projects.show', project.id)" class="btn btn-soft-primary btn-sm">View</Link>
                                         </td>
                                     </tr>
                                     <tr v-if="upcomingDeadlines.length === 0">
-                                        <td colspan="6" class="text-center py-4">No upcoming deadlines found.</td>
+                                        <td colspan="6" class="text-center py-4">No upcoming projects found.</td>
                                     </tr>
                                 </tbody>
                             </table>
