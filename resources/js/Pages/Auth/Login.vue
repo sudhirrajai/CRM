@@ -96,6 +96,6 @@ const submit = () => {
             </div>
         </form>
 
-        <p class="text-danger fs-14 my-4">Don't have an account? <Link :href="route('register')" class="fw-semibold text-dark ms-1">Sign Up !</Link></p>
+        <!-- Registration disabled -->
     </GuestLayout>
 </template>
