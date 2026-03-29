@@ -84,11 +84,41 @@ const activeMenu = ref(null);
                     </Link>
                 </li>
 
-                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
-                    <Link :href="route('reports.balance-sheet')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                    <a data-bs-toggle="collapse" href="#sidebarReports" aria-expanded="false" aria-controls="sidebarReports" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
-                        <span class="menu-text"> Balance Sheet </span>
-                    </Link>
+                        <span class="menu-text"> Reports </span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse" :class="{ 'show': $page.component.startsWith('Reports/') }" id="sidebarReports">
+                        <ul class="sub-menu">
+                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports' }">
+                                <Link :href="route('reports.index')" class="side-nav-link">
+                                    <span class="menu-text">Dashboard</span>
+                                </Link>
+                            </li>
+                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/profit-loss' }">
+                                <Link :href="route('reports.profit-loss')" class="side-nav-link">
+                                    <span class="menu-text">Profit & Loss</span>
+                                </Link>
+                            </li>
+                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/projects' }">
+                                <Link :href="route('reports.projects')" class="side-nav-link">
+                                    <span class="menu-text">Projects</span>
+                                </Link>
+                            </li>
+                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/clients' }">
+                                <Link :href="route('reports.clients')" class="side-nav-link">
+                                    <span class="menu-text">Clients</span>
+                                </Link>
+                            </li>
+                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/balance-sheet' }">
+                                <Link :href="route('reports.balance-sheet')" class="side-nav-link">
+                                    <span class="menu-text">Balance Sheet</span>
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">Infrastructure</li>
