@@ -14,15 +14,22 @@ class RoleController extends Controller
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
         
-        // Group permissions by module for the UI
-        $groupedPermissions = $permissions->groupBy(function ($permission) {
+        // Group permissions by module for the UI, filtering out legacy ones
+        $grouped = [];
+        foreach ($permissions as $permission) {
             $parts = explode('.', $permission->name);
-            return count($parts) > 1 ? $parts[0] : 'other';
-        });
+            if (count($parts) > 1) {
+                $module = $parts[0];
+                $grouped[$module][] = [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                ];
+            }
+        }
 
         return Inertia::render('Roles/Index', [
             'roles' => $roles,
-            'groupedPermissions' => $groupedPermissions,
+            'groupedPermissions' => $grouped,
         ]);
     }
 
