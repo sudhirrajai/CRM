@@ -13,32 +13,61 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create permissions
-        $permissions = [
-            'view_all_clients', 'edit_all_clients', 'delete_all_clients',
-            'view_all_projects', 'edit_all_projects', 'delete_all_projects',
-            'view_all_invoices', 'edit_all_invoices', 'delete_all_invoices',
-            'view_all_hostings', 'edit_all_hostings', 'delete_all_hostings',
-            'view_all_servers', 'edit_all_servers', 'delete_all_servers',
-            
-            // Client specific
-            'view_own_invoices', 'view_own_projects', 'view_own_hostings'
+        // Create permissions grouped by module
+        $modules = [
+            'clients' => ['view', 'create', 'edit', 'delete'],
+            'projects' => ['view', 'create', 'edit', 'delete'],
+            'invoices' => ['view', 'create', 'edit', 'delete'],
+            'hostings' => ['view', 'create', 'edit', 'delete'],
+            'servers' => ['view', 'create', 'edit', 'delete'],
+            'orders' => ['view', 'create', 'edit', 'delete'],
+            'expenses' => ['view', 'create', 'edit', 'delete'],
+            'expense_categories' => ['view', 'create', 'edit', 'delete'],
+            'reports' => ['view'],
+            'users' => ['view', 'create', 'edit', 'delete'],
+            'roles' => ['view', 'edit'],
+            'settings' => ['view', 'edit'],
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+        $allPermissionNames = [];
+        foreach ($modules as $module => $actions) {
+            foreach ($actions as $action) {
+                $name = "{$module}.{$action}";
+                $allPermissionNames[] = $name;
+                Permission::firstOrCreate(['name' => $name]);
+            }
+        }
+
+        // Add legacy client permissions if still needed by controllers for now
+        $legacyPermissions = ['view_own_invoices', 'view_own_projects', 'view_own_hostings'];
+        foreach ($legacyPermissions as $name) {
+            Permission::firstOrCreate(['name' => $name]);
         }
 
         // Create roles and assign created permissions
         $roleClient = Role::firstOrCreate(['name' => 'client']);
-        $roleClient->syncPermissions(['view_own_invoices', 'view_own_projects', 'view_own_hostings']);
+        $roleClient->syncPermissions([
+            'clients.view', 
+            'projects.view', 
+            'invoices.view', 
+            'hostings.view', 
+            'orders.view',
+            'view_own_invoices', 
+            'view_own_projects', 
+            'view_own_hostings'
+        ]);
 
         $roleStaff = Role::firstOrCreate(['name' => 'staff']);
         $roleStaff->syncPermissions([
-            'view_all_clients', 'edit_all_clients',
-            'view_all_projects', 'edit_all_projects',
-            'view_all_invoices', 'edit_all_invoices',
-            'view_all_hostings', 'edit_all_hostings',
+            'clients.view', 'clients.create', 'clients.edit',
+            'projects.view', 'projects.create', 'projects.edit',
+            'invoices.view', 'invoices.create', 'invoices.edit',
+            'hostings.view', 'hostings.create', 'hostings.edit',
+            'servers.view', 'servers.create', 'servers.edit',
+            'orders.view', 'orders.create', 'orders.edit',
+            'expenses.view', 'expenses.create', 'expenses.edit',
+            'expense_categories.view', 'expense_categories.create', 'expense_categories.edit',
+            'reports.view',
         ]);
 
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);

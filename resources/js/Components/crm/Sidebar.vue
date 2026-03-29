@@ -34,67 +34,74 @@ import { Link } from '@inertiajs/vue3';
 
                 <li class="side-nav-title mt-2">CRM Modules</li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('clients.view')" class="side-nav-item">
                     <Link :href="route('clients.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Clients/') }">
                         <span class="menu-icon"><i class="ti ti-users"></i></span>
                         <span class="menu-text"> Clients </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('projects.view')" class="side-nav-item">
                     <Link :href="route('projects.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Projects/') }">
                         <span class="menu-icon"><i class="ti ti-case-round-minimalistic"></i></span>
                         <span class="menu-text"> Projects </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('orders.view')" class="side-nav-item">
                     <Link :href="route('orders.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Orders/') }">
                         <span class="menu-icon"><i class="ti ti-basket"></i></span>
                         <span class="menu-text"> Orders </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('invoices.view')" class="side-nav-item">
                     <Link :href="route('invoices.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Invoices/') }">
                         <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
                         <span class="menu-text"> Invoices </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-title mt-2">Accounting</li>
+                <li v-if="$page.props.auth.permissions.includes('expenses.view') || $page.props.auth.permissions.includes('reports.view')" class="side-nav-title mt-2">Accounting</li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('expenses.view')" class="side-nav-item">
                     <Link :href="route('expenses.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Index') }">
                         <span class="menu-icon"><i class="ti ti-receipt"></i></span>
                         <span class="menu-text"> Expenses </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('expense_categories.view')" class="side-nav-item">
                     <Link :href="route('expense-categories.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Expenses/Categories') }">
                         <span class="menu-icon"><i class="ti ti-category"></i></span>
                         <span class="menu-text"> Categories </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('reports.view')" class="side-nav-item">
                     <Link :href="route('reports.balance-sheet')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Reports/BalanceSheet') }">
                         <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
                         <span class="menu-text"> Balance Sheet </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-title mt-2">Administration</li>
+                <li v-if="$page.props.auth.permissions.includes('users.view') || $page.props.auth.permissions.includes('roles.view') || $page.props.auth.permissions.includes('settings.view')" class="side-nav-title mt-2">Administration</li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('users.view')" class="side-nav-item">
                     <Link :href="route('users.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Users/') }">
                         <span class="menu-icon"><i class="ti ti-lock"></i></span>
-                        <span class="menu-text"> Users & Roles </span>
+                        <span class="menu-text"> Users </span>
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
+                <li v-if="$page.props.auth.permissions.includes('roles.view')" class="side-nav-item">
+                    <Link :href="route('roles.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Roles/') }">
+                        <span class="menu-icon"><i class="ti ti-shield"></i></span>
+                        <span class="menu-text"> Roles & Permissions </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.permissions.includes('settings.view')" class="side-nav-item">
                     <Link :href="route('settings.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Settings/') }">
                         <span class="menu-icon"><i class="ti ti-settings"></i></span>
                         <span class="menu-text"> Settings </span>

@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
         Route::resource('users', \App\Http\Controllers\UserController::class);
         
+        Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
+        Route::put('/roles/{role}', [\App\Http\Controllers\RoleController::class, 'update'])->name('roles.update');
+        
         Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
         Route::post('/settings/logo', [\App\Http\Controllers\SettingController::class, 'uploadLogo'])->name('settings.logo');
