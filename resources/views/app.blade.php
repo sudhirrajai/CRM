@@ -6,6 +6,11 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+
         <!-- App favicon -->
         <link rel="shortcut icon" href="/assets/images/favicon.png">
 
@@ -34,8 +39,6 @@
         <!-- App js (Packaged in assets) -->
         <script src="/assets/js/app.js"></script>
 
-        <!-- Dashboard Sales js -->
-        <script src="/assets/js/pages/dashboard-sales.js"></script>
 
         <!-- Iconify-icon -->
         <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>

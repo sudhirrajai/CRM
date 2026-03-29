@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return Inertia::render('Landing');
 });
 
 Route::get('/dashboard', function (\App\Services\DashboardService $dashboardService) {
