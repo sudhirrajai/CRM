@@ -244,20 +244,22 @@ onMounted(fetchFiles);
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label d-block">Expiration Setting</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" v-model="isUnlimited" :value="true" id="expUnlimited">
-                            <label class="form-check-input" for="expUnlimited">Unlimited Time</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" v-model="isUnlimited" :value="false" id="expCustom">
-                            <label class="form-check-input" for="expCustom">Set Expiration</label>
+                        <label class="form-label d-block fw-bold">Expiration Setting</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" v-model="isUnlimited" :value="true" id="expUnlimited">
+                                <label class="form-check-label" for="expUnlimited">Unlimited Time</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" v-model="isUnlimited" :value="false" id="expCustom">
+                                <label class="form-check-label" for="expCustom">Set Expiration</label>
+                            </div>
                         </div>
                     </div>
 
-                    <div v-if="!isUnlimited" class="mb-3">
-                        <label class="form-label">Expiration Date</label>
-                        <input type="date" class="form-control" v-model="shareExpiresAt" :min="new Date().toISOString().split('T')[0]" />
+                    <div v-if="!isUnlimited" class="mb-3 animate-fade-in">
+                        <label class="form-label fw-bold">Expiration Date</label>
+                        <input type="date" class="form-control shadow-sm" v-model="shareExpiresAt" :min="new Date().toISOString().split('T')[0]" />
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
