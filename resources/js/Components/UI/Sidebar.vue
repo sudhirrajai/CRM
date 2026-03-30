@@ -4,6 +4,11 @@ import { ref } from 'vue';
 
 // For handling menu state if needed
 const activeMenu = ref(null);
+const showReports = ref(false);
+
+const toggleReports = () => {
+    showReports.value = !showReports.value;
+};
 </script>
 
 <template>
@@ -93,12 +98,12 @@ const activeMenu = ref(null);
                 </li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
-                    <a data-bs-toggle="collapse" href="#sidebarReports" aria-expanded="false" aria-controls="sidebarReports" class="side-nav-link">
+                    <a @click.prevent="toggleReports" class="side-nav-link" style="cursor: pointer;">
                         <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
                         <span class="menu-text"> Reports </span>
-                        <span class="menu-arrow"></span>
+                        <span class="menu-arrow" :class="{ 'transform-rotate-90': showReports }"></span>
                     </a>
-                    <div class="collapse" :class="{ 'show': $page.component.startsWith('Reports/') }" id="sidebarReports">
+                    <div class="collapse" :class="{ 'show': showReports || $page.component.startsWith('Reports/') }" id="sidebarReports">
                         <ul class="sub-menu">
                             <li class="side-nav-item" :class="{ 'active': $page.url === '/reports' }">
                                 <Link :href="route('reports.index')" class="side-nav-link">

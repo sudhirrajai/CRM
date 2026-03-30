@@ -20,7 +20,12 @@ const props = defineProps({
 
 const replyForm = useForm({
     message: '',
+    attachments: [],
 });
+
+const handleReplyFileUpload = (e) => {
+    replyForm.attachments = e.target.files;
+};
 
 const assignForm = useForm({
     user_id: props.ticket.assigned_to || '',
@@ -32,7 +37,12 @@ const statusForm = useForm({
 
 const submitReply = () => {
     replyForm.post(route('tickets.update', props.ticket.id), {
-        onSuccess: () => replyForm.reset(),
+        preserveScroll: true,
+        onSuccess: () => {
+            replyForm.reset();
+            const fileInput = document.getElementById('reply-attachments');
+            if (fileInput) fileInput.value = '';
+        },
     });
 };
 
@@ -82,9 +92,9 @@ const getStatusClass = (status) => {
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card mb-4">
+        <div class="row" :class="{ 'justify-content-center': !canManage }">
+            <div :class="canManage ? 'col-lg-8' : 'col-lg-10'">
+                <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0 text-white">#{{ ticket.id.substring(0, 8) }} - {{ ticket.subject }}</h5>
                         <span class="badge text-capitalize" :class="getStatusClass(ticket.status)">{{ ticket.status }}</span>
@@ -117,9 +127,22 @@ const getStatusClass = (status) => {
                                         </span>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <div class="card shadow-sm mb-1" :class="{'bg-primary text-white': message.user_id === $page.props.auth.user.id}">
+                                        <div class="card shadow-sm mb-1" :class="{'bg-primary text-white border-0': message.user_id === $page.props.auth.user.id, 'bg-light border-0': message.user_id !== $page.props.auth.user.id}">
                                             <div class="card-body py-2 px-3">
-                                                <p class="mb-0">{{ message.message }}</p>
+                                                <p class="mb-0 text-break" style="white-space: pre-wrap;">{{ message.message }}</p>
+
+                                                <div v-if="message.attachments && message.attachments.length > 0" class="mt-2 pt-2 border-top" :class="message.user_id === $page.props.auth.user.id ? 'border-primary-subtle' : ''">
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <a v-for="attachment in message.attachments" :key="attachment.id" 
+                                                           :href="route('tickets.attachments.download', { ticket: ticket.id, attachment: attachment.id })"
+                                                           target="_blank"
+                                                           class="badge bg-opacity-25 p-2 text-decoration-none d-flex align-items-center"
+                                                           :class="message.user_id === $page.props.auth.user.id ? 'bg-white text-primary border border-white' : 'bg-primary text-white'">
+                                                            <i class="ti ti-paperclip me-1"></i>
+                                                            <span class="text-truncate" style="max-width: 150px;">{{ attachment.file_name }}</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="small text-muted" :class="{'text-end': message.user_id === $page.props.auth.user.id}">
@@ -131,15 +154,27 @@ const getStatusClass = (status) => {
                         </div>
 
                         <!-- Reply Form -->
-                        <div class="p-4 border-top">
+                        <div class="p-4 border-top bg-light-subtle">
                             <form @submit.prevent="submitReply">
                                 <div class="mb-3">
-                                    <textarea v-model="replyForm.message" class="form-control" rows="4" placeholder="Type your reply here..." required></textarea>
+                                    <label class="form-label text-muted small text-uppercase fw-semibold">Your Reply</label>
+                                    <textarea v-model="replyForm.message" class="form-control bg-white" rows="4" style="resize: vertical; min-height: 100px;" placeholder="Type your reply here..." required></textarea>
                                     <div v-if="replyForm.errors.message" class="text-danger small mt-1">{{ replyForm.errors.message }}</div>
                                 </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary" :disabled="replyForm.processing">
-                                        Send Reply
+
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="flex-grow-1" style="max-width: 400px;">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white border-end-0"><i class="ti ti-paperclip"></i></span>
+                                            <input type="file" id="reply-attachments" @change="handleReplyFileUpload" class="form-control border-start-0 ps-0" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip">
+                                        </div>
+                                        <div class="form-text mt-1" style="font-size: 0.75rem;">Max 10MB per file.</div>
+                                        <div v-for="(error, key) in replyForm.errors" :key="key">
+                                            <div v-if="key.startsWith('attachments')" class="text-danger small mt-1">{{ error }}</div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary px-4" :disabled="replyForm.processing">
+                                        <i class="ti ti-send me-1"></i> Send Reply
                                     </button>
                                 </div>
                             </form>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\TicketMessage;
+use App\Models\TicketAttachment;
 use App\Models\Project;
 use App\Models\User;
 use App\Mail\TicketCreatedMail;
@@ -12,6 +13,7 @@ use App\Mail\TicketReplyMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TicketController extends Controller
@@ -55,6 +57,7 @@ class TicketController extends Controller
             'project_id' => 'nullable|exists:projects,id',
             'priority' => 'required|in:low,medium,high,urgent',
             'message' => 'required|string',
+            'attachments.*' => 'nullable|file|max:10240',
         ]);
 
         $ticket = Ticket::create([
@@ -66,11 +69,24 @@ class TicketController extends Controller
             'status' => 'open',
         ]);
 
-        TicketMessage::create([
+        $messageRecord = TicketMessage::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
             'message' => $validated['message'],
         ]);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('tickets', 'public');
+                TicketAttachment::create([
+                    'ticket_message_id' => $messageRecord->id,
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
 
         // Notify Admins
         $admins = User::role('admin')->get();
@@ -90,7 +106,7 @@ class TicketController extends Controller
         }
 
         return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket->load(['client', 'project', 'user', 'assignee', 'messages.user']),
+            'ticket' => $ticket->load(['client', 'project', 'user', 'assignee', 'messages.user', 'messages.attachments']),
             'users' => User::role(['admin', 'staff'])->get(),
             'canManage' => $user->hasRole(['admin', 'staff']),
         ]);
@@ -102,6 +118,7 @@ class TicketController extends Controller
         
         $validated = $request->validate([
             'message' => 'required|string',
+            'attachments.*' => 'nullable|file|max:10240',
         ]);
 
         $message = TicketMessage::create([
@@ -109,6 +126,19 @@ class TicketController extends Controller
             'user_id' => $user->id,
             'message' => $validated['message'],
         ]);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('tickets', 'public');
+                TicketAttachment::create([
+                    'ticket_message_id' => $message->id,
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
 
         // If it's not closed, update status if staff replies
         if ($ticket->status === 'open' && $user->hasRole(['admin', 'staff'])) {
@@ -171,5 +201,19 @@ class TicketController extends Controller
         $ticket->update(['status' => $validated['status']]);
 
         return back()->with('success', 'Ticket status updated.');
+    }
+
+    public function downloadAttachment(Ticket $ticket, TicketAttachment $attachment)
+    {
+        if ($attachment->message->ticket_id !== $ticket->id) {
+            abort(404);
+        }
+
+        $user = Auth::user();
+        if ($user->client_id && $ticket->client_id !== $user->client_id) {
+            abort(403);
+        }
+
+        return Storage::disk('public')->download($attachment->file_path, $attachment->file_name);
     }
 }

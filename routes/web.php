@@ -87,6 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tickets', \App\Http\Controllers\TicketController::class);
     Route::post('/tickets/{ticket}/assign', [\App\Http\Controllers\TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('/tickets/{ticket}/status', [\App\Http\Controllers\TicketController::class, 'updateStatus'])->name('tickets.update-status');
+    Route::get('/tickets/{ticket}/attachments/{attachment}/download', [\App\Http\Controllers\TicketController::class, 'downloadAttachment'])->name('tickets.attachments.download');
 });
 
 
