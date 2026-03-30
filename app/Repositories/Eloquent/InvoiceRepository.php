@@ -12,6 +12,36 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
         parent::__construct($model);
     }
 
+    public function create(array $attributes)
+    {
+        $selectedCrs = $attributes['selected_crs'] ?? [];
+        unset($attributes['selected_crs']);
+
+        $invoice = parent::create($attributes);
+
+        if (!empty($selectedCrs)) {
+            \App\Models\ChangeRequest::whereIn('id', $selectedCrs)->update([
+                'invoice_id' => $invoice->id,
+                'status' => 'invoiced'
+            ]);
+
+            // Create individual invoice items for CRs
+            foreach ($selectedCrs as $crId) {
+                $cr = \App\Models\ChangeRequest::find($crId);
+                if ($cr) {
+                    $invoice->items()->create([
+                        'description' => 'Change Request: ' . $cr->title,
+                        'unit_price' => $cr->amount,
+                        'quantity' => 1,
+                        'total' => $cr->amount
+                    ]);
+                }
+            }
+        }
+
+        return $invoice;
+    }
+
     public function getByClient($id)
     {
         return $this->model->where('client_id', $id)->get();

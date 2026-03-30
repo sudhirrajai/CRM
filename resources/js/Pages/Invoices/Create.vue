@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 defineProps({
     clients: { type: Array, required: true },
@@ -19,7 +20,31 @@ const form = useForm({
     status: 'draft',
     notes: '',
     send_email: false,
+    selected_crs: [], // To track selected CR IDs
 });
+
+const selectedProject = ref(null);
+
+watch(() => form.project_id, (newProjectId) => {
+    if (newProjectId) {
+        selectedProject.value = props.projects.find(p => p.id === newProjectId);
+        form.selected_crs = [];
+    } else {
+        selectedProject.value = null;
+        form.selected_crs = [];
+    }
+});
+
+const toggleCR = (cr) => {
+    const index = form.selected_crs.indexOf(cr.id);
+    if (index > -1) {
+        form.selected_crs.splice(index, 1);
+        form.total_amount = Math.max(0, parseFloat(form.total_amount) - parseFloat(cr.amount)).toFixed(2);
+    } else {
+        form.selected_crs.push(cr.id);
+        form.total_amount = (parseFloat(form.total_amount) + parseFloat(cr.amount)).toFixed(2);
+    }
+};
 
 const submit = () => {
     form.post(route('invoices.store'), {
@@ -83,6 +108,22 @@ const submit = () => {
                                         </option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.currency_id">{{ form.errors.currency_id }}</div>
+                                </div>
+                            </div>
+
+                            <div v-if="selectedProject && selectedProject.change_requests?.length > 0" class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-label">Select Change Requests to Include</label>
+                                    <div class="list-group">
+                                        <label v-for="cr in selectedProject.change_requests" :key="cr.id" class="list-group-item d-flex justify-content-between align-items-center cursor-pointer">
+                                            <div>
+                                                <input type="checkbox" class="form-check-input me-2" :checked="form.selected_crs.includes(cr.id)" @change="toggleCR(cr)">
+                                                <span>{{ cr.title }}</span>
+                                                <small class="text-muted d-block">{{ cr.description }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">{{ selectedProject.client?.currency?.code || 'USD' }} {{ cr.amount }}</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 

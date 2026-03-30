@@ -16,6 +16,9 @@ class Project extends Model
         'status',
         'start_date',
         'end_date',
+        'tech_stack',
+        'budget',
+        'priority',
     ];
 
     protected function casts(): array
@@ -44,5 +47,10 @@ class Project extends Model
     public function discussions()
     {
         return $this->hasMany(ProjectDiscussion::class)->whereNull('parent_id')->with(['user', 'attachments', 'replies'])->oldest();
+    }
+
+    public function changeRequests()
+    {
+        return $this->hasMany(ChangeRequest::class);
     }
 }

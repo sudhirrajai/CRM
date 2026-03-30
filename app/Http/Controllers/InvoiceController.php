@@ -37,7 +37,7 @@ class InvoiceController extends Controller
     {
         return Inertia::render('Invoices/Create', [
             'clients' => \App\Models\Client::where('status', 'active')->get(),
-            'projects' => \App\Models\Project::where('status', 'in_progress')->get(),
+            'projects' => \App\Models\Project::with(['changeRequests' => fn($q) => $q->where('status', 'pending')])->get(),
             'currencies' => \App\Models\Currency::all(),
         ]);
     }

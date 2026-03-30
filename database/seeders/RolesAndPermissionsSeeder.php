@@ -23,6 +23,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'orders' => ['view', 'create', 'edit', 'delete'],
             'expenses' => ['view', 'create', 'edit', 'delete'],
             'expense_categories' => ['view', 'create', 'edit', 'delete'],
+            'change_requests' => ['view', 'create', 'edit', 'delete'],
             'reports' => ['view'],
             'users' => ['view', 'create', 'edit', 'delete'],
             'roles' => ['view', 'edit'],
@@ -52,6 +53,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'invoices.view', 
             'hostings.view', 
             'orders.view',
+            'change_requests.view',
             'view_own_invoices', 
             'view_own_projects', 
             'view_own_hostings'
@@ -67,6 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'orders.view', 'orders.create', 'orders.edit',
             'expenses.view', 'expenses.create', 'expenses.edit',
             'expense_categories.view', 'expense_categories.create', 'expense_categories.edit',
+            'change_requests.view', 'change_requests.create', 'change_requests.edit', 'change_requests.delete',
             'reports.view',
         ]);
 
