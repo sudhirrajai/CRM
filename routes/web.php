@@ -82,7 +82,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/files/{file}', [ProjectFileController::class, 'destroy'])->name('projects.files.destroy');
     Route::post('/files/{file}/share', [ProjectFileController::class, 'createShareLink'])->name('projects.files.share');
     Route::delete('/files/{file}/share', [ProjectFileController::class, 'revokeShareLink'])->name('projects.files.revoke-share');
+
+    // Support Tickets
+    Route::resource('tickets', \App\Http\Controllers\TicketController::class);
+    Route::post('/tickets/{ticket}/assign', [\App\Http\Controllers\TicketController::class, 'assign'])->name('tickets.assign');
+    Route::post('/tickets/{ticket}/status', [\App\Http\Controllers\TicketController::class, 'updateStatus'])->name('tickets.update-status');
 });
+
 
 // Public Shared Files
 Route::get('/shared-files/{token}', [ProjectFileController::class, 'publicDownload'])->name('public.files.download');

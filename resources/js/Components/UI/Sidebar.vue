@@ -60,8 +60,16 @@ const activeMenu = ref(null);
                         <span class="menu-text"> Projects </span>
                     </Link>
                 </li>
+                
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Tickets') }">
+                    <Link :href="route('tickets.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Tickets') }">
+                        <span class="menu-icon"><i class="ti ti-headset"></i></span>
+                        <span class="menu-text"> Support Tickets </span>
+                    </Link>
+                </li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Invoices') }">
+
                     <Link :href="route('invoices.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Invoices') }">
                         <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
                         <span class="menu-text"> Invoices </span>
