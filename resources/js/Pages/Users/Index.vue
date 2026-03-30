@@ -22,7 +22,9 @@ const form = useForm({
     email: '',
     password: '',
     roles: [],
+    send_email: false,
 });
+
 
 const openCreateModal = () => {
     editingUser.value = null;
@@ -170,6 +172,16 @@ const deleteUser = (id) => {
                                 </div>
                                 <div v-if="form.errors.roles" class="text-danger small mt-1">{{ form.errors.roles }}</div>
                             </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sendEmail" v-model="form.send_email">
+                                    <label class="form-check-label" for="sendEmail">
+                                        Send credentials via email
+                                    </label>
+                                </div>
+                                <div v-if="form.errors.send_email" class="text-danger small mt-1">{{ form.errors.send_email }}</div>
+                            </div>
+
                         </div>
                         <div class="modal-footer border-top-0">
                             <button type="button" class="btn btn-light" @click="closeModal">Cancel</button>
