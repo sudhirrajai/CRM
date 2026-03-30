@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import DiscussionContainer from '@/Components/ProjectDiscussion/DiscussionContainer.vue';
 import ChangeRequestTab from './Tabs/ChangeRequests.vue';
+import SharedFilesTab from './Tabs/SharedFiles.vue';
 
 const props = defineProps({
     project: {
@@ -74,6 +75,11 @@ const getPriorityBadgeClass = (priority) => {
             <li class="nav-item">
                 <a href="javascript:void(0)" @click="activeTab = 'change-requests'" class="nav-link" :class="{ 'active': activeTab === 'change-requests' }">
                     <i class="ti ti-git-pull-request me-1"></i> Change Requests
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:void(0)" @click="activeTab = 'shared-files'" class="nav-link" :class="{ 'active': activeTab === 'shared-files' }">
+                    <i class="ti ti-folder me-1"></i> Shared Files
                 </a>
             </li>
         </ul>
@@ -202,6 +208,10 @@ const getPriorityBadgeClass = (priority) => {
 
         <div v-if="activeTab === 'change-requests'">
             <ChangeRequestTab :project="project" />
+        </div>
+
+        <div v-if="activeTab === 'shared-files'">
+            <SharedFilesTab :project="project" />
         </div>
     </AuthenticatedLayout>
 </template>

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProjectFileController;
 
 Route::get('/', function () {
     return Inertia::render('Landing');
@@ -73,6 +74,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/change-requests', [\App\Http\Controllers\ChangeRequestController::class, 'store'])->name('projects.change-requests.store');
     Route::put('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'update'])->name('change-requests.update');
     Route::delete('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'destroy'])->name('change-requests.destroy');
+
+    // Project Files
+    Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('projects.files.index');
+    Route::post('/projects/{project}/files', [ProjectFileController::class, 'upload'])->name('projects.files.upload');
+    Route::get('/files/{file}/download', [ProjectFileController::class, 'download'])->name('projects.files.download');
+    Route::delete('/files/{file}', [ProjectFileController::class, 'destroy'])->name('projects.files.destroy');
+    Route::post('/files/{file}/share', [ProjectFileController::class, 'createShareLink'])->name('projects.files.share');
+    Route::delete('/files/{file}/share', [ProjectFileController::class, 'revokeShareLink'])->name('projects.files.revoke-share');
 });
+
+// Public Shared Files
+Route::get('/shared-files/{token}', [ProjectFileController::class, 'publicDownload'])->name('public.files.download');
 
 require __DIR__.'/auth.php';
