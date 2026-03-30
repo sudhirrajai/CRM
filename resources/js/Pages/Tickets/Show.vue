@@ -19,6 +19,7 @@ const props = defineProps({
 });
 
 const replyForm = useForm({
+    _method: 'put',
     message: '',
     attachments: [],
 });
