@@ -162,20 +162,20 @@ const getStatusClass = (status) => {
                                     <div v-if="replyForm.errors.message" class="text-danger small mt-1">{{ replyForm.errors.message }}</div>
                                 </div>
 
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <div class="flex-grow-1" style="max-width: 400px;">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white border-end-0"><i class="ti ti-paperclip"></i></span>
-                                            <input type="file" id="reply-attachments" @change="handleReplyFileUpload" class="form-control border-start-0 ps-0" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip">
-                                        </div>
+                                <div class="row align-items-end mt-3">
+                                    <div class="col-md-8">
+                                        <label for="reply-attachments" class="form-label small text-muted mb-1"><i class="ti ti-paperclip me-1"></i> Attachments</label>
+                                        <input type="file" id="reply-attachments" @change="handleReplyFileUpload" class="form-control" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip">
                                         <div class="form-text mt-1" style="font-size: 0.75rem;">Max 10MB per file.</div>
                                         <div v-for="(error, key) in replyForm.errors" :key="key">
                                             <div v-if="key.startsWith('attachments')" class="text-danger small mt-1">{{ error }}</div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary px-4" :disabled="replyForm.processing">
-                                        <i class="ti ti-send me-1"></i> Send Reply
-                                    </button>
+                                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                        <button type="submit" class="btn btn-primary px-4" :disabled="replyForm.processing">
+                                            <i class="ti ti-send me-1"></i> Send Reply
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
