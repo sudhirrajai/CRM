@@ -14,6 +14,7 @@ class ChangeRequestController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'amount' => 'required|numeric|min:0',
+            'status' => 'nullable|string|in:pending,invoiced,paid',
         ]);
 
         $project->changeRequests()->create($validated);

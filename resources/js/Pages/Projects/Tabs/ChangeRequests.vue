@@ -107,7 +107,7 @@ const getStatusBadge = (status) => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="cr in project.changeRequests" :key="cr.id">
+                        <tr v-for="cr in project.change_requests" :key="cr.id">
                             <td>
                                 <span class="fw-bold text-dark">{{ cr.title }}</span>
                                 <p class="text-muted mb-0 small text-wrap" style="max-width: 300px;">{{ cr.description }}</p>
@@ -130,7 +130,7 @@ const getStatusBadge = (status) => {
                                 </button>
                             </td>
                         </tr>
-                        <tr v-if="!project.changeRequests || project.changeRequests.length === 0">
+                        <tr v-if="!project.change_requests || project.change_requests.length === 0">
                             <td colspan="6" class="text-center py-3 text-muted">No change requests added yet.</td>
                         </tr>
                     </tbody>
@@ -165,7 +165,7 @@ const getStatusBadge = (status) => {
                             <textarea v-model="form.description" class="form-control" rows="3" required></textarea>
                             <div v-if="form.errors.description" class="text-danger small">{{ form.errors.description }}</div>
                         </div>
-                        <div v-if="editingCR" class="mb-3">
+                        <div class="mb-3">
                             <label class="form-label">Status</label>
                             <select v-model="form.status" class="form-select">
                                 <option value="pending">Pending</option>
