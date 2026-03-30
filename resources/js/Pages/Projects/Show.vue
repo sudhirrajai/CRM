@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import DiscussionContainer from '@/Components/ProjectDiscussion/DiscussionContainer.vue';
+import ChangeRequestTab from './Tabs/ChangeRequests.vue';
 
 const props = defineProps({
     project: {
@@ -31,6 +32,15 @@ const formatCurrency = (amount, currencyCode) => {
         currency: currencyCode || 'USD',
         minimumFractionDigits: 2
     }).format(amount);
+};
+
+const getPriorityBadgeClass = (priority) => {
+    switch (priority) {
+        case 'high': return 'bg-danger';
+        case 'medium': return 'bg-warning';
+        case 'low': return 'bg-info';
+        default: return 'bg-primary';
+    }
 };
 </script>
 
@@ -61,6 +71,11 @@ const formatCurrency = (amount, currencyCode) => {
                     <i class="ti ti-messages me-1"></i> Discussion
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="javascript:void(0)" @click="activeTab = 'change-requests'" class="nav-link" :class="{ 'active': activeTab === 'change-requests' }">
+                    <i class="ti ti-git-pull-request me-1"></i> Change Requests
+                </a>
+            </li>
         </ul>
 
         <div v-show="activeTab === 'overview'">
@@ -77,8 +92,19 @@ const formatCurrency = (amount, currencyCode) => {
                                 <p class="text-muted mb-2 font-13"><strong>Status :</strong>
                                     <span class="badge ms-2" :class="project.status === 'completed' ? 'bg-success' : 'bg-primary'">{{ formatStatus(project.status) }}</span>
                                 </p>
+                                <p class="text-muted mb-2 font-13"><strong>Priority :</strong>
+                                    <span class="badge ms-2" :class="getPriorityBadgeClass(project.priority)">{{ formatStatus(project.priority) }}</span>
+                                </p>
+                                <p class="text-muted mb-2 font-13"><strong>Budget :</strong> <span class="ms-2 text-dark fw-bold">{{ formatCurrency(project.budget, project.client?.currency?.code) }}</span></p>
                                 <p class="text-muted mb-2 font-13"><strong>Start Date :</strong> <span class="ms-2">{{ formatDate(project.start_date) }}</span></p>
                                 <p class="text-muted mb-2 font-13"><strong>End Date :</strong> <span class="ms-2">{{ formatDate(project.end_date) }}</span></p>
+                            </div>
+
+                            <div class="mt-3" v-if="project.tech_stack">
+                                <h5 class="font-14">Tech Stack:</h5>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span v-for="tech in project.tech_stack.split(',')" :key="tech" class="badge bg-light text-dark border">{{ tech.trim() }}</span>
+                                </div>
                             </div>
 
                             <div class="mt-3">
@@ -172,6 +198,10 @@ const formatCurrency = (amount, currencyCode) => {
 
         <div v-if="activeTab === 'discussion'">
             <DiscussionContainer :project="project" />
+        </div>
+
+        <div v-if="activeTab === 'change-requests'">
+            <ChangeRequestTab :project="project" />
         </div>
     </AuthenticatedLayout>
 </template>

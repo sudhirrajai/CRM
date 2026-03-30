@@ -20,6 +20,9 @@ const form = useForm({
     status: props.project.status,
     start_date: props.project.start_date || '',
     end_date: props.project.end_date || '',
+    tech_stack: props.project.tech_stack || '',
+    budget: props.project.budget || '',
+    priority: props.project.priority || 'medium',
     milestones: props.project.milestones || [],
 });
 
@@ -87,7 +90,7 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div class="row mb-3 border-bottom pb-4">
+                            <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label for="start_date" class="form-label">Start Date</label>
                                     <input type="date" id="start_date" v-model="form.start_date" class="form-control" :class="{ 'is-invalid': form.errors.start_date }">
@@ -108,6 +111,28 @@ const submit = () => {
                                         <option value="cancelled">Cancelled</option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.status">{{ form.errors.status }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3 border-bottom pb-4">
+                                <div class="col-md-4">
+                                    <label for="budget" class="form-label">Budget</label>
+                                    <input type="number" step="0.01" id="budget" v-model="form.budget" class="form-control" :class="{ 'is-invalid': form.errors.budget }" placeholder="0.00">
+                                    <div class="invalid-feedback" v-if="form.errors.budget">{{ form.errors.budget }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                                    <select id="priority" v-model="form.priority" class="form-select" :class="{ 'is-invalid': form.errors.priority }" required>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                    <div class="invalid-feedback" v-if="form.errors.priority">{{ form.errors.priority }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="tech_stack" class="form-label">Tech Stack</label>
+                                    <input type="text" id="tech_stack" v-model="form.tech_stack" class="form-control" :class="{ 'is-invalid': form.errors.tech_stack }" placeholder="e.g. Laravel, Vue, Tailwind">
+                                    <div class="invalid-feedback" v-if="form.errors.tech_stack">{{ form.errors.tech_stack }}</div>
                                 </div>
                             </div>
 

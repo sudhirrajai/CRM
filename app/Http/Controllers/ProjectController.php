@@ -44,6 +44,9 @@ class ProjectController extends Controller
             'status' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'tech_stack' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'priority' => 'required|string|in:low,medium,high',
         ]);
 
         $this->projectRepo->create($validated);
@@ -52,7 +55,7 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = $this->projectRepo->find($id)->load(['client', 'invoices.currency', 'milestones']);
+        $project = $this->projectRepo->find($id)->load(['client.currency', 'invoices.currency', 'milestones', 'changeRequests']);
         $user = auth()->user();
 
         if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
@@ -101,6 +104,9 @@ class ProjectController extends Controller
             'status' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'tech_stack' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'priority' => 'required|string|in:low,medium,high',
             'milestones' => 'nullable|array',
             'milestones.*.id' => 'nullable|string',
             'milestones.*.name' => 'required|string|max:255',

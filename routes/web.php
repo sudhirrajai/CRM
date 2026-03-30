@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return Inertia::render('Landing');
 });
 
 Route::get('/dashboard', function (\App\Services\DashboardService $dashboardService) {
@@ -40,7 +40,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/logo', [\App\Http\Controllers\SettingController::class, 'uploadLogo'])->name('settings.logo');
         Route::post('/settings/test-smtp', [\App\Http\Controllers\SettingController::class, 'testSmtp'])->name('settings.test-smtp');
         Route::post('/invoices/{invoice}/send-suspension', [\App\Http\Controllers\InvoiceController::class, 'sendSuspensionNotification'])->name('invoices.send-suspension');
-        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+        // Reports
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\ReportController::class, 'index'])->name('index');
+            Route::get('/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('balance-sheet');
+            Route::get('/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('profit-loss');
+            Route::get('/projects', [\App\Http\Controllers\ReportController::class, 'projects'])->name('projects');
+            Route::get('/clients', [\App\Http\Controllers\ReportController::class, 'clients'])->name('clients');
+            Route::get('/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('export');
+        });
     });
 
     // Shared Routes (Accessible by Clients too, but filtered in controller)
@@ -60,6 +68,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'update'])->name('projects.discussions.update');
     Route::delete('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'destroy'])->name('projects.discussions.destroy');
     Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
+    
+    // Project Change Requests
+    Route::post('/projects/{project}/change-requests', [\App\Http\Controllers\ChangeRequestController::class, 'store'])->name('projects.change-requests.store');
+    Route::put('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'update'])->name('change-requests.update');
+    Route::delete('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'destroy'])->name('change-requests.destroy');
 });
 
 require __DIR__.'/auth.php';
