@@ -30,7 +30,7 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
                 $cr = \App\Models\ChangeRequest::find($crId);
                 if ($cr) {
                     $invoice->items()->create([
-                        'description' => 'Change Request: ' . $cr->title,
+                        'description' => ($invoice->project ? 'Project: ' . $invoice->project->name . ' - ' : '') . 'Change Request: ' . $cr->title,
                         'unit_price' => $cr->amount,
                         'quantity' => 1,
                         'total' => $cr->amount

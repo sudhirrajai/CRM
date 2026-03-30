@@ -30,8 +30,7 @@
             vertical-align: top;
         }
         .invoice-box table tr td:nth-child(2),
-        .invoice-box table tr td:nth-child(3),
-        .invoice-box table tr td:nth-child(4) {
+        .invoice-box table tr td:nth-child(3) {
             text-align: right;
         }
         .invoice-box table tr.top table td {
@@ -60,8 +59,7 @@
             border-bottom: none;
         }
         .invoice-box table tr.total td:nth-child(2),
-        .invoice-box table tr.total td:nth-child(3),
-        .invoice-box table tr.total td:nth-child(4) {
+        .invoice-box table tr.total td:nth-child(3) {
             border-top: 2px solid #eee;
             font-weight: bold;
         }
@@ -81,7 +79,7 @@
     <div class="invoice-box">
         <table cellpadding="0" cellspacing="0">
             <tr class="top">
-                <td colspan="4">
+                <td colspan="3">
                     <table>
                         <tr>
                             <td class="title">
@@ -118,7 +116,7 @@
             </tr>
             
             <tr class="information">
-                <td colspan="4">
+                <td colspan="3">
                     <table>
                         <tr>
                             <td>
@@ -146,7 +144,6 @@
             
             <tr class="heading">
                 <td>Item Description</td>
-                <td class="text-right">Quantity</td>
                 <td class="text-right">Unit Price</td>
                 <td class="text-right">Amount</td>
             </tr>
@@ -155,32 +152,30 @@
                 @foreach($invoice->items as $item)
                 <tr class="item {{ $loop->last ? 'last' : '' }}">
                     <td>{{ $item->description }}</td>
-                    <td class="text-right">{{ $item->quantity }}</td>
                     <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($item->total, 2) }}</td>
                 </tr>
                 @endforeach
             @else
                 <tr class="item last">
-                    <td>Services Rendered</td>
-                    <td class="text-right">1</td>
+                    <td>@if($invoice->project) Project: {{ $invoice->project->name }} @else Services Rendered @endif</td>
                     <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
                     <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
                 </tr>
             @endif
 
             <tr class="total">
-                <td colspan="2"></td>
+                <td colspan="1"></td>
                 <td class="text-right">Subtotal:</td>
                 <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->sub_total ?: $invoice->total_amount, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="2"></td>
+                <td colspan="1"></td>
                 <td class="text-right">Tax:</td>
                 <td class="text-right">{{ $invoice->currency->symbol }}{{ number_format($invoice->tax, 2) }}</td>
             </tr>
             <tr class="total">
-                <td colspan="2"></td>
+                <td colspan="1"></td>
                 <td class="text-right" style="font-size: 20px;">Total:</td>
                 <td class="text-right" style="font-size: 20px;">{{ $invoice->currency->symbol }}{{ number_format($invoice->total_amount, 2) }}</td>
             </tr>
