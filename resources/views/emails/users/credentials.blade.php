@@ -1,18 +1,20 @@
 <x-mail::message>
-# Welcome, {{ $userName }}
+# Welcome to {{ config('app.name') }}, {{ $userName }}
 
-An account has been created or updated for you. You can use the credentials below to log in to the CRM.
+An account has been created for you. You can now access the CRM using the credentials below.
 
-**Login URL:** <a href="{{ $loginUrl }}">{{ $loginUrl }}</a><br>
+<x-mail::panel>
+**Login URL:** [{{ $loginUrl }}]({{ $loginUrl }})<br>
 **Email:** {{ $email }}<br>
-**Password:** {{ $password }}
+**Password:** `{{ $password }}`
+</x-mail::panel>
 
 <x-mail::button :url="$loginUrl">
 Log In Now
 </x-mail::button>
 
-We strongly recommend logging in and changing your password as soon as possible.
+We strongly recommend logging in and changing your password as soon as possible for security purposes.
 
 Thanks,<br>
-{{ config('app.name') }}
+**{{ config('app.name') }} Team**
 </x-mail::message>

@@ -1,18 +1,20 @@
 <x-mail::message>
-# Service Terminated
+# Service Termination Notice
 
 Dear {{ $clientName }},
 
-Your hosting services for **{{ $domain }}** have been terminated.
+Your hosting services for **{{ $domain }}** have been officially terminated.
 
 @if($reason)
-**Reason:** {{ $reason }}
+<x-mail::panel>
+**Termination Reason:** {{ $reason }}
+</x-mail::panel>
 @endif
 
-**All associated data has been deleted from our servers.**
+**IMPORTANT:** All associated data has been permanently deleted from our servers as per our retention policy.
 
-If you have any questions, please contact our support team.
+If you have any questions or believe this was done in error, please contact our support team immediately.
 
 Thanks,<br>
-{{ config('app.name') }}
+**{{ config('app.name') }} Infrastructure**
 </x-mail::message>
