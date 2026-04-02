@@ -272,7 +272,13 @@ onUnmounted(() => {
         <div class="col-lg-4 col-md-12 mt-4 mt-lg-0">
             <div class="sticky-top" style="top: 2rem;">
                 <FileSummary :project="project" :discussions="discussions" />
-                <OnlineUsers :members="members" :online-users="onlineUsers" />
+                <OnlineUsers 
+                    :project="project" 
+                    :members="members" 
+                    :online-users="onlineUsers" 
+                    @member-added="fetchDiscussions" 
+                    @member-removed="fetchDiscussions"
+                />
             </div>
         </div>
     </div>

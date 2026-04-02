@@ -15,10 +15,19 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
     $project = \App\Models\Project::find($projectId);
     if (!$project) return false;
 
-    if ($user->hasRole(['admin', 'staff'])) {
+    // Admin always authorized
+    if ($user->hasRole('admin')) {
         return ['id' => $user->id, 'name' => $user->name];
     }
 
+    // Staff must be assigned
+    if ($user->hasRole('staff')) {
+        if ($user->projects()->where('project_id', $projectId)->exists()) {
+            return ['id' => $user->id, 'name' => $user->name];
+        }
+    }
+
+    // Client users belonging to the project's client
     if ($user->client_id && $project->client_id === $user->client_id) {
         return ['id' => $user->id, 'name' => $user->name];
     }

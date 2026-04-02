@@ -70,6 +70,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'destroy'])->name('projects.discussions.destroy');
     Route::post('/projects/{project}/discussions/read', [\App\Http\Controllers\ProjectDiscussionController::class, 'markAsRead'])->name('projects.discussions.read');
     Route::get('/projects/{project}/discussions/members', [\App\Http\Controllers\ProjectDiscussionController::class, 'projectMembers'])->name('projects.discussions.members');
+    Route::get('/projects/{project}/discussions/available-staff', [\App\Http\Controllers\ProjectDiscussionController::class, 'availableStaff'])->name('projects.discussions.available-staff');
+    Route::post('/projects/{project}/discussions/members', [\App\Http\Controllers\ProjectDiscussionController::class, 'assignMember'])->name('projects.discussions.assign');
+    Route::delete('/projects/{project}/discussions/members/{user}', [\App\Http\Controllers\ProjectDiscussionController::class, 'unassignMember'])->name('projects.discussions.unassign');
     Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
     
     // Project Change Requests

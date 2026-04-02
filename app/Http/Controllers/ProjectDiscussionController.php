@@ -21,8 +21,14 @@ class ProjectDiscussionController extends Controller
     public function index(Project $project)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $discussions = $project->discussions()
@@ -45,8 +51,14 @@ class ProjectDiscussionController extends Controller
     public function store(Request $request, Project $project)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $validated = $request->validate([
@@ -178,13 +190,16 @@ class ProjectDiscussionController extends Controller
 
     protected function getProjectMembers(Project $project)
     {
-        // Admins and Staff
-        $staff = User::role(['admin', 'staff'])->get();
+        // Admins (always see all)
+        $admins = User::role('admin')->get();
+        
+        // Assigned Staff
+        $assignedStaff = $project->members()->role('staff')->get();
         
         // Client Users
         $clientUsers = User::where('client_id', $project->client_id)->get();
 
-        return $staff->concat($clientUsers)->unique('id')->map(function($user) {
+        return $admins->concat($assignedStaff)->concat($clientUsers)->unique('id')->map(function($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -198,8 +213,14 @@ class ProjectDiscussionController extends Controller
     public function downloadAttachment(Project $project, ProjectDiscussionAttachment $attachment)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $path = str_replace('/storage/', '', $attachment->file_path);
@@ -208,5 +229,31 @@ class ProjectDiscussionController extends Controller
         }
 
         return Storage::disk('public')->download($path, $attachment->file_name);
+    }
+
+    public function availableStaff(Project $project)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $assignedIds = $project->members()->pluck('users.id');
+        return User::role(['staff', 'admin'])->whereNotIn('id', $assignedIds)->get();
+    }
+
+    public function assignMember(Request $request, Project $project)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $validated = $request->validate(['user_id' => 'required|exists:users,id']);
+        $project->members()->syncWithoutDetaching([$validated['user_id']]);
+        
+        return response()->json(['message' => 'Member assigned successfully.']);
+    }
+
+    public function unassignMember(Project $project, User $user)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $project->members()->detach($user->id);
+        return response()->json(['message' => 'Member removed successfully.']);
     }
 }

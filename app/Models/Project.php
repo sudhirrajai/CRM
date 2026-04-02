@@ -59,4 +59,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectFile::class);
     }
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class)->withTimestamps()->withPivot('assigned_at');
+    }
 }

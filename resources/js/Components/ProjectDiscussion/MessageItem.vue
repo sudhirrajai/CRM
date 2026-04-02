@@ -5,6 +5,7 @@ import axios from 'axios';
 import AttachmentPreview from './AttachmentPreview.vue';
 import MessageInput from './MessageInput.vue';
 import ReadReceipts from './ReadReceipts.vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 
 const props = defineProps({
     message: {
@@ -33,6 +34,8 @@ const showReplyInput = ref(false);
 const isEditing = ref(false);
 const editMessage = ref(props.message.message);
 const updating = ref(false);
+const showDeleteModal = ref(false);
+const isDeleting = ref(false);
 
 const canEdit = computed(() => {
     if (props.message.user_id !== authUser.value.id) return false;
@@ -61,13 +64,20 @@ const handleUpdate = async () => {
     }
 };
 
-const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+const handleDelete = () => {
+    showDeleteModal.value = true;
+};
+
+const confirmDelete = async () => {
+    isDeleting.value = true;
     try {
         await axios.delete(route('projects.discussions.destroy', [props.project.id, props.message.id]));
+        showDeleteModal.value = false;
         emit('deleted', { id: props.message.id, parent_id: props.message.parent_id });
     } catch (error) {
         console.error('Error deleting message:', error);
+    } finally {
+        isDeleting.value = false;
     }
 };
 
@@ -190,6 +200,17 @@ const renderedMessage = computed(() => {
                 </div>
             </div>
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <ConfirmationModal
+            :show="showDeleteModal"
+            title="Delete Message"
+            message="Are you sure you want to delete this message? This action cannot be undone."
+            confirm-text="Delete Message"
+            :processing="isDeleting"
+            @close="showDeleteModal = false"
+            @confirm="confirmDelete"
+        />
     </div>
 </template>
 
