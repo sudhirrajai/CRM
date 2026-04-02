@@ -68,6 +68,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'store'])->name('projects.discussions.store');
     Route::put('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'update'])->name('projects.discussions.update');
     Route::delete('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'destroy'])->name('projects.discussions.destroy');
+    Route::post('/projects/{project}/discussions/read', [\App\Http\Controllers\ProjectDiscussionController::class, 'markAsRead'])->name('projects.discussions.read');
+    Route::get('/projects/{project}/discussions/members', [\App\Http\Controllers\ProjectDiscussionController::class, 'projectMembers'])->name('projects.discussions.members');
     Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
     
     // Project Change Requests

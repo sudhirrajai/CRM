@@ -46,10 +46,12 @@ const getFileIcon = (type) => {
             <!-- Images Section -->
             <div class="mb-4">
                 <h6 class="text-uppercase text-muted fw-bold small mb-3">Images ({{ images.length }})</h6>
-                <div v-if="images.length > 0" class="d-grid grid-cols-3 gap-2">
-                    <a v-for="img in images.slice(0, 6)" :key="img.id" :href="img.file_path" target="_blank" class="ratio ratio-1x1 border rounded overflow-hidden hover-opacity transition-opacity">
-                        <img :src="img.file_path" class="object-fit-cover" alt="shared-image">
-                    </a>
+                <div v-if="images.length > 0" class="row g-2">
+                    <div v-for="img in images.slice(0, 9)" :key="img.id" class="col-4">
+                        <a :href="img.file_path" target="_blank" class="ratio ratio-1x1 d-block border rounded overflow-hidden shadow-sm hover-lift transition-all">
+                            <img :src="img.file_path" class="object-fit-cover w-100 h-100" alt="shared-image">
+                        </a>
+                    </div>
                 </div>
                 <div v-else class="text-center py-4 bg-light rounded text-muted small border border-dashed">
                     No images shared yet.
@@ -83,8 +85,13 @@ const getFileIcon = (type) => {
     grid-template-columns: repeat(3, 1fr);
 }
 
-.hover-opacity:hover {
-    opacity: 0.8;
+.hover-lift {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .hover-bg-light:hover {
