@@ -210,28 +210,26 @@ onUnmounted(() => {
     <div class="row discussion-container p-2">
         <div class="col-lg-8 col-md-12">
             <div class="card shadow border-0 rounded-4 h-100 mb-0 overflow-hidden">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom px-4">
-                    <div class="d-flex align-items-center">
-                        <div class="header-icon-box bg-primary-subtle p-2 rounded-3 me-3 text-primary">
+                <div class="card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2 py-sm-3 border-bottom px-3 px-sm-4">
+                    <div class="d-flex align-items-center mb-2 mb-sm-0">
+                        <div class="header-icon-box bg-primary-subtle p-2 rounded-3 me-2 me-sm-3 text-primary d-none d-sm-flex">
                             <i class="ti ti-messages fs-4"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0 fw-bold">Live Stream</h5>
-                            <span class="x-small text-muted fw-normal">{{ onlineUsers.length }} users online</span>
+                            <h5 class="mb-0 fw-bold small-mobile-title">Live Stream</h5>
+                            <span class="x-small text-muted fw-normal">{{ onlineUsers.length }} online</span>
                         </div>
                     </div>
                     
-                    <div class="d-flex gap-2">
-                        <div class="search-box position-relative" style="width: 250px;">
-                            <i class="ti ti-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                            <input v-model="searchQuery" type="text" class="form-control form-control-sm ps-5 bg-light border-0 rounded-pill" placeholder="Jump to message...">
-                        </div>
+                    <div class="search-box position-relative w-100 w-sm-auto">
+                        <i class="ti ti-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input v-model="searchQuery" type="text" class="form-control form-control-sm ps-5 bg-light border-0 rounded-pill" placeholder="Jump to message...">
                     </div>
                 </div>
                 
-                <div class="card-body p-0 d-flex flex-column h-600 bg-white shadow-inner">
+                <div class="card-body p-0 d-flex flex-column h-600-responsive bg-white shadow-inner">
                     <!-- Message List Area -->
-                    <div class="flex-grow-1 overflow-auto p-4 custom-scrollbar" id="discussion-scroll">
+                    <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll">
                         <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
                             <div class="spinner-grow text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -281,8 +279,20 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.h-600 {
-    height: 650px;
+.h-600-responsive {
+    height: 70vh;
+}
+
+@media (min-width: 992px) {
+    .h-600-responsive {
+        height: 650px;
+    }
+}
+
+@media (max-width: 576px) {
+    .small-mobile-title {
+        font-size: 1rem;
+    }
 }
 
 .discussion-container {

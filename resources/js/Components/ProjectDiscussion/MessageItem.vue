@@ -215,10 +215,37 @@ const renderedMessage = computed(() => {
 }
 
 .message-bubble {
-    max-width: 80%;
+    max-width: 85%;
     position: relative;
     font-size: 15px;
-    line-height: 1.6;
+    line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+    .message-bubble {
+        max-width: 80%;
+    }
+}
+
+@media (max-width: 576px) {
+    .message-bubble {
+        max-width: 92%;
+        padding: 0.75rem !important;
+    }
+    
+    .is-reply {
+        margin-left: 1rem;
+    }
+    
+    .is-me.is-reply {
+        margin-right: 1rem;
+    }
+    
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
 }
 
 .bg-primary-subtle {

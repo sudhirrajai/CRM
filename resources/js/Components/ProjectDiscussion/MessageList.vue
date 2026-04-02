@@ -140,6 +140,12 @@ const firstUnreadId = computed(() => {
     transition: all 0.3s ease;
 }
 
+@media (max-width: 576px) {
+    .replies-container {
+        margin-left: 1.5rem !important;
+    }
+}
+
 .letter-spacing-1 {
     letter-spacing: 0.1em;
 }
