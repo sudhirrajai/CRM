@@ -219,6 +219,10 @@ const renderedMessage = computed(() => {
     position: relative;
     font-size: 15px;
     line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: none;
+    min-width: 60px;
 }
 
 @media (min-width: 768px) {

@@ -229,7 +229,7 @@ onUnmounted(() => {
                 
                 <div class="card-body p-0 d-flex flex-column h-600-responsive bg-white shadow-inner">
                     <!-- Message List Area -->
-                    <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll">
+                    <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll" style="min-width: 320px;">
                         <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
                             <div class="spinner-grow text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
