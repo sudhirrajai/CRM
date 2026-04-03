@@ -32,13 +32,6 @@ import { Link } from '@inertiajs/vue3';
                     </Link>
                 </li>
 
-                <li class="side-nav-item">
-                    <Link :href="route('discussions.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Discussions/') }">
-                        <span class="menu-icon"><i class="ti ti-messages"></i></span>
-                        <span class="menu-text"> Discussions </span>
-                    </Link>
-                </li>
-
                 <li class="side-nav-title mt-2">CRM Modules</li>
 
                 <li v-if="$page.props.auth.permissions.includes('clients.view')" class="side-nav-item">
@@ -52,6 +45,13 @@ import { Link } from '@inertiajs/vue3';
                     <Link :href="route('projects.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Projects/') }">
                         <span class="menu-icon"><i class="ti ti-case-round-minimalistic"></i></span>
                         <span class="menu-text"> Projects </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.permissions.includes('projects.view')" class="side-nav-item">
+                    <Link :href="route('discussions.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Discussions/') }">
+                        <span class="menu-icon"><i class="ti ti-messages"></i></span>
+                        <span class="menu-text"> Discussions </span>
                     </Link>
                 </li>
 
