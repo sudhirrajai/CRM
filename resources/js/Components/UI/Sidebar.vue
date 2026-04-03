@@ -66,6 +66,13 @@ const toggleReports = () => {
                     </Link>
                 </li>
                 
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Discussions') }">
+                    <Link :href="route('discussions.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Discussions') }">
+                        <span class="menu-icon"><i class="ti ti-messages"></i></span>
+                        <span class="menu-text"> Discussions </span>
+                    </Link>
+                </li>
+                
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Tickets') }">
                     <Link :href="route('tickets.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Tickets') }">
                         <span class="menu-icon"><i class="ti ti-headset"></i></span>
