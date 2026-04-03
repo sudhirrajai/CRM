@@ -15,9 +15,13 @@ const form = useForm({
     category_id: '',
     name: '',
     amount: '',
+    payment_reference: '',
     date: new Date().toISOString().split('T')[0],
     is_recurring: false,
-    notes: ''
+    recurring_frequency: '',
+    next_due_date: '',
+    notes: '',
+    invoice_file: null,
 });
 
 const openModal = (expense = null) => {
@@ -26,9 +30,13 @@ const openModal = (expense = null) => {
         form.category_id = expense.category_id;
         form.name = expense.name;
         form.amount = expense.amount;
+        form.payment_reference = expense.payment_reference || '';
         form.date = expense.date;
-        form.is_recurring = expense.is_recurring;
+        form.is_recurring = !!expense.is_recurring;
+        form.recurring_frequency = expense.recurring_frequency || '';
+        form.next_due_date = expense.next_due_date || '';
         form.notes = expense.notes;
+        form.invoice_file = null; // Don't pre-fill file
     } else {
         editingExpense.value = null;
         form.reset();
@@ -43,7 +51,11 @@ const closeModal = () => {
 
 const submit = () => {
     if (editingExpense.value) {
-        form.put(route('expenses.update', editingExpense.value.id), {
+        form.transform((data) => ({
+            ...data,
+            _method: 'PUT',
+        })).post(route('expenses.update', editingExpense.value.id), {
+            forceFormData: true,
             onSuccess: () => closeModal()
         });
     } else {
@@ -97,7 +109,10 @@ const formatDate = (dateString) => {
                                         <th>Expense Name</th>
                                         <th>Category</th>
                                         <th>Amount</th>
+                                        <th>Payment Ref</th>
+                                        <th>Invoice</th>
                                         <th>Recurring</th>
+                                        <th>Next Due Date</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -110,14 +125,33 @@ const formatDate = (dateString) => {
                                         </td>
                                         <td class="fw-bold">{{ formatCurrency(expense.amount) }}</td>
                                         <td>
-                                            <span v-if="expense.is_recurring" class="badge bg-soft-success text-success">Yes</span>
+                                            <span v-if="expense.payment_reference" class="text-dark">{{ expense.payment_reference }}</span>
+                                            <span v-else class="text-muted small">-</span>
+                                        </td>
+                                        <td>
+                                            <a v-if="expense.invoice_file_path" :href="expense.invoice_file_path" target="_blank" class="btn btn-sm btn-soft-primary px-2 py-1 shadow-none">
+                                                <i class="ti ti-file-text me-1"></i> View
+                                            </a>
+                                            <span v-else class="text-muted small">None</span>
+                                        </td>
+                                        <td>
+                                            <div v-if="expense.is_recurring">
+                                                <span class="badge bg-soft-success text-success">Yes</span>
+                                                <div class="text-muted small text-capitalize">{{ expense.recurring_frequency }}</div>
+                                            </div>
                                             <span v-else class="badge bg-soft-secondary text-secondary">No</span>
                                         </td>
+                                        <td>
+                                            <span v-if="expense.is_recurring && expense.next_due_date" class="fw-medium text-primary">
+                                                {{ formatDate(expense.next_due_date) }}
+                                            </span>
+                                            <span v-else class="text-muted opacity-50">-</span>
+                                        </td>
                                         <td class="text-end">
-                                            <button @click="openModal(expense)" class="btn btn-sm btn-light me-1">
+                                            <button @click="openModal(expense)" class="btn btn-sm btn-light me-1 shadow-sm">
                                                 <i class="ti ti-edit"></i>
                                             </button>
-                                            <button @click="deleteExpense(expense.id)" class="btn btn-sm btn-light text-danger">
+                                            <button @click="deleteExpense(expense.id)" class="btn btn-sm btn-light text-danger shadow-sm">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </td>
@@ -170,9 +204,39 @@ const formatDate = (dateString) => {
                                 <div v-if="form.errors.amount" class="text-danger mt-1 small">{{ form.errors.amount }}</div>
                             </div>
                             <div class="mb-3">
-                                <div class="form-check form-switch">
+                                <label class="form-label">Payment Reference (e.g. Transaction ID)</label>
+                                <input v-model="form.payment_reference" type="text" class="form-control" placeholder="e.g. TXN123456789">
+                                <div v-if="form.errors.payment_reference" class="text-danger mt-1 small">{{ form.errors.payment_reference }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Attach Invoice (Optional)</label>
+                                <input type="file" @input="form.invoice_file = $event.target.files[0]" class="form-control" accept="image/*,application/pdf">
+                                <div v-if="form.errors.invoice_file" class="text-danger mt-1 small">{{ form.errors.invoice_file }}</div>
+                                <div v-if="editingExpense && editingExpense.invoice_file_path" class="mt-1 small">
+                                    <a :href="editingExpense.invoice_file_path" target="_blank" class="text-primary">View current file</a>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch mb-2">
                                     <input v-model="form.is_recurring" class="form-check-input" type="checkbox" id="recurringSwitch">
                                     <label class="form-check-label" for="recurringSwitch">Recurring Expense?</label>
+                                </div>
+                                <div v-if="form.is_recurring" class="row g-2 ps-3 animate-slide-in">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label small fw-bold">Frequency</label>
+                                        <select v-model="form.recurring_frequency" class="form-select form-select-sm" required>
+                                            <option value="" disabled>Select Frequency</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="yearly">Yearly</option>
+                                        </select>
+                                        <div v-if="form.errors.recurring_frequency" class="text-danger mt-1 small">{{ form.errors.recurring_frequency }}</div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label small fw-bold">Next Due Date</label>
+                                        <input v-model="form.next_due_date" type="date" class="form-control form-control-sm" required>
+                                        <div v-if="form.errors.next_due_date" class="text-danger mt-1 small">{{ form.errors.next_due_date }}</div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mb-0">

@@ -18,10 +18,14 @@ const props = defineProps({
     lastReadId: {
         type: String,
         default: null
+    },
+    searchQuery: {
+        type: String,
+        default: ''
     }
 });
 
-const emit = defineEmits(['message-updated', 'message-deleted']);
+const emit = defineEmits(['message-updated', 'message-deleted', 'reply']);
 
 // Grouping messages by date
 const groupedDiscussions = computed(() => {
@@ -102,8 +106,11 @@ const firstUnreadId = computed(() => {
                     :message="item.value" 
                     :project="project" 
                     :members="members"
+                    :search-query="searchQuery"
                     @updated="emit('message-updated')" 
                     @deleted="emit('message-deleted')"
+                    @reply="emit('reply', $event)"
+                    @scroll-to="$emit('scroll-to', $event)"
                 />
                 
                 <!-- Replies -->
@@ -115,8 +122,11 @@ const firstUnreadId = computed(() => {
                         :is-reply="true"
                         :project="project"
                         :members="members"
+                        :search-query="searchQuery"
                         @updated="emit('message-updated')" 
                         @deleted="emit('message-deleted')"
+                        @reply="emit('reply', $event)"
+                        @scroll-to="$emit('scroll-to', $event)"
                     />
                 </div>
             </div>

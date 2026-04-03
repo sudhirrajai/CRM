@@ -30,7 +30,6 @@ const emit = defineEmits(['updated', 'deleted', 'reply']);
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 
-const showReplyInput = ref(false);
 const isEditing = ref(false);
 const editMessage = ref(props.message.message);
 const updating = ref(false);
@@ -99,21 +98,13 @@ const formatDate = (dateString) => {
     });
 };
 
-const handleReplySent = (newMessage) => {
-    showReplyInput.value = false;
-    emit('updated', newMessage);
-};
-
 // Mentions parsing logic
 const renderedMessage = computed(() => {
     let msg = props.message.message || '';
-    if (!props.message.mentions || props.message.mentions.length === 0) return msg;
-
-    // Replace @username with span with styling
-    // Simple regex matching @AnyName and checking against members
-    // In a prod app, we'd store indices or use a library
+    
+    // 1. Mentions Parsing
     const mentionRegex = /@([a-zA-Z0-9\s]+)/g;
-    return msg.replace(mentionRegex, (match, name) => {
+    msg = msg.replace(mentionRegex, (match, name) => {
         const trimmedName = name.trim();
         const member = props.members.find(m => m.name.startsWith(trimmedName));
         if (member) {
@@ -121,82 +112,86 @@ const renderedMessage = computed(() => {
         }
         return match;
     });
+
+    // 2. Search Highlighting
+    if (props.searchQuery && props.searchQuery.length >= 2) {
+        const searchRegex = new RegExp(`(${props.searchQuery})`, 'gi');
+        msg = msg.replace(searchRegex, '<mark class="search-highlight fw-bold bg-warning text-dark p-0 rounded-1">$1</mark>');
+    }
+
+    return msg;
 });
 </script>
 
 <template>
-    <div class="message-wrapper animate-slide-in" :class="{ 'is-reply': isReply, 'is-me': message.user_id === authUser.id }">
-        <div class="message-item d-flex gap-3 position-relative group" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
+    <div class="message-wrapper animate-slide-in" :class="{ 'is-me': message.user_id === authUser.id, 'is-reply': isReply }">
+        <div class="message-item d-flex gap-2 position-relative group" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
             
             <!-- Avatar -->
-            <div class="avatar flex-shrink-0 z-1">
+            <div class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
                 <div 
-                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm transition-all"
+                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
                     :class="message.user_id === authUser.id ? 'bg-primary text-white' : 'bg-white border text-muted'"
+                    style="width: 32px; height: 32px; font-size: 11px;"
                 >
                     {{ message.user.name.charAt(0).toUpperCase() }}
                 </div>
             </div>
             
-            <div class="content-container flex-grow-1" :style="{ textAlign: message.user_id === authUser.id ? 'right' : 'left' }">
-                <!-- User name and timestamp -->
-                <div class="d-flex align-items-center gap-2 mb-1 px-1" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
-                    <span class="user-name fw-bold text-dark-emphasis">{{ message.user_id === authUser.id ? 'You' : message.user.name }}</span>
-                    <span class="timestamp text-muted small opacity-75" :title="new Date(message.created_at).toLocaleString()">{{ formatDate(message.created_at) }}</span>
-                    <span v-if="message.is_edited" class="edited-label badge bg-light text-muted border-0 fw-normal">edited</span>
+            <div class="content-container d-flex flex-column" :class="message.user_id === authUser.id ? 'align-items-end' : 'align-items-start'" style="max-width: 85%;">
+                <!-- User name (Only for others) -->
+                <div v-if="message.user_id !== authUser.id && !isReply" class="user-name small text-muted mb-1 px-2 fw-medium">
+                    {{ message.user.name }}
                 </div>
                 
-                <div class="message-bubble-row d-flex align-items-end gap-2" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
+                <div class="message-bubble-row d-flex align-items-center gap-2 w-100" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
                     <!-- Message Bubble -->
-                    <div v-if="!isEditing" class="message-bubble p-3 shadow-none border" :class="[
+                    <div v-if="!isEditing" class="message-bubble shadow-sm" :class="[
                         message.user_id === authUser.id 
-                            ? 'bg-primary-subtle border-primary-subtle text-dark rounded-start-4 rounded-bottom-4' 
-                            : 'bg-white border-light-subtle rounded-end-4 rounded-bottom-4 shadow-sm',
-                        { 'rounded-4': true }
+                            ? 'bg-primary text-white rounded-start-4 rounded-top-4 rounded-bottom-1' 
+                            : 'bg-white border-light-subtle text-dark rounded-end-4 rounded-top-4 rounded-bottom-1'
                     ]">
-                        <!-- Mentioned-parsed text -->
-                        <div class="message-content text-start text-break whitespace-pre-wrap" v-html="renderedMessage"></div>
+                        <!-- Reply Context In Bubble -->
+                        <div v-if="message.parent" class="reply-context-bubble mb-2 p-2 rounded-3 bg-black bg-opacity-10 border-start border-4 border-primary small cursor-pointer" @click="$emit('scroll-to', message.parent_id)">
+                           <div class="fw-bold opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-primary'">{{ message.parent.user?.name }}</div>
+                           <div class="text-truncate opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-muted'">{{ message.parent.message }}</div>
+                        </div>
+
+                        <!-- Message Text -->
+                        <div class="message-content text-break whitespace-pre-wrap" v-html="renderedMessage"></div>
                         
                         <!-- Attachments -->
-                        <div v-if="message.attachments && message.attachments.length > 0" class="attachments-row d-flex flex-wrap gap-2 mt-2" :class="{ 'justify-content-end': message.user_id === authUser.id }">
+                        <div v-if="message.attachments && message.attachments.length > 0" class="attachments-row d-flex flex-wrap gap-2 mt-2">
                             <AttachmentPreview v-for="attachment in message.attachments" :key="attachment.id" :attachment="attachment" :project="project" />
                         </div>
 
-                        <!-- Read Receipts (Inside bubble bottom right) -->
-                        <ReadReceipts :message="message" :read-by="message.read_by || []" />
+                        <!-- Bottom Metadata -->
+                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1 opacity-75" style="font-size: 10px;">
+                            <span class="timestamp">{{ formatDate(message.created_at) }}</span>
+                            <span v-if="message.is_edited">· edited</span>
+                            <ReadReceipts v-if="message.user_id === authUser.id" :message="message" :read-by="message.read_by || []" />
+                        </div>
                     </div>
                     
                     <!-- Edit Window -->
-                    <div v-else class="edit-bubble flex-grow-1 p-3 bg-white border border-primary rounded-4 shadow-sm text-start">
-                        <textarea v-model="editMessage" class="form-control border-0 shadow-none p-0 bg-transparent" rows="3" placeholder="Edit your message..."></textarea>
+                    <div v-else class="edit-bubble p-3 bg-white border border-primary rounded-4 shadow-sm w-100">
+                        <textarea v-model="editMessage" class="form-control border-0 shadow-none p-0 bg-transparent" rows="3"></textarea>
                         <div class="d-flex gap-2 mt-2 justify-content-end">
-                            <button @click="isEditing = false" class="btn btn-xs btn-link text-muted">Cancel</button>
-                            <button @click="handleUpdate" class="btn btn-xs btn-primary rounded-pill px-3" :disabled="updating">Save Changes</button>
+                            <button @click="isEditing = false" class="btn btn-xs btn-link text-muted px-2">Cancel</button>
+                            <button @click="handleUpdate" class="btn btn-xs btn-primary rounded-pill px-3" :disabled="updating">Save</button>
                         </div>
                     </div>
 
                     <!-- Actions hover menu -->
                     <div class="message-actions opacity-0 group-hover-opacity-100 transition-all d-flex gap-1">
-                        <button v-if="!isReply && !isEditing" @click="showReplyInput = !showReplyInput" class="btn btn-icon btn-sm btn-light rounded-circle shadow-sm" title="Reply">
+                        <button v-if="!isEditing" @click="$emit('reply', message)" class="btn btn-icon btn-sm btn-light rounded-circle shadow-sm" title="Reply">
                             <i class="ti ti-arrow-back-up fs-5"></i>
                         </button>
-                        <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                            <button v-if="canEdit && !isEditing" @click="isEditing = true" class="btn btn-sm btn-light border-0" title="Edit"><i class="ti ti-pencil"></i></button>
-                            <button v-if="canDelete && !isEditing" @click="handleDelete" class="btn btn-sm btn-light border-0 text-danger" title="Delete"><i class="ti ti-trash"></i></button>
+                        <div class="btn-group shadow-sm rounded-pill overflow-hidden bg-white border">
+                            <button v-if="canEdit && !isEditing" @click="isEditing = true" class="btn btn-sm btn-white border-0 py-1 px-2" title="Edit"><i class="ti ti-pencil fs-6"></i></button>
+                            <button v-if="canDelete && !isEditing" @click="handleDelete" class="btn btn-sm btn-white border-0 py-1 px-2 text-danger" title="Delete"><i class="ti ti-trash fs-6"></i></button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Reply Input Inline -->
-                <div v-if="showReplyInput" class="reply-input-wrapper mt-3 ms-2">
-                    <MessageInput 
-                        :project="project" 
-                        :parent-id="message.id" 
-                        :members="members"
-                        :reply-to="message"
-                        @sent="handleReplySent" 
-                        @cancel-reply="showReplyInput = false"
-                    />
                 </div>
             </div>
         </div>
@@ -205,8 +200,8 @@ const renderedMessage = computed(() => {
         <ConfirmationModal
             :show="showDeleteModal"
             title="Delete Message"
-            message="Are you sure you want to delete this message? This action cannot be undone."
-            confirm-text="Delete Message"
+            message="Are you sure you want to delete this message?"
+            confirm-text="Delete"
             :processing="isDeleting"
             @close="showDeleteModal = false"
             @confirm="confirmDelete"
@@ -216,116 +211,95 @@ const renderedMessage = computed(() => {
 
 <style scoped>
 .message-wrapper {
-    margin-bottom: 1.5rem;
-}
-
-.is-reply {
-    margin-top: -0.75rem;
-    margin-left: 2.5rem;
-}
-
-.is-me.is-reply {
-    margin-left: 0;
-    margin-right: 2.5rem;
-}
-
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
+    margin-bottom: 0.75rem;
+    padding: 0 0.5rem;
 }
 
 .message-bubble {
     max-width: 85%;
+    padding: 0.6rem 0.8rem;
+    font-size: 14.5px;
+    line-height: 1.4;
     position: relative;
-    font-size: 15px;
-    line-height: 1.5;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: none;
-    min-width: 60px;
 }
 
-@media (min-width: 768px) {
-    .message-bubble {
-        max-width: 80%;
-    }
+.is-me .message-bubble {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
 }
 
-@media (max-width: 576px) {
-    .message-bubble {
-        max-width: 92%;
-        padding: 0.75rem !important;
-    }
-    
-    .is-reply {
-        margin-left: 1rem;
-    }
-    
-    .is-me.is-reply {
-        margin-right: 1rem;
-    }
-    
-    .avatar-circle {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
+.is-me .message-content {
+    color: white;
 }
 
-.bg-primary-subtle {
-    background-color: #f0f4ff !important;
-    border-color: #dbeafe !important;
+.is-me .timestamp, .is-me :deep(.read-status) {
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.message-content {
-    word-break: break-word;
+.reply-context-bubble {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.message-item:hover .message-actions {
+    opacity: 1 !important;
+    transform: translateX(0);
+}
+
+.message-actions {
+    transform: translateX(5px);
+    transition: all 0.2s ease;
+}
+
+.btn-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-xs {
+    padding: 2px 8px;
+    font-size: 11px;
 }
 
 .whitespace-pre-wrap {
     white-space: pre-wrap;
 }
 
-.group-hover-opacity-100 {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(10px);
-}
-
-.message-item:hover .group-hover-opacity-100 {
-    opacity: 1 !important;
-    pointer-events: auto;
-    transform: translateX(0);
-}
-
-.btn-icon {
-    width: 32px;
-    height: 32px;
-}
-
-.btn-xs {
-    padding: 3px 12px;
-    font-size: 12px;
-}
-
 .animate-slide-in {
-    animation: slideIn 0.3s ease-out;
+    animation: slideIn 0.2s ease-out;
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 :deep(.mention-badge) {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
     font-weight: 600;
 }
 
-.timestamp {
-    letter-spacing: -0.01em;
+.is-me .message-bubble {
+    border-bottom-right-radius: 4px !important;
 }
 
-.user-name {
-    font-size: 0.9rem;
+.not-me .message-bubble {
+    border-bottom-left-radius: 4px !important;
+}
+
+:deep(.search-highlight) {
+    background-color: #fef08a !important; /* Yellow-200 */
+    color: #1e293b !important; /* Slate-800 */
+    padding: 0 1px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.2);
+}
+
+.is-me :deep(.search-highlight) {
+    background-color: #fde047 !important; /* Yellow-300 */
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 </style>

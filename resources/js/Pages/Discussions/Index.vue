@@ -73,64 +73,74 @@ const formatStatus = (status) => {
     <Head title="Discussions" />
 
     <AuthenticatedLayout>
-        <div class="row g-0 discussion-wrapper shadow-sm rounded-4 overflow-hidden bg-white">
-            <!-- Project List Sidebar (Internal) -->
-            <div class="col-lg-4 border-end project-sidebar" :class="{ 'd-none d-lg-block': !showProjectList }">
-                <div class="p-3 border-bottom bg-light">
-                    <h5 class="mb-0 fw-bold d-flex align-items-center">
-                        <i class="ti ti-folders me-2 text-primary"></i> Projects
+        <div class="row g-0 discussion-wrapper shadow-lg rounded-4 overflow-hidden bg-white border-0">
+            <!-- Project List Sidebar (Left) -->
+            <div class="col-lg-3 border-end project-sidebar h-100" :class="{ 'd-none d-lg-flex': !showProjectList }">
+                <div class="p-4 border-bottom bg-white d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center text-dark">
+                        <i class="ti ti-folders me-2 text-primary fs-4"></i> Projects
                     </h5>
+                    <span class="badge bg-light text-muted rounded-pill">{{ projects.length }}</span>
                 </div>
                 
-                <div class="project-list custom-scrollbar">
+                <div class="project-list custom-scrollbar bg-light-subtle">
                     <div v-if="projects.length === 0" class="p-5 text-center text-muted">
-                        <i class="ti ti-folder-off fs-1 d-block mb-2"></i>
-                        <p>No projects found.</p>
+                        <div class="mb-3 opacity-25">
+                            <i class="ti ti-folder-off" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="small fw-medium">No projects found</p>
                     </div>
 
                     <div 
                         v-for="project in projects" 
                         :key="project.id"
                         @click="selectProject(project)"
-                        class="project-item p-3 border-bottom cursor-pointer transition-all"
+                        class="project-item p-3 cursor-pointer transition-all border-bottom border-light-subtle"
                         :class="{ 'active': selectedProject?.id === project.id }"
                     >
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h6 class="mb-0 fw-bold text-truncate" style="max-width: 200px;">{{ project.name }}</h6>
-                            <span class="badge x-small px-2" :class="getStatusClass(project.status)">
-                                {{ formatStatus(project.status) }}
-                            </span>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0 fw-bold text-truncate pe-2" style="max-width: 160px;">{{ project.name }}</h6>
+                            <div class="status-dot flex-shrink-0" :class="getStatusClass(project.status)" :title="formatStatus(project.status)"></div>
                         </div>
-                        <p class="text-muted mb-0 x-small">
-                            <i class="ti ti-user me-1"></i> {{ project.client_name }}
-                        </p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <p class="text-muted mb-0 x-small text-truncate" style="max-width: 140px;">
+                                <i class="ti ti-user me-1 text-primary opacity-50"></i> {{ project.client_name }}
+                            </p>
+                            <span class="x-small text-muted opacity-50">{{ project.discussions_count || 0 }} msgs</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Discussion Area -->
-            <div class="col-lg-8 d-flex flex-column" :class="{ 'd-none d-lg-flex': showProjectList }">
-                <div v-if="selectedProject" class="h-100 d-flex flex-column">
-                    <!-- Mobile Back Button -->
-                    <div class="d-lg-none p-2 border-bottom bg-light">
-                        <button @click="backToList" class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                            <i class="ti ti-chevron-left me-1"></i> Back to Projects
+            <!-- Discussion Area (Center/Right) -->
+            <div class="col-lg-9 d-flex flex-column h-100" :class="{ 'd-none d-lg-flex': showProjectList }">
+                <div v-if="selectedProject" class="h-100 d-flex flex-column overflow-hidden">
+                    <!-- Mobile View Header -->
+                    <div class="d-lg-none p-3 border-bottom bg-white shadow-sm d-flex align-items-center">
+                        <button @click="backToList" class="btn btn-icon btn-light rounded-circle me-3">
+                            <i class="ti ti-arrow-left"></i>
                         </button>
+                        <div class="overflow-hidden">
+                            <h6 class="mb-0 fw-bold text-truncate">{{ selectedProject.name }}</h6>
+                            <span class="x-small text-success">Active Thread</span>
+                        </div>
                     </div>
 
-                    <div class="flex-grow-1 p-0 overflow-hidden">
-                        <!-- We use :key to force re-render when switching projects -->
+                    <div class="flex-grow-1 p-0 overflow-hidden bg-white">
                         <DiscussionContainer :project="selectedProject" :key="selectedProject.id" />
                     </div>
                 </div>
 
-                <div v-else class="h-100 d-flex flex-column justify-content-center align-items-center text-muted p-5 bg-light-subtle">
-                    <div class="text-center animate-bounce-subtle">
-                        <div class="bg-primary-subtle p-4 rounded-circle mb-4 mx-auto" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                            <i class="ti ti-messages fs-1 text-primary"></i>
+                <!-- Empty State -->
+                <div v-else class="h-100 d-flex flex-column justify-content-center align-items-center bg-white p-5 animate-fade-in">
+                    <div class="text-center" style="max-width: 320px;">
+                        <div class="empty-state-illustration mb-4">
+                            <div class="bg-primary-subtle p-4 rounded-circle d-inline-flex mb-3">
+                                <i class="ti ti-messages fs-1 text-primary"></i>
+                            </div>
                         </div>
-                        <h4 class="fw-bold text-dark">Select a project to start discussing</h4>
-                        <p class="max-w-400 mx-auto">Choose a project from the list on the left to view and participate in real-time discussions with your team and clients.</p>
+                        <h4 class="fw-bold text-dark mb-2">Select a Discussion</h4>
+                        <p class="text-muted small">Choose a project from the left panel to join live discussions with your team and clients.</p>
                     </div>
                 </div>
             </div>
@@ -141,7 +151,7 @@ const formatStatus = (status) => {
 <style scoped>
 .discussion-wrapper {
     height: calc(100vh - 160px);
-    border: 1px solid #eef2f7;
+    background: #fff;
 }
 
 .project-sidebar {
@@ -156,52 +166,77 @@ const formatStatus = (status) => {
 }
 
 .project-item {
-    transition: all 0.2s ease;
+    background: transparent;
+    border-left: 4px solid transparent;
 }
 
 .project-item:hover {
-    background-color: #f8f9fa;
+    background-color: #fff;
+    transform: translateX(4px);
 }
 
 .project-item.active {
-    background-color: #edf2ff;
-    border-left: 4px solid #3e64ff;
-    padding-left: calc(1rem - 4px) !important;
+    background-color: #fff;
+    border-left: 4px solid #6366f1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
+.project-item.active h6 {
+    color: #4f46e5;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.bg-primary { background-color: #4f46e5 !important; }
+.bg-success { background-color: #10b981 !important; }
+.bg-warning { background-color: #f59e0b !important; }
+.bg-secondary { background-color: #6b7280 !important; }
 
 .cursor-pointer {
     cursor: pointer;
 }
 
 .x-small {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 500;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #f1f5f9;
+    background-color: #e5e7eb;
     border-radius: 10px;
 }
 
-.animate-bounce-subtle {
-    animation: bounce 3s infinite ease-in-out;
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 991px) {
     .discussion-wrapper {
-        height: calc(100vh - 130px);
+        height: calc(100vh - 100px);
+        margin: -1rem;
+        border-radius: 0 !important;
     }
 }
 
-.max-w-400 {
-    max-width: 400px;
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

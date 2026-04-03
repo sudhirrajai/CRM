@@ -20,6 +20,7 @@ const members = ref([]);
 const loading = ref(true);
 const searchQuery = ref('');
 const lastReadId = ref(null);
+const replyTo = ref(null);
 
 // Real-time State
 const onlineUsers = ref([]);
@@ -165,6 +166,18 @@ const handleTypingIndicator = (e) => {
     }
 };
 
+const handleReplyStart = (msg) => {
+    replyTo.value = msg;
+    nextTick(() => {
+        const input = document.querySelector('.message-input-container textarea');
+        if (input) input.focus();
+    });
+};
+
+const cancelReply = () => {
+    replyTo.value = null;
+};
+
 const sendTypingWhisper = (isTyping) => {
     if (echoChannel.value) {
         echoChannel.value.whisper('typing', {
@@ -184,8 +197,21 @@ const filteredDiscussions = computed(() => {
     );
 });
 
+let handleGlobalKeydown = null;
+
 onMounted(() => {
     fetchDiscussions();
+    
+    // Global keyboard shortcut for search
+    handleGlobalKeydown = (e) => {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            searchInput.value?.focus();
+        }
+    };
+    
+    window.addEventListener('keydown', handleGlobalKeydown);
+    
     setupEcho();
     
     // Auto-mark as read when scroll bottom
@@ -203,82 +229,123 @@ onUnmounted(() => {
     if (echoChannel.value) {
         window.Echo.leave(`project.${props.project.id}`);
     }
+    if (handleGlobalKeydown) {
+        window.removeEventListener('keydown', handleGlobalKeydown);
+    }
 });
 </script>
 
 <template>
-    <div class="row discussion-container p-2">
-        <div class="col-lg-8 col-md-12">
-            <div class="card shadow border-0 rounded-4 h-100 mb-0 overflow-hidden">
-                <div class="card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2 py-sm-3 border-bottom px-3 px-sm-4">
-                    <div class="d-flex align-items-center mb-2 mb-sm-0">
-                        <div class="header-icon-box bg-primary-subtle p-2 rounded-3 me-2 me-sm-3 text-primary d-none d-sm-flex">
-                            <i class="ti ti-messages fs-4"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-0 fw-bold small-mobile-title">Live Stream</h5>
-                            <span class="x-small text-muted fw-normal">{{ onlineUsers.length }} online</span>
-                        </div>
+    <div class="row g-0 h-100 flex-nowrap overflow-hidden">
+        <!-- Main Chat Area -->
+        <div class="col-12 col-lg-8 d-flex flex-column border-end position-relative h-100 bg-white">
+            <!-- Header -->
+            <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-1 shadow-sm">
+                <div class="d-flex align-items-center flex-shrink-1 overflow-hidden me-2">
+                    <div class="bg-primary-subtle text-primary p-2 rounded-3 me-3 d-none d-sm-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="ti ti-messages fs-4"></i>
                     </div>
-                    
-                    <div class="search-box position-relative w-100 w-sm-auto">
-                        <i class="ti ti-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                        <input v-model="searchQuery" type="text" class="form-control form-control-sm ps-5 bg-light border-0 rounded-pill" placeholder="Jump to message...">
+                    <div class="overflow-hidden">
+                        <h5 class="mb-0 fw-bold text-truncate">{{ project.name }} - Discussion</h5>
+                        <div class="d-flex align-items-center text-success small">
+                            <span class="pulse-dot me-2"></span>
+                            <span>{{ onlineUsers.length }} active now</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="card-body p-0 d-flex flex-column h-600-responsive bg-white shadow-inner">
-                    <!-- Message List Area -->
-                    <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll" style="min-width: 320px;">
-                        <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
-                            <div class="spinner-grow text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
+                <div class="search-box position-relative flex-grow-1 flex-md-grow-0 me-1" style="max-width: 280px;">
+                    <i class="ti ti-search position-absolute top-50 translate-middle-y start-0 ms-3 text-muted opacity-75" style="font-size: 0.95rem;"></i>
+                    <input 
+                        ref="searchInput"
+                        v-model="searchQuery" 
+                        type="text" 
+                        class="form-control form-control-sm bg-light-subtle border-0 rounded-pill search-input shadow-none transition-all" 
+                        style="padding-left: 2.75rem; padding-right: 3.5rem;"
+                        placeholder="Search messages... (/)"
+                        @keydown.esc="searchQuery = ''; $event.target.blur();"
+                    >
+                    <div class="position-absolute top-50 end-0 translate-middle-y me-2 d-flex align-items-center gap-1">
+                        <span v-if="searchQuery && filteredDiscussions.length > 0" class="badge bg-primary rounded-pill x-small px-2 py-1 opacity-75">
+                            {{ filteredDiscussions.length }} {{ filteredDiscussions.length === 1 ? 'match' : 'matches' }}
+                        </span>
+                        <button v-if="searchQuery" @click="searchQuery = ''; $refs.searchInput.focus();" class="btn btn-link btn-sm p-1 text-muted border-0 shadow-none hover-text-danger">
+                            <i class="ti ti-x fs-6"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message List Area -->
+            <div class="flex-grow-1 d-flex flex-column h-600-responsive bg-white shadow-inner overflow-hidden">
+                <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll" style="min-width: 0;">
+                    <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-grow text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                        
-                        <div v-else-if="filteredDiscussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 text-muted opacity-50">
-                            <i class="ti ti-message-dots fs-1 mb-2"></i>
-                            <p class="fw-bold">Start a live conversation</p>
-                        </div>
-                        
-                        <MessageList 
-                            v-else 
-                            :discussions="filteredDiscussions" 
-                            :project="project"
-                            :members="members"
-                            :last-read-id="lastReadId"
-                            @message-updated="fetchDiscussions" 
-                            @message-deleted="fetchDiscussions"
-                        />
                     </div>
                     
-                    <!-- Feedback (Typing Indicator) -->
-                    <TypingIndicator :users="usersTyping" />
-                    
-                    <!-- Input Area -->
-                    <div class="p-3 bg-white border-top">
-                        <MessageInput 
-                            :project="project" 
-                            :members="members"
-                            @sent="handleNewMessage" 
-                            @typing="sendTypingWhisper"
-                        />
+                    <!-- Empty State for Search -->
+                    <div v-else-if="searchQuery && filteredDiscussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 text-muted transition-all">
+                        <div class="bg-light p-4 rounded-circle mb-3">
+                            <i class="ti ti-search-off fs-1 opacity-50"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">No matches found</h5>
+                        <p class="small text-muted mb-3">We couldn't find anything for "{{ searchQuery }}"</p>
+                        <button @click="searchQuery = ''" class="btn btn-sm btn-outline-primary rounded-pill px-4">Clear search</button>
                     </div>
+                    
+                    <!-- Empty State for Empty Chat -->
+                    <div v-else-if="!searchQuery && discussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 text-muted opacity-50">
+                        <i class="ti ti-message-dots fs-1 mb-2"></i>
+                        <p class="fw-bold text-dark">Start a live conversation</p>
+                    </div>
+                    
+                    <MessageList 
+                        v-else 
+                        :discussions="filteredDiscussions" 
+                        :project="project"
+                        :members="members"
+                        :search-query="searchQuery"
+                        :last-read-id="lastReadId"
+                        @message-updated="fetchDiscussions" 
+                        @message-deleted="fetchDiscussions"
+                        @reply="handleReplyStart"
+                    />
+                </div>
+                
+                <!-- Feedback (Typing Indicator) -->
+                <TypingIndicator :users="usersTyping" />
+                
+                <!-- Input Area -->
+                <div class="p-3 bg-white border-top">
+                    <MessageInput 
+                        :project="project" 
+                        :members="members"
+                        :reply-to="replyTo"
+                        :parent-id="replyTo?.id"
+                        @sent="(msg) => { handleNewMessage(msg); cancelReply(); }" 
+                        @typing="sendTypingWhisper"
+                        @cancel-reply="cancelReply"
+                    />
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4 col-md-12 mt-4 mt-lg-0">
-            <div class="sticky-top" style="top: 2rem;">
-                <FileSummary :project="project" :discussions="discussions" />
-                <OnlineUsers 
-                    :project="project" 
-                    :members="members" 
-                    :online-users="onlineUsers" 
-                    @member-added="fetchDiscussions" 
-                    @member-removed="fetchDiscussions"
-                />
+        <!-- Right Info Sidebar -->
+        <div class="col-lg-4 d-none d-xl-flex flex-column bg-light-subtle h-100 border-start overflow-hidden">
+            <div class="flex-grow-1 overflow-auto custom-scrollbar">
+                <div class="p-4">
+                    <FileSummary :project="project" :discussions="discussions" />
+                    <div class="my-4"></div>
+                    <OnlineUsers 
+                        :project="project" 
+                        :members="members" 
+                        :online-users="onlineUsers" 
+                        @member-added="fetchDiscussions" 
+                        @member-removed="fetchDiscussions"
+                    />
+                </div>
             </div>
         </div>
     </div>
@@ -332,6 +399,25 @@ onUnmounted(() => {
 
 .shadow-inner {
     box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+
+.transition-all {
+    transition: all 0.2s ease;
+}
+
+.hover-opacity-100:hover {
+    opacity: 1 !important;
+}
+
+.search-input {
+    transition: all 0.3s ease;
+    border: 1px solid transparent !important;
+}
+
+.search-input:focus {
+    background-color: #fff !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.1) !important;
 }
 
 @keyframes fadeIn {
