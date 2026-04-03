@@ -79,6 +79,16 @@ const openModal = () => {
     showTeamModal.value = true;
     fetchAvailableStaff();
 };
+
+const sortedMembers = computed(() => {
+    return [...props.members].sort((a, b) => {
+        const aOnline = isOnline(a.id);
+        const bOnline = isOnline(b.id);
+        if (aOnline && !bOnline) return -1;
+        if (!aOnline && bOnline) return 1;
+        return 0;
+    });
+});
 </script>
 
 <template>

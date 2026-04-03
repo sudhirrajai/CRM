@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import DiscussionContainer from '@/Components/ProjectDiscussion/DiscussionContainer.vue';
 import ChangeRequestTab from './Tabs/ChangeRequests.vue';
 import SharedFilesTab from './Tabs/SharedFiles.vue';
@@ -14,6 +14,14 @@ const props = defineProps({
 });
 
 const activeTab = ref('overview');
+
+onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['overview', 'discussion', 'change-requests', 'shared-files'].includes(tab)) {
+        activeTab.value = tab;
+    }
+});
 
 const formatDate = (dateString) => {
     if (!dateString) return '-';

@@ -15,9 +15,43 @@ use App\Jobs\SendMentionReminderJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class ProjectDiscussionController extends Controller
 {
+    public function allDiscussions()
+    {
+        $user = auth()->user();
+        
+        $projectsQuery = Project::with(['client']);
+
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                $projectsQuery->whereHas('members', function($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                });
+            } else {
+                $projectsQuery->where('client_id', $user->client_id);
+            }
+        }
+
+        $projects = $projectsQuery->latest()
+            ->get()
+            ->map(function($project) {
+                return [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'client_name' => $project->client?->name,
+                    'status' => $project->status,
+                ];
+            });
+
+        return Inertia::render('Discussions/Index', [
+            'projects' => $projects,
+            'selectedProjectId' => request('project_id')
+        ]);
+    }
+
     public function index(Project $project)
     {
         $user = auth()->user();
