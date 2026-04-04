@@ -20,55 +20,40 @@ const authUser = computed(() => page.props.auth.user);
 const readers = computed(() => {
     return props.readBy.filter(u => u.id !== authUser.value.id);
 });
+
+const readTooltip = computed(() => {
+    if (readers.value.length === 0) return 'Sent';
+    const names = readers.value.slice(0, 3).map(r => r.name).join(', ');
+    const extra = readers.value.length > 3 ? ` +${readers.value.length - 3} more` : '';
+    return `Read by ${names}${extra}`;
+});
 </script>
 
 <template>
-    <div v-if="message.user_id === authUser.id" class="read-receipts-container d-flex align-items-center gap-1 mt-1 justify-content-end">
-        <!-- Visual indicators for status -->
-        <div class="status-ticks me-1" :class="{ 'text-primary': readers.length > 0, 'text-muted': readers.length === 0 }">
-            <i v-if="readers.length > 0" class="ti ti-checks fs-6" title="Read"></i>
-            <i v-else class="ti ti-check fs-6" title="Sent"></i>
-        </div>
-
-        <div v-if="readers.length > 0" class="avatar-stack d-flex align-items-center">
-            <div 
-                v-for="(reader, index) in readers.slice(0, 3)" 
-                :key="reader.id"
-                class="avatar-reader rounded-circle border border-white bg-light d-flex align-items-center justify-content-center fw-bold"
-                :style="{ zIndex: 10 - index, marginLeft: index > 0 ? '-8px' : '0' }"
-                :title="`Read by ${reader.name}`"
-            >
-                {{ reader.name.charAt(0).toUpperCase() }}
-            </div>
-            <div v-if="readers.length > 3" class="extra-count ms-1 text-muted x-small">+{{ readers.length - 3 }}</div>
-        </div>
-    </div>
+    <span v-if="message.user_id === authUser.id" class="read-receipt-ticks" :title="readTooltip">
+        <svg v-if="readers.length > 0" width="16" height="11" viewBox="0 0 16 11" fill="none" class="ticks-read">
+            <path d="M11.071 0.929L4.5 7.5L1.929 4.929" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14.071 0.929L7.5 7.5L6.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg v-else width="12" height="9" viewBox="0 0 12 9" fill="none" class="ticks-sent">
+            <path d="M10.071 0.929L3.5 7.5L0.929 4.929" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </span>
 </template>
 
 <style scoped>
-.read-receipts-container {
-    height: 16px;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.avatar-reader {
-    width: 14px;
-    height: 14px;
-    font-size: 8px;
-    color: #475569;
-}
-
-.x-small {
-    font-size: 0.65rem;
-}
-
-.status-ticks {
-    display: flex;
+.read-receipt-ticks {
+    display: inline-flex;
     align-items: center;
+    margin-left: 3px;
+    line-height: 1;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.ticks-read {
+    color: #a5f3fc;
+}
+
+.ticks-sent {
+    color: rgba(255, 255, 255, 0.55);
 }
 </style>

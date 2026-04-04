@@ -19,6 +19,7 @@ const discussions = ref([]);
 const members = ref([]);
 const loading = ref(true);
 const searchQuery = ref('');
+const isSearchFocused = ref(false);
 const lastReadId = ref(null);
 const replyTo = ref(null);
 
@@ -197,6 +198,7 @@ const filteredDiscussions = computed(() => {
     );
 });
 
+const searchInput = ref(null);
 let handleGlobalKeydown = null;
 
 onMounted(() => {
@@ -236,89 +238,82 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="row g-0 h-100 flex-nowrap overflow-hidden">
-        <!-- Main Chat Area -->
-        <div class="col-12 col-lg-8 d-flex flex-column border-end position-relative h-100 bg-white">
-            <!-- Header -->
-            <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-1 shadow-sm">
-                <div class="d-flex align-items-center flex-shrink-1 overflow-hidden me-2">
-                    <div class="bg-primary-subtle text-primary p-2 rounded-3 me-3 d-none d-sm-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="ti ti-messages fs-4"></i>
+    <div class="discussion-layout">
+        <div class="discussion-main-row">
+            <!-- Main Discussion Column -->
+            <div class="discussion-chat-col">
+                <!-- Header -->
+                <div class="discussion-header">
+                    <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                        <div class="avatar-box bg-indigo-subtle text-indigo rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 42px; height: 42px;">
+                            <i class="ti ti-brand-hipchat fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark small-mobile-title">{{ project.name }}</h6>
+                            <div class="x-small text-success d-flex align-items-center gap-1">
+                                <span class="online-indicator"></span> {{ onlineUsers.length }} online
+                            </div>
+                        </div>
                     </div>
-                    <div class="overflow-hidden">
-                        <h5 class="mb-0 fw-bold text-truncate">{{ project.name }} - Discussion</h5>
-                        <div class="d-flex align-items-center text-success small">
-                            <span class="pulse-dot me-2"></span>
-                            <span>{{ onlineUsers.length }} active now</span>
+
+                    <!-- Header Actions (Search) -->
+                    <div class="discussion-search-wrap">
+                        <div class="search-container position-relative">
+                            <i class="ti ti-search position-absolute top-50 translate-middle-y text-muted" style="left: 14px; font-size: 0.85rem;"></i>
+                            <input 
+                                ref="searchInput"
+                                v-model="searchQuery" 
+                                type="text" 
+                                class="form-control search-input rounded-pill bg-light border-0 py-2 ps-5 pe-3 small" 
+                                placeholder="Search messages"
+                                @focus="isSearchFocused = true"
+                                @blur="isSearchFocused = false"
+                            >
                         </div>
                     </div>
                 </div>
                 
-                <div class="search-box position-relative flex-grow-1 flex-md-grow-0 me-1" style="max-width: 280px;">
-                    <i class="ti ti-search position-absolute top-50 translate-middle-y start-0 ms-3 text-muted opacity-75" style="font-size: 0.95rem;"></i>
-                    <input 
-                        ref="searchInput"
-                        v-model="searchQuery" 
-                        type="text" 
-                        class="form-control form-control-sm bg-light-subtle border-0 rounded-pill search-input shadow-none transition-all" 
-                        style="padding-left: 2.75rem; padding-right: 3.5rem;"
-                        placeholder="Search messages... (/)"
-                        @keydown.esc="searchQuery = ''; $event.target.blur();"
-                    >
-                    <div class="position-absolute top-50 end-0 translate-middle-y me-2 d-flex align-items-center gap-1">
-                        <span v-if="searchQuery && filteredDiscussions.length > 0" class="badge bg-primary rounded-pill x-small px-2 py-1 opacity-75">
-                            {{ filteredDiscussions.length }} {{ filteredDiscussions.length === 1 ? 'match' : 'matches' }}
-                        </span>
-                        <button v-if="searchQuery" @click="searchQuery = ''; $refs.searchInput.focus();" class="btn btn-link btn-sm p-1 text-muted border-0 shadow-none hover-text-danger">
-                            <i class="ti ti-x fs-6"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Message List Area -->
-            <div class="flex-grow-1 d-flex flex-column h-600-responsive bg-white shadow-inner overflow-hidden">
-                <div class="flex-grow-1 overflow-auto p-2 p-sm-4 custom-scrollbar" id="discussion-scroll" style="min-width: 0;">
-                    <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
-                        <div class="spinner-grow text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                <!-- Chat View -->
+                <div class="discussion-messages-area bg-dot-pattern">
+                    <div class="discussion-scroll-inner custom-scrollbar" id="discussion-scroll">
+                        <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
+                            <div class="spinner-grow text-indigo" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Empty Search results -->
+                        <div v-else-if="searchQuery && filteredDiscussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 p-5 text-center animate-fade-in">
+                            <div class="bg-light p-4 rounded-circle mb-3 shadow-boron-sm">
+                                <i class="ti ti-search-off fs-1 text-indigo opacity-50"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">No matches found</h5>
+                            <p class="text-muted small">We couldn't find anything for "{{ searchQuery }}"</p>
+                            <button @click="searchQuery = ''" class="btn btn-sm btn-indigo rounded-pill px-4">Clear search</button>
+                        </div>
+                        
+                        <MessageList 
+                            v-else 
+                            :discussions="filteredDiscussions" 
+                            :project="project"
+                            :members="members"
+                            :search-query="searchQuery"
+                            :last-read-id="lastReadId"
+                            @message-updated="fetchDiscussions" 
+                            @message-deleted="fetchDiscussions"
+                            @reply="handleReplyStart"
+                            @scroll-to="scrollToBottom"
+                        />
+                        
+                        <!-- Typing Feedback (Floating) -->
+                        <div class="typing-container position-absolute bottom-0 start-0 w-100 p-2 pe-none">
+                            <TypingIndicator :users="usersTyping" />
                         </div>
                     </div>
-                    
-                    <!-- Empty State for Search -->
-                    <div v-else-if="searchQuery && filteredDiscussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 text-muted transition-all">
-                        <div class="bg-light p-4 rounded-circle mb-3">
-                            <i class="ti ti-search-off fs-1 opacity-50"></i>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-1">No matches found</h5>
-                        <p class="small text-muted mb-3">We couldn't find anything for "{{ searchQuery }}"</p>
-                        <button @click="searchQuery = ''" class="btn btn-sm btn-outline-primary rounded-pill px-4">Clear search</button>
-                    </div>
-                    
-                    <!-- Empty State for Empty Chat -->
-                    <div v-else-if="!searchQuery && discussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 text-muted opacity-50">
-                        <i class="ti ti-message-dots fs-1 mb-2"></i>
-                        <p class="fw-bold text-dark">Start a live conversation</p>
-                    </div>
-                    
-                    <MessageList 
-                        v-else 
-                        :discussions="filteredDiscussions" 
-                        :project="project"
-                        :members="members"
-                        :search-query="searchQuery"
-                        :last-read-id="lastReadId"
-                        @message-updated="fetchDiscussions" 
-                        @message-deleted="fetchDiscussions"
-                        @reply="handleReplyStart"
-                    />
                 </div>
-                
-                <!-- Feedback (Typing Indicator) -->
-                <TypingIndicator :users="usersTyping" />
-                
+
                 <!-- Input Area -->
-                <div class="p-3 bg-white border-top">
+                <div class="discussion-input-area">
                     <MessageInput 
                         :project="project" 
                         :members="members"
@@ -330,21 +325,14 @@ onUnmounted(() => {
                     />
                 </div>
             </div>
-        </div>
 
-        <!-- Right Info Sidebar -->
-        <div class="col-lg-4 d-none d-xl-flex flex-column bg-light-subtle h-100 border-start overflow-hidden">
-            <div class="flex-grow-1 overflow-auto custom-scrollbar">
-                <div class="p-4">
-                    <FileSummary :project="project" :discussions="discussions" />
-                    <div class="my-4"></div>
-                    <OnlineUsers 
-                        :project="project" 
-                        :members="members" 
-                        :online-users="onlineUsers" 
-                        @member-added="fetchDiscussions" 
-                        @member-removed="fetchDiscussions"
-                    />
+            <!-- Right Sidebar: Details -->
+            <div class="discussion-sidebar-col d-none d-lg-flex">
+                <div class="discussion-sidebar-inner custom-scrollbar">
+                    <OnlineUsers :project="project" :online-users="onlineUsers" :members="members" @updated="fetchDiscussions" />
+                    <div class="mt-3">
+                        <FileSummary :project="project" :discussions="discussions" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -352,76 +340,192 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.h-600-responsive {
-    height: 70vh;
+/* ============================
+   DISCUSSION LAYOUT - Flexbox
+   ============================ */
+.discussion-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
 }
 
-@media (min-width: 992px) {
-    .h-600-responsive {
-        height: 650px;
-    }
+.discussion-main-row {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
-@media (max-width: 576px) {
-    .small-mobile-title {
-        font-size: 1rem;
-    }
+/* --- Chat column --- */
+.discussion-chat-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    background: #fff;
+    border-right: 1px solid #e9ecef;
 }
 
-.discussion-container {
-    animation: fadeIn 0.4s ease-out;
+/* Header */
+.discussion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.discussion-search-wrap {
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 240px;
+    width: 100%;
+}
+
+/* Messages area */
+.discussion-messages-area {
+    flex: 1 1 0;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.discussion-scroll-inner {
+    height: 100%;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Input area */
+.discussion-input-area {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    background: #fff;
+    border-top: 1px solid #e9ecef;
+}
+
+/* --- Right sidebar column --- */
+.discussion-sidebar-col {
+    flex: 0 0 280px;
+    max-width: 280px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+    border-left: 1px solid #e9ecef;
+}
+
+.discussion-sidebar-inner {
+    flex: 1 1 0;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* ============================
+   UTILITY CLASSES
+   ============================ */
+.bg-boron-light { background-color: #f4f7fa !important; }
+.shadow-boron { box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03) !important; }
+.shadow-boron-sm { box-shadow: 0 0.25rem 0.5rem rgba(18, 38, 63, 0.05) !important; }
+
+.text-indigo { color: #4c49e2 !important; }
+.bg-indigo-subtle { background-color: rgba(76, 73, 226, 0.08) !important; }
+.btn-indigo { background-color: #4c49e2 !important; color: white !important; }
+.btn-indigo:hover { background-color: #413dd1 !important; transform: translateY(-1px); }
+
+.online-indicator {
+    width: 7px;
+    height: 7px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
+}
+
+.bg-dot-pattern {
+    background-color: #ffffff;
+    background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+}
+
+.search-input {
+    transition: all 0.2s ease;
+    border: 1px solid transparent !important;
+    font-size: 0.85rem;
+}
+
+.search-input:focus {
+    background-color: #fff !important;
+    border-color: #4c49e2 !important;
+    box-shadow: 0 0 0 0.2rem rgba(76, 73, 226, 0.1) !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #f1f5f9;
+    background-color: #e2e8f0;
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #e2e8f0;
-}
-
-.header-icon-box {
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: #cbd5e1;
 }
 
 .x-small {
     font-size: 0.75rem;
 }
 
-.shadow-inner {
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-}
-
 .transition-all {
     transition: all 0.2s ease;
 }
 
-.hover-opacity-100:hover {
-    opacity: 1 !important;
+/* ============================
+   RESPONSIVE
+   ============================ */
+@media (max-width: 991px) {
+    .discussion-sidebar-col {
+        display: none !important;
+    }
+    .discussion-chat-col {
+        border-right: none;
+    }
 }
 
-.search-input {
-    transition: all 0.3s ease;
-    border: 1px solid transparent !important;
+@media (max-width: 576px) {
+    .small-mobile-title {
+        font-size: 0.9rem;
+    }
+    .discussion-header {
+        padding: 8px 12px;
+    }
+    .discussion-search-wrap {
+        max-width: 160px;
+    }
+    .discussion-scroll-inner {
+        padding: 10px;
+    }
+    .discussion-input-area {
+        padding: 8px 10px;
+    }
 }
 
-.search-input:focus {
-    background-color: #fff !important;
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.1) !important;
+@media (min-width: 1400px) {
+    .discussion-sidebar-col {
+        flex: 0 0 320px;
+        max-width: 320px;
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.98); }
+    from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
 </style>

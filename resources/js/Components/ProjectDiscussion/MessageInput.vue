@@ -1,7 +1,9 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import MentionDropdown from './MentionDropdown.vue';
+import EmojiPicker from './EmojiPicker.vue';
 
 const props = defineProps({
     project: {
@@ -35,27 +37,42 @@ const showMentionDropdown = ref(false);
 const mentionSearch = ref('');
 const mentions = ref([]); // Array of mentioned user IDs
 
+const page = usePage();
+const authUser = computed(() => page.props.auth.user);
+const mentionableMembers = computed(() => props.members.filter(m => m.id !== authUser.value.id));
+
+// Emoji logic
+const showEmojiPicker = ref(false);
+const inputWrapperRef = ref(null);
+
 const handleKeydown = (e) => {
     if (e.key === '@') {
         showMentionDropdown.value = true;
         mentionSearch.value = '';
-    } else if (e.key === ' ' || e.key === 'Enter') {
-        if (!showMentionDropdown.value && e.ctrlKey && e.key === 'Enter') {
+    } else if (e.key === 'Escape') {
+        showMentionDropdown.value = false;
+        showEmojiPicker.value = false;
+    } else if (e.key === 'Enter') {
+        if (!showMentionDropdown.value && e.ctrlKey) {
+            e.preventDefault();
             sendMessage();
-        }
-        if (showMentionDropdown.value && e.key === ' ') {
-            showMentionDropdown.value = false;
         }
     } else {
         // Update mention search if open
         if (showMentionDropdown.value) {
-            // Very simple logic: just capturing characters after @ until space
-            // In a real production app, we'd use a more robust library or specialized cursor tracking
             setTimeout(() => {
-                const textBeforeCursor = message.value.substring(0, messageTextarea.value.selectionStart);
+                const cursorPosition = messageTextarea.value.selectionStart;
+                const textBeforeCursor = message.value.substring(0, cursorPosition);
                 const lastAtIdx = textBeforeCursor.lastIndexOf('@');
+                
                 if (lastAtIdx !== -1) {
-                    mentionSearch.value = textBeforeCursor.substring(lastAtIdx + 1);
+                    const currentQuery = textBeforeCursor.substring(lastAtIdx + 1);
+                    // Close if we typed a space or too many characters after @
+                    if (currentQuery.includes(' ')) {
+                        showMentionDropdown.value = false;
+                    } else {
+                        mentionSearch.value = currentQuery;
+                    }
                 } else {
                     showMentionDropdown.value = false;
                 }
@@ -65,17 +82,44 @@ const handleKeydown = (e) => {
 };
 
 const insertMention = (user) => {
-    const cursorSelector = messageTextarea.value.selectionStart;
-    const textBeforeAt = message.value.substring(0, message.value.lastIndexOf('@', cursorSelector - 1));
-    const textAfterCursor = message.value.substring(cursorSelector);
+    const cursorPosition = messageTextarea.value.selectionStart;
+    const textBeforeCursor = message.value.substring(0, cursorPosition);
+    const lastAtIdx = textBeforeCursor.lastIndexOf('@');
     
-    message.value = textBeforeAt + '@' + user.name + ' ' + textAfterCursor;
+    if (lastAtIdx === -1) return;
+
+    const textBeforeAt = message.value.substring(0, lastAtIdx);
+    const textAfterCursor = message.value.substring(cursorPosition);
+    
+    const mentionText = '@' + user.name + ' ';
+    message.value = textBeforeAt + mentionText + textAfterCursor;
+    
     if (!mentions.value.includes(user.id)) {
         mentions.value.push(user.id);
     }
     
     showMentionDropdown.value = false;
-    messageTextarea.value.focus();
+    
+    // Position cursor after the mention
+    nextTick(() => {
+        const newPos = lastAtIdx + mentionText.length;
+        messageTextarea.value.setSelectionRange(newPos, newPos);
+        messageTextarea.value.focus();
+    });
+};
+
+const insertEmoji = (emoji) => {
+    const cursorPosition = messageTextarea.value.selectionStart || message.value.length;
+    const textBefore = message.value.substring(0, cursorPosition);
+    const textAfter = message.value.substring(cursorPosition);
+    
+    message.value = textBefore + emoji + textAfter;
+    
+    nextTick(() => {
+        const newPos = cursorPosition + emoji.length;
+        messageTextarea.value.setSelectionRange(newPos, newPos);
+        messageTextarea.value.focus();
+    });
 };
 
 const handleFileChange = (e) => {
@@ -147,6 +191,22 @@ const getFileIcon = (file) => {
     if (file.type.includes('pdf')) return 'ti-file-description';
     return 'ti-file';
 };
+
+// Handle clicks outside to close dropdowns
+const handleClickOutside = (e) => {
+    if (inputWrapperRef.value && !inputWrapperRef.value.contains(e.target)) {
+        showEmojiPicker.value = false;
+        showMentionDropdown.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('mousedown', handleClickOutside);
+});
 </script>
 
 <template>
@@ -179,15 +239,15 @@ const getFileIcon = (file) => {
             </div>
         </div>
 
-        <div class="input-actions-wrapper border bg-white transition-all overflow-hidden shadow-sm" 
+        <div ref="inputWrapperRef" class="input-actions-wrapper border bg-white transition-all shadow-boron" 
              :class="[
-                replyTo || files.length > 0 ? 'rounded-bottom-4 border-top-0' : 'rounded-4',
+                replyTo || files.length > 0 ? 'rounded-bottom-3 border-top-0' : 'rounded-3',
                 { 'focused': isFocused }
              ]">
             <textarea 
                 ref="messageTextarea"
                 v-model="message" 
-                class="form-control border-0 shadow-none resize-none p-3 pb-0" 
+                class="form-control border-0 shadow-none resize-none p-3 bg-transparent" 
                 placeholder="Type a message..." 
                 rows="1"
                 @keydown="handleKeydown"
@@ -196,41 +256,54 @@ const getFileIcon = (file) => {
                 :style="{ height: textareaHeight }"
             ></textarea>
             
-            <div class="d-flex justify-content-between align-items-center p-2 pt-0">
-                <div class="d-flex gap-1">
-                    <button @click="triggerFileInput" class="btn btn-icon btn-sm btn-light-subtle rounded-circle text-muted hover-text-primary transition-all" title="Attach Files">
+            <div class="d-flex justify-content-between align-items-center p-3 pt-2">
+                <div class="d-flex gap-2">
+                    <button @click="triggerFileInput" class="btn btn-icon btn-sm btn-light border rounded-circle text-dark hover-text-indigo transition-all shadow-sm" title="Attach Files">
                         <i class="ti ti-paperclip fs-5"></i>
                     </button>
                     <input type="file" ref="fileInput" class="d-none" multiple @change="handleFileChange">
                     
-                    <button class="btn btn-icon btn-sm btn-light-subtle rounded-circle text-muted hover-text-warning transition-all" title="Emoji">
-                        <i class="ti ti-mood-smile fs-5"></i>
-                    </button>
+                    <div class="position-relative" style="z-index: 1050;">
+                        <button 
+                            @click="showEmojiPicker = !showEmojiPicker" 
+                            class="btn btn-icon btn-sm btn-light border rounded-circle text-dark hover-text-warning transition-all shadow-sm" 
+                            :class="{ 'text-warning bg-warning-subtle border-warning': showEmojiPicker }"
+                            title="Emoji"
+                        >
+                            <i class="ti ti-mood-smile fs-5"></i>
+                        </button>
+                        <EmojiPicker 
+                            v-if="showEmojiPicker" 
+                            @select="insertEmoji" 
+                            @close="showEmojiPicker = false" 
+                        />
+                        
+                        <!-- Mentions Dropdown -->
+                        <MentionDropdown 
+                            v-if="showMentionDropdown" 
+                            :members="mentionableMembers" 
+                            :search="mentionSearch"
+                            @select="insertMention"
+                            @close="showMentionDropdown = false"
+                        />
+                    </div>
                 </div>
                 
                 <div class="d-flex align-items-center gap-2">
                     <span class="x-small text-muted d-none d-md-inline-block opacity-50">Press Ctrl + Enter to send</span>
                     <button 
                         @click="sendMessage" 
-                        class="btn btn-primary d-flex align-items-center justify-content-center rounded-circle shadow-primary p-0 transition-all hover-scale"
+                        class="btn btn-indigo d-flex align-items-center justify-content-center rounded-circle shadow-indigo p-0 transition-all hover-scale"
                         style="width: 40px; height: 40px;"
                         :disabled="uploading || (!message.trim() && files.length === 0)"
                     >
                         <div v-if="uploading" class="spinner-border spinner-border-sm" role="status"></div>
-                        <i v-else class="ti ti-send-2 fs-4"></i>
+                        <i v-else class="ti ti-send fs-4"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Mentions Dropdown -->
-        <MentionDropdown 
-            v-if="showMentionDropdown" 
-            :members="members" 
-            :search="mentionSearch"
-            @select="insertMention"
-            @close="showMentionDropdown = false"
-        />
     </div>
 </template>
 
@@ -248,11 +321,13 @@ const getFileIcon = (file) => {
 
 .input-actions-wrapper {
     border-color: #e5e7eb !important;
+    position: relative;
+    z-index: 1;
 }
 
 .input-actions-wrapper.focused {
-    border-color: #6366f1 !important;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+    border-color: #4c49e2 !important;
+    box-shadow: 0 0.5rem 1rem rgba(76, 73, 226, 0.1) !important;
 }
 
 .btn-icon {
@@ -268,24 +343,22 @@ const getFileIcon = (file) => {
     background: #f3f4f6;
 }
 
-.btn-soft-primary {
-    background-color: #eef2ff;
-    color: #4f46e5;
+.btn-indigo { background-color: #4c49e2 !important; color: white !important; }
+.btn-indigo:hover { background-color: #413dd1 !important; transform: translateY(-1px); }
+
+.shadow-indigo {
+    box-shadow: 0 4px 10px rgba(76, 73, 226, 0.3);
 }
 
-.shadow-primary {
-    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
-}
-
-.shadow-primary:hover {
-    box-shadow: 0 6px 14px rgba(99, 102, 241, 0.5);
-}
+.shadow-boron { box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03) !important; }
+.shadow-boron-sm { box-shadow: 0 0.25rem 0.5rem rgba(18, 38, 63, 0.05) !important; }
 
 .hover-scale:active {
     transform: scale(0.95);
 }
 
-.hover-text-primary:hover { color: #6366f1 !important; }
+.hover-text-primary:hover { color: #4c49e2 !important; }
+.hover-text-indigo:hover { color: #4c49e2 !important; }
 .hover-text-warning:hover { color: #f59e0b !important; }
 .hover-text-danger:hover { color: #ef4444 !important; }
 
@@ -305,11 +378,6 @@ const getFileIcon = (file) => {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-}
-
-.btn-light-subtle {
-    background-color: #f9fafb;
-    border: none;
 }
 
 .file-preview-badge {

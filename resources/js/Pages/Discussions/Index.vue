@@ -113,10 +113,10 @@ const formatStatus = (status) => {
             </div>
 
             <!-- Discussion Area (Center/Right) -->
-            <div class="col-lg-9 d-flex flex-column h-100" :class="{ 'd-none d-lg-flex': showProjectList }">
-                <div v-if="selectedProject" class="h-100 d-flex flex-column overflow-hidden">
+            <div class="col-lg-9 discussion-right-col" :class="{ 'd-none d-lg-flex': showProjectList }">
+                <div v-if="selectedProject" class="discussion-active-container">
                     <!-- Mobile View Header -->
-                    <div class="d-lg-none p-3 border-bottom bg-white shadow-sm d-flex align-items-center">
+                    <div class="d-lg-none p-3 border-bottom bg-white shadow-sm d-flex align-items-center flex-shrink-0">
                         <button @click="backToList" class="btn btn-icon btn-light rounded-circle me-3">
                             <i class="ti ti-arrow-left"></i>
                         </button>
@@ -126,13 +126,13 @@ const formatStatus = (status) => {
                         </div>
                     </div>
 
-                    <div class="flex-grow-1 p-0 overflow-hidden bg-white">
+                    <div class="discussion-container-wrap">
                         <DiscussionContainer :project="selectedProject" :key="selectedProject.id" />
                     </div>
                 </div>
 
                 <!-- Empty State -->
-                <div v-else class="h-100 d-flex flex-column justify-content-center align-items-center bg-white p-5 animate-fade-in">
+                <div v-else class="d-flex flex-column justify-content-center align-items-center bg-white p-5 animate-fade-in flex-grow-1">
                     <div class="text-center" style="max-width: 320px;">
                         <div class="empty-state-illustration mb-4">
                             <div class="bg-primary-subtle p-4 rounded-circle d-inline-flex mb-3">
@@ -152,6 +152,8 @@ const formatStatus = (status) => {
 .discussion-wrapper {
     height: calc(100vh - 160px);
     background: #fff;
+    display: flex;
+    overflow: hidden;
 }
 
 .project-sidebar {
@@ -222,6 +224,28 @@ const formatStatus = (status) => {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Discussion right column */
+.discussion-right-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.discussion-active-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.discussion-container-wrap {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 @media (max-width: 991px) {

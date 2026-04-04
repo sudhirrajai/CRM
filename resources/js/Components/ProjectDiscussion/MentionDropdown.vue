@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 
 const props = defineProps({
     members: {
@@ -54,27 +54,35 @@ onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown);
 });
 
-import { computed } from 'vue';
-</script>
 
+</script>
 <template>
-    <div v-if="filteredMembers.length > 0" class="mention-dropdown shadow-lg border rounded-3 bg-white overflow-hidden z-3 p-1">
-        <div 
-            v-for="(member, index) in filteredMembers" 
-            :key="member.id"
-            class="member-item d-flex align-items-center gap-2 p-2 rounded cursor-pointer"
-            :class="{ 'bg-primary-subtle text-primary': index === selectedIndex }"
-            @click="selectMember(member)"
-            @mouseenter="selectedIndex = index"
-        >
-            <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold text-muted small">
-                {{ member.avatar_initial }}
-            </div>
-            <div class="flex-grow-1 overflow-hidden">
-                <div class="fw-semibold text-truncate small">{{ member.name }}</div>
-                <div class="text-muted x-small text-truncate">{{ member.role }}</div>
+    <div v-if="filteredMembers.length > 0" class="mention-dropdown shadow-lg border rounded-3 bg-white overflow-hidden p-1">
+        <div class="p-2 border-bottom bg-light bg-opacity-50 mb-1 d-flex justify-content-between align-items-center">
+            <span class="fw-bold x-small text-muted text-uppercase letter-spacing-1">Mention Someone</span>
+            <button @click="$emit('close')" class="btn btn-link btn-sm p-0 text-muted d-sm-none"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="mention-list custom-scrollbar">
+            <div 
+                v-for="(member, index) in filteredMembers" 
+                :key="member.id"
+                class="member-item d-flex align-items-center gap-2 p-2 rounded cursor-pointer"
+                :class="{ 'bg-primary-subtle text-primary fw-bold': index === selectedIndex }"
+                @click="selectMember(member)"
+                @mouseenter="selectedIndex = index"
+            >
+                <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold text-muted small border">
+                    {{ member.avatar_initial }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden text-start">
+                    <div class="text-truncate small">{{ member.name }}</div>
+                    <div class="text-muted x-small text-truncate text-uppercase">{{ member.role }}</div>
+                </div>
             </div>
         </div>
+    </div>
+    <div v-else-if="search" class="mention-dropdown shadow-lg border rounded-3 bg-white p-3 text-center">
+        <div class="text-muted small">No members found matching "{{ search }}"</div>
     </div>
 </template>
 
@@ -83,14 +91,29 @@ import { computed } from 'vue';
     position: absolute;
     bottom: 100%;
     left: 0;
-    min-width: 200px;
-    max-height: 250px;
+    width: 250px;
+    max-height: 280px;
+    z-index: 2000 !important;
+    margin-bottom: 20px;
+    animation: slideUp 0.2s ease-out;
+}
+
+.mention-list {
+    max-height: 220px;
     overflow-y: auto;
-    margin-bottom: 5px;
 }
 
 .member-item {
     transition: all 0.2s;
+}
+
+.letter-spacing-1 {
+    letter-spacing: 0.05rem;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .avatar-sm {

@@ -88,18 +88,18 @@ const firstUnreadId = computed(() => {
         <div v-for="(item, index) in groupedDiscussions" :key="index">
             <!-- Date Separator -->
             <div v-if="item.type === 'date'" class="date-separator d-flex align-items-center justify-content-center my-4">
-                <div class="line flex-grow-1 border-top opacity-25"></div>
-                <span class="date-badge mx-3 py-1 px-3 rounded-pill bg-light text-muted fw-bold small shadow-sm">{{ item.value }}</span>
-                <div class="line flex-grow-1 border-top opacity-25"></div>
+                <div class="line flex-grow-1 border-top opacity-10"></div>
+                <span class="date-badge mx-3 py-1 px-3 rounded-pill bg-white text-indigo fw-bold small shadow-sm border border-light-subtle">{{ item.value }}</span>
+                <div class="line flex-grow-1 border-top opacity-10"></div>
             </div>
 
             <!-- Message Item -->
             <div v-else class="message-group">
                 <!-- Unread Divider -->
                 <div v-if="firstUnreadId === item.value.id" class="unread-divider d-flex align-items-center my-4">
-                    <div class="line flex-grow-1 border-top border-danger border-2 opacity-50"></div>
-                    <span class="mx-3 text-danger fw-bold small text-uppercase letter-spacing-1">New Messages</span>
-                    <div class="line flex-grow-1 border-top border-danger border-2 opacity-50"></div>
+                    <div class="line flex-grow-1 border-top border-danger border-2 opacity-25"></div>
+                    <span class="mx-3 text-danger fw-bold small text-uppercase letter-spacing-2">New Messages</span>
+                    <div class="line flex-grow-1 border-top border-danger border-2 opacity-25"></div>
                 </div>
 
                 <MessageItem 
@@ -136,28 +136,32 @@ const firstUnreadId = computed(() => {
 
 <style scoped>
 .date-badge {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.05em;
-    background-color: #f8fafc !important;
 }
 
+.text-indigo { color: #4c49e2 !important; }
+.border-indigo-subtle { border-color: rgba(76, 73, 226, 0.2) !important; }
+
 .unread-divider span {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
 }
 
 .replies-container {
     transition: all 0.3s ease;
+    margin-top: -0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 @media (max-width: 576px) {
     .replies-container {
-        margin-left: 1.5rem !important;
+        margin-left: 1.25rem !important;
     }
 }
 
-.letter-spacing-1 {
-    letter-spacing: 0.1em;
+.letter-spacing-2 {
+    letter-spacing: 0.15em;
 }
 
 .message-list-container {

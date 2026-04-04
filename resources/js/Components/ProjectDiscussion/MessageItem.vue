@@ -127,18 +127,17 @@ const renderedMessage = computed(() => {
     <div class="message-wrapper animate-slide-in" :class="{ 'is-me': message.user_id === authUser.id, 'is-reply': isReply }">
         <div class="message-item d-flex gap-2 position-relative group" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
             
-            <!-- Avatar -->
-            <div class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
+            <!-- Avatar (WhatsApp style - only for others' messages) -->
+            <div v-if="message.user_id !== authUser.id" class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
                 <div 
-                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
-                    :class="message.user_id === authUser.id ? 'bg-primary text-white' : 'bg-white border text-muted'"
-                    style="width: 32px; height: 32px; font-size: 11px;"
+                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold border bg-white text-muted"
+                    style="width: 34px; height: 34px; font-size: 11px;"
                 >
                     {{ message.user.name.charAt(0).toUpperCase() }}
                 </div>
             </div>
             
-            <div class="content-container d-flex flex-column" :class="message.user_id === authUser.id ? 'align-items-end' : 'align-items-start'" style="max-width: 85%;">
+            <div class="content-container d-flex flex-column" :class="message.user_id === authUser.id ? 'align-items-end self' : 'align-items-start other'" style="max-width: 85%;">
                 <!-- User name (Only for others) -->
                 <div v-if="message.user_id !== authUser.id && !isReply" class="user-name small text-muted mb-1 px-2 fw-medium">
                     {{ message.user.name }}
@@ -146,10 +145,10 @@ const renderedMessage = computed(() => {
                 
                 <div class="message-bubble-row d-flex align-items-center gap-2 w-100" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
                     <!-- Message Bubble -->
-                    <div v-if="!isEditing" class="message-bubble shadow-sm" :class="[
+                    <div v-if="!isEditing" class="message-bubble" :class="[
                         message.user_id === authUser.id 
-                            ? 'bg-primary text-white rounded-start-4 rounded-top-4 rounded-bottom-1' 
-                            : 'bg-white border-light-subtle text-dark rounded-end-4 rounded-top-4 rounded-bottom-1'
+                            ? 'bg-indigo text-white rounded-3 shadow-none' 
+                            : 'bg-white border border-light-subtle text-dark-slate rounded-3 shadow-sm'
                     ]">
                         <!-- Reply Context In Bubble -->
                         <div v-if="message.parent" class="reply-context-bubble mb-2 p-2 rounded-3 bg-black bg-opacity-10 border-start border-4 border-primary small cursor-pointer" @click="$emit('scroll-to', message.parent_id)">
@@ -174,11 +173,11 @@ const renderedMessage = computed(() => {
                     </div>
                     
                     <!-- Edit Window -->
-                    <div v-else class="edit-bubble p-3 bg-white border border-primary rounded-4 shadow-sm w-100">
+                    <div v-else class="edit-bubble p-3 bg-white border border-indigo rounded-4 shadow-sm w-100">
                         <textarea v-model="editMessage" class="form-control border-0 shadow-none p-0 bg-transparent" rows="3"></textarea>
                         <div class="d-flex gap-2 mt-2 justify-content-end">
                             <button @click="isEditing = false" class="btn btn-xs btn-link text-muted px-2">Cancel</button>
-                            <button @click="handleUpdate" class="btn btn-xs btn-primary rounded-pill px-3" :disabled="updating">Save</button>
+                            <button @click="handleUpdate" class="btn btn-xs btn-indigo rounded-pill px-3" :disabled="updating">Save</button>
                         </div>
                     </div>
 
@@ -216,23 +215,43 @@ const renderedMessage = computed(() => {
 }
 
 .message-bubble {
-    max-width: 85%;
-    padding: 0.6rem 0.8rem;
-    font-size: 14.5px;
-    line-height: 1.4;
+    max-width: 80%;
+    padding: 0.85rem 1.15rem;
     position: relative;
+    line-height: 1.5;
+    transition: all 0.2s ease;
 }
 
-.is-me .message-bubble {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+.self .message-bubble {
+    background-color: #4c49e2;
+    color: #ffffff;
+    border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(76, 73, 226, 0.15);
 }
 
-.is-me .message-content {
-    color: white;
+.other .message-bubble {
+    background-color: #ffffff;
+    color: #1e293b;
+    border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+    box-shadow: 0 4px 12px rgba(18, 38, 63, 0.04);
+    border: 1px solid #f1f5f9;
 }
 
-.is-me .timestamp, .is-me :deep(.read-status) {
-    color: rgba(255, 255, 255, 0.8) !important;
+.text-indigo-subtle { color: #818cf8 !important; }
+.text-slate-400 { color: #94a3b8 !important; }
+
+.x-small {
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important;
+}
+
+.transition-all {
+    transition: all 0.2s ease;
 }
 
 .reply-context-bubble {
@@ -277,17 +296,26 @@ const renderedMessage = computed(() => {
 }
 
 :deep(.mention-badge) {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
+    background-color: rgba(76, 73, 226, 0.1) !important;
+    color: #4c49e2 !important;
     font-weight: 600;
 }
 
-.is-me .message-bubble {
+.self :deep(.mention-badge) {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.self .message-bubble {
     border-bottom-right-radius: 4px !important;
 }
 
-.not-me .message-bubble {
+.other .message-bubble {
     border-bottom-left-radius: 4px !important;
+}
+
+.text-dark-slate {
+    color: #1e293b !important;
 }
 
 :deep(.search-highlight) {

@@ -2,7 +2,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
-import DiscussionContainer from '@/Components/ProjectDiscussion/DiscussionContainer.vue';
 import ChangeRequestTab from './Tabs/ChangeRequests.vue';
 import SharedFilesTab from './Tabs/SharedFiles.vue';
 
@@ -18,7 +17,7 @@ const activeTab = ref('overview');
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab && ['overview', 'discussion', 'change-requests', 'shared-files'].includes(tab)) {
+    if (tab && ['overview', 'change-requests', 'shared-files'].includes(tab)) {
         activeTab.value = tab;
     }
 });
@@ -73,11 +72,6 @@ const getPriorityBadgeClass = (priority) => {
             <li class="nav-item">
                 <a href="javascript:void(0)" @click="activeTab = 'overview'" class="nav-link" :class="{ 'active': activeTab === 'overview' }">
                     <i class="ti ti-info-circle me-1"></i> Overview
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="javascript:void(0)" @click="activeTab = 'discussion'" class="nav-link" :class="{ 'active': activeTab === 'discussion' }">
-                    <i class="ti ti-messages me-1"></i> Discussion
                 </a>
             </li>
             <li class="nav-item">
@@ -210,9 +204,6 @@ const getPriorityBadgeClass = (priority) => {
             </div> <!-- end row -->
         </div>
 
-        <div v-if="activeTab === 'discussion'">
-            <DiscussionContainer :project="project" />
-        </div>
 
         <div v-if="activeTab === 'change-requests'">
             <ChangeRequestTab :project="project" />
