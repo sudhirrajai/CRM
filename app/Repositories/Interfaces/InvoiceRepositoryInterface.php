@@ -10,4 +10,7 @@ interface InvoiceRepositoryInterface extends BaseRepositoryInterface
     public function getRecentByClient($clientId, $limit = 5);
     public function getMonthlyRevenue($months = 12);
     public function getMonthlyRevenueByClient($clientId, $months = 12);
+    public function getTotalRevenue();
+    public function getOutstandingCount();
+    public function getOutstandingAmount();
 }

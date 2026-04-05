@@ -7,6 +7,10 @@ const props = defineProps({
     settings: {
         type: Object,
         required: true
+    },
+    currencies: {
+        type: Array,
+        default: () => []
     }
 });
 
@@ -26,6 +30,7 @@ const brandingForm = useForm({
     app_logo_height: props.settings.app_logo_height || '80',
     menu_logo_height: props.settings.menu_logo_height || '40',
     pdf_logo_height: props.settings.pdf_logo_height || '50',
+    default_currency_id: props.settings.default_currency_id || '',
 });
 
 const smtpForm = useForm({
@@ -149,6 +154,18 @@ const handleFileChange = (e, type) => {
                                     <div class="col-md-6">
                                         <label class="form-label">Contact Address</label>
                                         <textarea v-model="brandingForm.contact_address" class="form-control" rows="1" placeholder="e.g., 123 VMCore Plaza, Mumbai"></textarea>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Default Currency</label>
+                                        <select v-model="brandingForm.default_currency_id" class="form-select">
+                                            <option value="">Select Default Currency</option>
+                                            <option v-for="currency in currencies" :key="currency.id" :value="currency.id">
+                                                {{ currency.symbol }} - {{ currency.name }} ({{ currency.code }})
+                                            </option>
+                                        </select>
+                                        <small class="text-muted">This currency will be used as the default display currency for aggregate values.</small>
                                     </div>
                                 </div>
                                 <div class="row mt-3">
