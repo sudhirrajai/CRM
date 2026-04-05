@@ -19,6 +19,7 @@ const form = useForm({
     tech_stack: '',
     budget: '',
     priority: 'medium',
+    max_file_size: 10,
 });
 
 const submit = () => {
@@ -114,6 +115,12 @@ const submit = () => {
                                     <label for="tech_stack" class="form-label">Tech Stack</label>
                                     <input type="text" id="tech_stack" v-model="form.tech_stack" class="form-control" :class="{ 'is-invalid': form.errors.tech_stack }" placeholder="e.g. Laravel, Vue, Tailwind">
                                     <div class="invalid-feedback" v-if="form.errors.tech_stack">{{ form.errors.tech_stack }}</div>
+                                </div>
+                                <div class="col-md-4 mt-3">
+                                    <label for="max_file_size" class="form-label">Max File Size (MB) <span class="text-danger">*</span></label>
+                                    <input type="number" id="max_file_size" v-model="form.max_file_size" class="form-control" :class="{ 'is-invalid': form.errors.max_file_size }" required>
+                                    <div class="invalid-feedback" v-if="form.errors.max_file_size">{{ form.errors.max_file_size }}</div>
+                                    <small class="text-muted">Limit for each individual file upload.</small>
                                 </div>
                             </div>
 

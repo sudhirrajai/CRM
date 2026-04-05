@@ -19,6 +19,7 @@ class Project extends Model
         'tech_stack',
         'budget',
         'priority',
+        'max_file_size',
     ];
 
     protected function casts(): array
@@ -52,5 +53,15 @@ class Project extends Model
     public function changeRequests()
     {
         return $this->hasMany(ChangeRequest::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ProjectFile::class);
+    }
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class)->withTimestamps()->withPivot('assigned_at');
     }
 }

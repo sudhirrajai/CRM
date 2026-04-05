@@ -23,7 +23,9 @@
     },
     "dependencies": {
         "apexcharts": "^5.10.4",
+        "laravel-echo": "^2.3.3",
         "lucide-vue-next": "^1.0.0",
+        "pusher-js": "^8.5.0",
         "vue3-apexcharts": "^1.11.1"
     }
 }

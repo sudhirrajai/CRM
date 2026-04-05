@@ -1,23 +1,21 @@
 <x-mail::message>
-# Invoice Due Reminder
-
-Dear {{ $client->name }},
-
-# Invoice Reminder
+# Invoice Payment Reminder
 
 Dear {{ $invoice->client->name }},
 
-This is a friendly reminder regarding your invoice **#{{ $invoice->invoice_number }}**.
+This is a friendly reminder regarding your outstanding invoice **#{{ $invoice->invoice_number }}**.
 
-**Amount Due:** {{ $amount }}
+<x-mail::panel>
+**Amount Due:** {{ $amount }}<br>
 **Due Date:** {{ $dueDate }}
+</x-mail::panel>
 
 <x-mail::button :url="route('invoices.show', $invoice->id)">
-View Invoice
+Pay Invoice Now
 </x-mail::button>
 
-Please ensure payment is made by the due date to avoid any service interruptions.
+Please ensure payment is made by the due date to avoid any potential service interruptions. If you have already made the payment, please ignore this email.
 
 Thanks,<br>
-{{ config('app.name') }}
+**{{ config('app.name') }} Billing**
 </x-mail::message>

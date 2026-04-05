@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserCredentialsMail;
+
 
 class UserController extends Controller
 {
@@ -31,6 +34,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'roles' => 'required|array',
+            'send_email' => 'nullable|boolean',
         ]);
 
         $user = User::create([
@@ -40,6 +44,10 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($validated['roles']);
+
+        if ($request->boolean('send_email')) {
+            Mail::to($user->email)->send(new UserCredentialsMail($user, $validated['password']));
+        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -59,6 +67,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'roles' => 'required|array',
+            'send_email' => 'nullable|boolean',
         ]);
 
         $user->update([
@@ -68,6 +77,10 @@ class UserController extends Controller
 
         if (!empty($validated['password'])) {
             $user->update(['password' => \Illuminate\Support\Facades\Hash::make($validated['password'])]);
+
+            if ($request->boolean('send_email')) {
+                Mail::to($user->email)->send(new UserCredentialsMail($user, $validated['password']));
+            }
         }
 
         $user->syncRoles($validated['roles']);

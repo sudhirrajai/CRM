@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Models\Currency;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,8 @@ class SettingController extends Controller
         $settings = Setting::all()->pluck('value', 'key');
         
         return Inertia::render('Settings/Index', [
-            'settings' => $settings
+            'settings' => $settings,
+            'currencies' => Currency::all(),
         ]);
     }
 
@@ -41,6 +43,7 @@ class SettingController extends Controller
             'invoice_30_day_reminder' => 'nullable|boolean',
             'invoice_15_day_reminder' => 'nullable|boolean',
             'invoice_due_date_reminder' => 'nullable|boolean',
+            'default_currency_id' => 'nullable|string|exists:currencies,id',
         ]);
 
         foreach ($validated as $key => $value) {

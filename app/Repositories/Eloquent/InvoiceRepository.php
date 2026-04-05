@@ -54,12 +54,27 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function getRecent($limit = 5)
     {
-        return $this->model->with(['client', 'project'])->latest()->limit($limit)->get();
+        return $this->model->with(['client', 'project', 'currency'])->latest()->limit($limit)->get();
     }
 
     public function getRecentByClient($clientId, $limit = 5)
     {
-        return $this->model->where('client_id', $clientId)->with(['project'])->latest()->limit($limit)->get();
+        return $this->model->where('client_id', $clientId)->with(['project', 'currency'])->latest()->limit($limit)->get();
+    }
+
+    public function getTotalRevenue()
+    {
+        return $this->model->where('status', 'paid')->sum('total_amount') ?? 0;
+    }
+
+    public function getOutstandingCount()
+    {
+        return $this->model->whereIn('status', ['sent', 'overdue'])->count();
+    }
+
+    public function getOutstandingAmount()
+    {
+        return $this->model->whereIn('status', ['sent', 'overdue'])->sum('total_amount') ?? 0;
     }
 
     public function getMonthlyRevenue($months = 12)

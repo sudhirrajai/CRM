@@ -48,6 +48,13 @@ import { Link } from '@inertiajs/vue3';
                     </Link>
                 </li>
 
+                <li v-if="$page.props.auth.permissions.includes('projects.view')" class="side-nav-item">
+                    <Link :href="route('discussions.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Discussions/') }">
+                        <span class="menu-icon"><i class="ti ti-messages"></i></span>
+                        <span class="menu-text"> Discussions </span>
+                    </Link>
+                </li>
+
                 <li v-if="$page.props.auth.permissions.includes('orders.view')" class="side-nav-item">
                     <Link :href="route('orders.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Orders/') }">
                         <span class="menu-icon"><i class="ti ti-basket"></i></span>

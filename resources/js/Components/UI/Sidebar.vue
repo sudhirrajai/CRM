@@ -4,6 +4,11 @@ import { ref } from 'vue';
 
 // For handling menu state if needed
 const activeMenu = ref(null);
+const showReports = ref(false);
+
+const toggleReports = () => {
+    showReports.value = !showReports.value;
+};
 </script>
 
 <template>
@@ -53,6 +58,13 @@ const activeMenu = ref(null);
                         <span class="menu-text"> Clients </span>
                     </Link>
                 </li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Leads') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                    <Link :href="route('leads.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Leads') }">
+                        <span class="menu-icon"><i class="ti ti-target-arrow"></i></span>
+                        <span class="menu-text"> Leads </span>
+                    </Link>
+                </li>
                 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Projects') }">
                     <Link :href="route('projects.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Projects') }">
@@ -60,8 +72,23 @@ const activeMenu = ref(null);
                         <span class="menu-text"> Projects </span>
                     </Link>
                 </li>
+                
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Discussions') }">
+                    <Link :href="route('discussions.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Discussions') }">
+                        <span class="menu-icon"><i class="ti ti-messages"></i></span>
+                        <span class="menu-text"> Discussions </span>
+                    </Link>
+                </li>
+                
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Tickets') }">
+                    <Link :href="route('tickets.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Tickets') }">
+                        <span class="menu-icon"><i class="ti ti-headset"></i></span>
+                        <span class="menu-text"> Support Tickets </span>
+                    </Link>
+                </li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Invoices') }">
+
                     <Link :href="route('invoices.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Invoices') }">
                         <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
                         <span class="menu-text"> Invoices </span>
@@ -85,40 +112,38 @@ const activeMenu = ref(null);
                 </li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Reports/') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
-                    <a data-bs-toggle="collapse" href="#sidebarReports" aria-expanded="false" aria-controls="sidebarReports" class="side-nav-link">
+                    <a @click.prevent="toggleReports" class="side-nav-link" style="cursor: pointer;" :class="{ 'active': $page.component.startsWith('Reports/') }">
                         <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
                         <span class="menu-text"> Reports </span>
-                        <span class="menu-arrow"></span>
+                        <span class="menu-arrow" :style="{ transform: (showReports || $page.component.startsWith('Reports/')) ? 'rotate(90deg)' : 'none' }"></span>
                     </a>
-                    <div class="collapse" :class="{ 'show': $page.component.startsWith('Reports/') }" id="sidebarReports">
-                        <ul class="sub-menu">
-                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports' }">
-                                <Link :href="route('reports.index')" class="side-nav-link">
-                                    <span class="menu-text">Dashboard</span>
-                                </Link>
-                            </li>
-                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/profit-loss' }">
-                                <Link :href="route('reports.profit-loss')" class="side-nav-link">
-                                    <span class="menu-text">Profit & Loss</span>
-                                </Link>
-                            </li>
-                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/projects' }">
-                                <Link :href="route('reports.projects')" class="side-nav-link">
-                                    <span class="menu-text">Projects</span>
-                                </Link>
-                            </li>
-                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/clients' }">
-                                <Link :href="route('reports.clients')" class="side-nav-link">
-                                    <span class="menu-text">Clients</span>
-                                </Link>
-                            </li>
-                            <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/balance-sheet' }">
-                                <Link :href="route('reports.balance-sheet')" class="side-nav-link">
-                                    <span class="menu-text">Balance Sheet</span>
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
+                    <ul v-show="showReports || $page.component.startsWith('Reports/')" class="sub-menu" style="list-style: none; padding-left: 0; margin-top: 5px;">
+                        <li class="side-nav-item" :class="{ 'active': $page.url === '/reports' }">
+                            <Link :href="route('reports.index')" class="side-nav-link">
+                                <span class="menu-text">Dashboard</span>
+                            </Link>
+                        </li>
+                        <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/profit-loss' }">
+                            <Link :href="route('reports.profit-loss')" class="side-nav-link">
+                                <span class="menu-text">Profit & Loss</span>
+                            </Link>
+                        </li>
+                        <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/projects' }">
+                            <Link :href="route('reports.projects')" class="side-nav-link">
+                                <span class="menu-text">Projects</span>
+                            </Link>
+                        </li>
+                        <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/clients' }">
+                            <Link :href="route('reports.clients')" class="side-nav-link">
+                                <span class="menu-text">Clients</span>
+                            </Link>
+                        </li>
+                        <li class="side-nav-item" :class="{ 'active': $page.url === '/reports/balance-sheet' }">
+                            <Link :href="route('reports.balance-sheet')" class="side-nav-link">
+                                <span class="menu-text">Balance Sheet</span>
+                            </Link>
+                        </li>
+                    </ul>
                 </li>
 
                 <li class="side-nav-title mt-2 text-uppercase fs-12" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">Infrastructure</li>

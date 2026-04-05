@@ -47,6 +47,7 @@ class ProjectController extends Controller
             'tech_stack' => 'nullable|string',
             'budget' => 'nullable|numeric|min:0',
             'priority' => 'required|string|in:low,medium,high',
+            'max_file_size' => 'nullable|integer|min:1',
         ]);
 
         $this->projectRepo->create($validated);
@@ -107,6 +108,7 @@ class ProjectController extends Controller
             'tech_stack' => 'nullable|string',
             'budget' => 'nullable|numeric|min:0',
             'priority' => 'required|string|in:low,medium,high',
+            'max_file_size' => 'nullable|integer|min:1',
             'milestones' => 'nullable|array',
             'milestones.*.id' => 'nullable|string',
             'milestones.*.name' => 'required|string|max:255',

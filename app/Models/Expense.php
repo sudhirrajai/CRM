@@ -13,8 +13,14 @@ class Expense extends Model
         'category_id',
         'name',
         'amount',
+        'payment_reference',
+        'payment_mode',
+        'payment_mode_details',
+        'invoice_file_path',
         'date',
         'is_recurring',
+        'recurring_frequency',
+        'next_due_date',
         'notes',
     ];
 
@@ -22,8 +28,10 @@ class Expense extends Model
     {
         return [
             'date' => 'date',
+            'next_due_date' => 'date',
             'amount' => 'decimal:2',
             'is_recurring' => 'boolean',
+            'payment_mode_details' => 'array',
         ];
     }
 

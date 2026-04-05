@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProjectFileController;
 
 Route::get('/', function () {
     return Inertia::render('Landing');
@@ -31,6 +32,21 @@ Route::middleware('auth')->group(function () {
         Route::resource('expense-categories', \App\Http\Controllers\ExpenseCategoryController::class);
         Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
         Route::resource('users', \App\Http\Controllers\UserController::class);
+
+        // Leads
+        Route::resource('leads', \App\Http\Controllers\LeadController::class);
+        Route::put('/leads/{lead}/update-stage', [\App\Http\Controllers\LeadController::class, 'updateStage'])->name('leads.update-stage');
+        Route::post('/leads/{lead}/convert', [\App\Http\Controllers\LeadController::class, 'convert'])->name('leads.convert');
+        Route::post('/leads/{lead}/activities', [\App\Http\Controllers\LeadController::class, 'addActivity'])->name('leads.activities.store');
+        Route::get('/leads-export', [\App\Http\Controllers\LeadController::class, 'export'])->name('leads.export');
+        Route::post('/leads-import', [\App\Http\Controllers\LeadController::class, 'import'])->name('leads.import');
+
+        // Pipeline Stage Management
+        Route::get('/pipeline-stages', [\App\Http\Controllers\LeadPipelineStageController::class, 'index'])->name('pipeline-stages.index');
+        Route::post('/pipeline-stages', [\App\Http\Controllers\LeadPipelineStageController::class, 'store'])->name('pipeline-stages.store');
+        Route::put('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'update'])->name('pipeline-stages.update');
+        Route::delete('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'destroy'])->name('pipeline-stages.destroy');
+        Route::post('/pipeline-stages/reorder', [\App\Http\Controllers\LeadPipelineStageController::class, 'reorder'])->name('pipeline-stages.reorder');
         
         Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
         Route::put('/roles/{role}', [\App\Http\Controllers\RoleController::class, 'update'])->name('roles.update');
@@ -63,16 +79,40 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoices/{invoice}/view-pdf', [\App\Http\Controllers\InvoiceController::class, 'viewPdf'])->name('invoices.view-pdf');
     
     // Project Discussions
+    Route::get('/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'allDiscussions'])->name('discussions.index');
     Route::get('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'index'])->name('projects.discussions.index');
     Route::post('/projects/{project}/discussions', [\App\Http\Controllers\ProjectDiscussionController::class, 'store'])->name('projects.discussions.store');
     Route::put('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'update'])->name('projects.discussions.update');
     Route::delete('/projects/{project}/discussions/{discussion}', [\App\Http\Controllers\ProjectDiscussionController::class, 'destroy'])->name('projects.discussions.destroy');
+    Route::post('/projects/{project}/discussions/read', [\App\Http\Controllers\ProjectDiscussionController::class, 'markAsRead'])->name('projects.discussions.read');
+    Route::get('/projects/{project}/discussions/members', [\App\Http\Controllers\ProjectDiscussionController::class, 'projectMembers'])->name('projects.discussions.members');
+    Route::get('/projects/{project}/discussions/available-staff', [\App\Http\Controllers\ProjectDiscussionController::class, 'availableStaff'])->name('projects.discussions.available-staff');
+    Route::post('/projects/{project}/discussions/members', [\App\Http\Controllers\ProjectDiscussionController::class, 'assignMember'])->name('projects.discussions.assign');
+    Route::delete('/projects/{project}/discussions/members/{user}', [\App\Http\Controllers\ProjectDiscussionController::class, 'unassignMember'])->name('projects.discussions.unassign');
     Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
     
     // Project Change Requests
     Route::post('/projects/{project}/change-requests', [\App\Http\Controllers\ChangeRequestController::class, 'store'])->name('projects.change-requests.store');
     Route::put('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'update'])->name('change-requests.update');
     Route::delete('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'destroy'])->name('change-requests.destroy');
+
+    // Project Files
+    Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('projects.files.index');
+    Route::post('/projects/{project}/files', [ProjectFileController::class, 'upload'])->name('projects.files.upload');
+    Route::get('/files/{file}/download', [ProjectFileController::class, 'download'])->name('projects.files.download');
+    Route::delete('/files/{file}', [ProjectFileController::class, 'destroy'])->name('projects.files.destroy');
+    Route::post('/files/{file}/share', [ProjectFileController::class, 'createShareLink'])->name('projects.files.share');
+    Route::delete('/files/{file}/share', [ProjectFileController::class, 'revokeShareLink'])->name('projects.files.revoke-share');
+
+    // Support Tickets
+    Route::resource('tickets', \App\Http\Controllers\TicketController::class);
+    Route::post('/tickets/{ticket}/assign', [\App\Http\Controllers\TicketController::class, 'assign'])->name('tickets.assign');
+    Route::post('/tickets/{ticket}/status', [\App\Http\Controllers\TicketController::class, 'updateStatus'])->name('tickets.update-status');
+    Route::get('/tickets/{ticket}/attachments/{attachment}/download', [\App\Http\Controllers\TicketController::class, 'downloadAttachment'])->name('tickets.attachments.download');
 });
+
+
+// Public Shared Files
+Route::get('/shared-files/{token}', [ProjectFileController::class, 'publicDownload'])->name('public.files.download');
 
 require __DIR__.'/auth.php';

@@ -1,9 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import DiscussionContainer from '@/Components/ProjectDiscussion/DiscussionContainer.vue';
+import { ref, onMounted } from 'vue';
 import ChangeRequestTab from './Tabs/ChangeRequests.vue';
+import SharedFilesTab from './Tabs/SharedFiles.vue';
 
 const props = defineProps({
     project: {
@@ -13,6 +13,14 @@ const props = defineProps({
 });
 
 const activeTab = ref('overview');
+
+onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['overview', 'change-requests', 'shared-files'].includes(tab)) {
+        activeTab.value = tab;
+    }
+});
 
 const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -67,13 +75,13 @@ const getPriorityBadgeClass = (priority) => {
                 </a>
             </li>
             <li class="nav-item">
-                <a href="javascript:void(0)" @click="activeTab = 'discussion'" class="nav-link" :class="{ 'active': activeTab === 'discussion' }">
-                    <i class="ti ti-messages me-1"></i> Discussion
+                <a href="javascript:void(0)" @click="activeTab = 'change-requests'" class="nav-link" :class="{ 'active': activeTab === 'change-requests' }">
+                    <i class="ti ti-git-pull-request me-1"></i> Change Requests
                 </a>
             </li>
             <li class="nav-item">
-                <a href="javascript:void(0)" @click="activeTab = 'change-requests'" class="nav-link" :class="{ 'active': activeTab === 'change-requests' }">
-                    <i class="ti ti-git-pull-request me-1"></i> Change Requests
+                <a href="javascript:void(0)" @click="activeTab = 'shared-files'" class="nav-link" :class="{ 'active': activeTab === 'shared-files' }">
+                    <i class="ti ti-folder me-1"></i> Shared Files
                 </a>
             </li>
         </ul>
@@ -196,12 +204,13 @@ const getPriorityBadgeClass = (priority) => {
             </div> <!-- end row -->
         </div>
 
-        <div v-if="activeTab === 'discussion'">
-            <DiscussionContainer :project="project" />
-        </div>
 
         <div v-if="activeTab === 'change-requests'">
             <ChangeRequestTab :project="project" />
+        </div>
+
+        <div v-if="activeTab === 'shared-files'">
+            <SharedFilesTab :project="project" />
         </div>
     </AuthenticatedLayout>
 </template>

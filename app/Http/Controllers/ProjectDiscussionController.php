@@ -5,17 +5,64 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\ProjectDiscussion;
 use App\Models\ProjectDiscussionAttachment;
+use App\Models\DiscussionRead;
+use App\Models\User;
+use App\Events\NewDiscussionMessage;
+use App\Events\DiscussionMessageUpdated;
+use App\Events\DiscussionMessageDeleted;
+use App\Events\UserReadDiscussion;
+use App\Jobs\SendMentionReminderJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class ProjectDiscussionController extends Controller
 {
+    public function allDiscussions()
+    {
+        $user = auth()->user();
+        
+        $projectsQuery = Project::with(['client']);
+
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                $projectsQuery->whereHas('members', function($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                });
+            } else {
+                $projectsQuery->where('client_id', $user->client_id);
+            }
+        }
+
+        $projects = $projectsQuery->latest()
+            ->get()
+            ->map(function($project) {
+                return [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'client_name' => $project->client?->name,
+                    'status' => $project->status,
+                ];
+            });
+
+        return Inertia::render('Discussions/Index', [
+            'projects' => $projects,
+            'selectedProjectId' => request('project_id')
+        ]);
+    }
+
     public function index(Project $project)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $discussions = $project->discussions()
@@ -23,19 +70,35 @@ class ProjectDiscussionController extends Controller
             ->oldest()
             ->paginate(100);
 
-        return response()->json($discussions);
+        // Get read status for the user
+        $readStatus = DiscussionRead::where('project_id', $project->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        return response()->json([
+            'discussions' => $discussions,
+            'read_status' => $readStatus,
+            'project_members' => $this->getProjectMembers($project),
+        ]);
     }
 
     public function store(Request $request, Project $project)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $validated = $request->validate([
             'message' => 'required_without:attachments|nullable|string',
             'parent_id' => 'nullable|exists:project_discussions,id',
+            'mentions' => 'nullable|array',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240', // 10MB limit
         ]);
@@ -44,6 +107,7 @@ class ProjectDiscussionController extends Controller
             'user_id' => $user->id,
             'message' => $validated['message'] ?? null,
             'parent_id' => $validated['parent_id'] ?? null,
+            'mentions' => $validated['mentions'] ?? [],
         ]);
 
         if ($request->hasFile('attachments')) {
@@ -58,7 +122,22 @@ class ProjectDiscussionController extends Controller
             }
         }
 
-        return response()->json($discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']));
+        $discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']);
+
+        // Broadcast the new message
+        broadcast(new NewDiscussionMessage($discussion))->toOthers();
+
+        // Queue mention reminders
+        if (!empty($discussion->mentions)) {
+            foreach ($discussion->mentions as $mentionedUserId) {
+                // Don't remind yourself
+                if ($mentionedUserId !== $user->id) {
+                    SendMentionReminderJob::dispatch($discussion, $mentionedUserId)->delay(now()->addMinutes(30));
+                }
+            }
+        }
+
+        return response()->json($discussion);
     }
 
     public function update(Request $request, Project $project, ProjectDiscussion $discussion)
@@ -75,15 +154,22 @@ class ProjectDiscussionController extends Controller
 
         $validated = $request->validate([
             'message' => 'required|string',
+            'mentions' => 'nullable|array',
         ]);
 
         $discussion->update([
             'message' => $validated['message'],
+            'mentions' => $validated['mentions'] ?? $discussion->mentions,
             'is_edited' => true,
             'edited_at' => Carbon::now(),
         ]);
 
-        return response()->json($discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']));
+        $discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']);
+
+        // Broadcast the update
+        broadcast(new DiscussionMessageUpdated($discussion))->toOthers();
+
+        return response()->json($discussion);
     }
 
     public function destroy(Project $project, ProjectDiscussion $discussion)
@@ -93,6 +179,9 @@ class ProjectDiscussionController extends Controller
             abort(403);
         }
 
+        $messageId = $discussion->id;
+        $parentId = $discussion->parent_id;
+
         // Delete attachments from storage
         foreach ($discussion->attachments as $attachment) {
             $path = str_replace('/storage/', '', $attachment->file_path);
@@ -101,14 +190,71 @@ class ProjectDiscussionController extends Controller
 
         $discussion->delete();
 
+        // Broadcast deletion
+        broadcast(new DiscussionMessageDeleted($project->id, $messageId, $parentId))->toOthers();
+
         return response()->json(['message' => 'Message deleted successfully.']);
+    }
+
+    public function markAsRead(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        $validated = $request->validate([
+            'last_read_message_id' => 'required|exists:project_discussions,id',
+        ]);
+
+        $read = DiscussionRead::updateOrCreate(
+            ['project_id' => $project->id, 'user_id' => $user->id],
+            [
+                'last_read_message_id' => $validated['last_read_message_id'],
+                'last_read_at' => now()
+            ]
+        );
+
+        // Broadcast the read event
+        broadcast(new UserReadDiscussion($project->id, $user->id, $user->name, $validated['last_read_message_id']))->toOthers();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function projectMembers(Project $project)
+    {
+        return response()->json($this->getProjectMembers($project));
+    }
+
+    protected function getProjectMembers(Project $project)
+    {
+        // Admins (always see all)
+        $admins = User::role('admin')->get();
+        
+        // Assigned Staff
+        $assignedStaff = $project->members()->role('staff')->get();
+        
+        // Client Users
+        $clientUsers = User::where('client_id', $project->client_id)->get();
+
+        return $admins->concat($assignedStaff)->concat($clientUsers)->unique('id')->map(function($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar_initial' => strtoupper(substr($user->name, 0, 1)),
+                'role' => $user->getRoleNames()->first(),
+            ];
+        });
     }
 
     public function downloadAttachment(Project $project, ProjectDiscussionAttachment $attachment)
     {
         $user = auth()->user();
-        if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
-            abort(403);
+        if (!$user->hasRole('admin')) {
+            if ($user->hasRole('staff')) {
+                if (!$user->projects()->where('project_id', $project->id)->exists()) {
+                    abort(403, 'You are not assigned to this project.');
+                }
+            } elseif ($project->client_id !== $user->client_id) {
+                abort(403);
+            }
         }
 
         $path = str_replace('/storage/', '', $attachment->file_path);
@@ -117,5 +263,31 @@ class ProjectDiscussionController extends Controller
         }
 
         return Storage::disk('public')->download($path, $attachment->file_name);
+    }
+
+    public function availableStaff(Project $project)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $assignedIds = $project->members()->pluck('users.id');
+        return User::role(['staff', 'admin'])->whereNotIn('id', $assignedIds)->get();
+    }
+
+    public function assignMember(Request $request, Project $project)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $validated = $request->validate(['user_id' => 'required|exists:users,id']);
+        $project->members()->syncWithoutDetaching([$validated['user_id']]);
+        
+        return response()->json(['message' => 'Member assigned successfully.']);
+    }
+
+    public function unassignMember(Project $project, User $user)
+    {
+        if (!auth()->user()->hasRole('admin')) abort(403);
+        
+        $project->members()->detach($user->id);
+        return response()->json(['message' => 'Member removed successfully.']);
     }
 }
