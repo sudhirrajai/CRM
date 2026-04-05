@@ -7,6 +7,7 @@ use App\Repositories\Interfaces\ProjectRepositoryInterface;
 use App\Repositories\Interfaces\InvoiceRepositoryInterface;
 use App\Repositories\Interfaces\ServerRepositoryInterface;
 use App\Repositories\Interfaces\ClientHostingRepositoryInterface;
+use App\Repositories\Interfaces\LeadRepositoryInterface;
 
 class DashboardService
 {
@@ -15,7 +16,8 @@ class DashboardService
         protected ProjectRepositoryInterface $projectRepo,
         protected InvoiceRepositoryInterface $invoiceRepo,
         protected ServerRepositoryInterface $serverRepo,
-        protected ClientHostingRepositoryInterface $hostingRepo
+        protected ClientHostingRepositoryInterface $hostingRepo,
+        protected LeadRepositoryInterface $leadRepo
     ) {}
 
     public function getAnalytics()
@@ -48,6 +50,9 @@ class DashboardService
             'recent_clients' => $this->clientRepo->getRecent(),
             'revenue_overview' => $this->invoiceRepo->getMonthlyRevenue(),
             'project_stats' => $this->projectRepo->getStatusCounts(),
+            'total_leads' => $this->leadRepo->all()->count(),
+            'leads_value' => $this->leadRepo->getTotalValue(),
+            'leads_conversion_rate' => $this->leadRepo->getConversionRate(),
             'is_admin' => true,
         ];
     }

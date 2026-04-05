@@ -32,6 +32,21 @@ Route::middleware('auth')->group(function () {
         Route::resource('expense-categories', \App\Http\Controllers\ExpenseCategoryController::class);
         Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
         Route::resource('users', \App\Http\Controllers\UserController::class);
+
+        // Leads
+        Route::resource('leads', \App\Http\Controllers\LeadController::class);
+        Route::put('/leads/{lead}/update-stage', [\App\Http\Controllers\LeadController::class, 'updateStage'])->name('leads.update-stage');
+        Route::post('/leads/{lead}/convert', [\App\Http\Controllers\LeadController::class, 'convert'])->name('leads.convert');
+        Route::post('/leads/{lead}/activities', [\App\Http\Controllers\LeadController::class, 'addActivity'])->name('leads.activities.store');
+        Route::get('/leads-export', [\App\Http\Controllers\LeadController::class, 'export'])->name('leads.export');
+        Route::post('/leads-import', [\App\Http\Controllers\LeadController::class, 'import'])->name('leads.import');
+
+        // Pipeline Stage Management
+        Route::get('/pipeline-stages', [\App\Http\Controllers\LeadPipelineStageController::class, 'index'])->name('pipeline-stages.index');
+        Route::post('/pipeline-stages', [\App\Http\Controllers\LeadPipelineStageController::class, 'store'])->name('pipeline-stages.store');
+        Route::put('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'update'])->name('pipeline-stages.update');
+        Route::delete('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'destroy'])->name('pipeline-stages.destroy');
+        Route::post('/pipeline-stages/reorder', [\App\Http\Controllers\LeadPipelineStageController::class, 'reorder'])->name('pipeline-stages.reorder');
         
         Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
         Route::put('/roles/{role}', [\App\Http\Controllers\RoleController::class, 'update'])->name('roles.update');

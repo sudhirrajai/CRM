@@ -24,6 +24,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'expenses' => ['view', 'create', 'edit', 'delete'],
             'expense_categories' => ['view', 'create', 'edit', 'delete'],
             'change_requests' => ['view', 'create', 'edit', 'delete'],
+            'leads' => ['view', 'create', 'edit', 'delete'],
+            'pipeline_stages' => ['view', 'create', 'edit', 'delete'],
             'reports' => ['view'],
             'users' => ['view', 'create', 'edit', 'delete'],
             'roles' => ['view', 'edit'],
@@ -70,6 +72,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'expenses.view', 'expenses.create', 'expenses.edit',
             'expense_categories.view', 'expense_categories.create', 'expense_categories.edit',
             'change_requests.view', 'change_requests.create', 'change_requests.edit', 'change_requests.delete',
+            'leads.view', 'leads.create', 'leads.edit',
+            'pipeline_stages.view',
             'reports.view',
         ]);
 

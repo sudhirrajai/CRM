@@ -19,6 +19,8 @@ use App\Repositories\Interfaces\ClientHostingRepositoryInterface;
 use App\Repositories\Eloquent\ClientHostingRepository;
 use App\Repositories\Interfaces\CurrencyRepositoryInterface;
 use App\Repositories\Eloquent\CurrencyRepository;
+use App\Repositories\Interfaces\LeadRepositoryInterface;
+use App\Repositories\Eloquent\LeadRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(CurrencyRepositoryInterface::class, CurrencyRepository::class);
         $this->app->bind(ExpenseCategoryRepositoryInterface::class, ExpenseCategoryRepository::class);
         $this->app->bind(ExpenseRepositoryInterface::class, ExpenseRepository::class);
+        $this->app->bind(LeadRepositoryInterface::class, LeadRepository::class);
     }
 
     public function boot(): void

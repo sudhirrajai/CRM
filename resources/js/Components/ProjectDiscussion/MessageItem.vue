@@ -84,7 +84,6 @@ const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     
-    // Relative time for messages less than 1 day old
     const diff = Math.floor((now - date) / 1000);
     if (diff < 60) return 'just now';
     if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -102,18 +101,16 @@ const formatDate = (dateString) => {
 const renderedMessage = computed(() => {
     let msg = props.message.message || '';
     
-    // 1. Mentions Parsing
     const mentionRegex = /@([a-zA-Z0-9\s]+)/g;
     msg = msg.replace(mentionRegex, (match, name) => {
         const trimmedName = name.trim();
         const member = props.members.find(m => m.name.startsWith(trimmedName));
         if (member) {
-            return `<span class="mention-badge badge bg-primary-subtle text-primary border-primary border-0 rounded-pill px-2">@${trimmedName}</span>`;
+            return `<span class="mention-badge badge bg-primary-subtle text-primary border-0 rounded-pill px-2">@${trimmedName}</span>`;
         }
         return match;
     });
 
-    // 2. Search Highlighting
     if (props.searchQuery && props.searchQuery.length >= 2) {
         const searchRegex = new RegExp(`(${props.searchQuery})`, 'gi');
         msg = msg.replace(searchRegex, '<mark class="search-highlight fw-bold bg-warning text-dark p-0 rounded-1">$1</mark>');
@@ -127,11 +124,11 @@ const renderedMessage = computed(() => {
     <div class="message-wrapper animate-slide-in" :class="{ 'is-me': message.user_id === authUser.id, 'is-reply': isReply }">
         <div class="message-item d-flex gap-2 position-relative group" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
             
-            <!-- Avatar (WhatsApp style - only for others' messages) -->
+            <!-- Avatar -->
             <div v-if="message.user_id !== authUser.id" class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
                 <div 
-                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold border bg-white text-muted"
-                    style="width: 34px; height: 34px; font-size: 11px;"
+                    class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold bg-light text-muted border"
+                    style="width: 32px; height: 32px; font-size: 11px;"
                 >
                     {{ message.user.name.charAt(0).toUpperCase() }}
                 </div>
@@ -139,7 +136,7 @@ const renderedMessage = computed(() => {
             
             <div class="content-container d-flex flex-column" :class="message.user_id === authUser.id ? 'align-items-end self' : 'align-items-start other'" style="max-width: 85%;">
                 <!-- User name (Only for others) -->
-                <div v-if="message.user_id !== authUser.id && !isReply" class="user-name small text-muted mb-1 px-2 fw-medium">
+                <div v-if="message.user_id !== authUser.id && !isReply" class="user-name text-muted mb-1 px-2 fw-medium" style="font-size: 0.7rem;">
                     {{ message.user.name }}
                 </div>
                 
@@ -147,13 +144,14 @@ const renderedMessage = computed(() => {
                     <!-- Message Bubble -->
                     <div v-if="!isEditing" class="message-bubble" :class="[
                         message.user_id === authUser.id 
-                            ? 'bg-indigo text-white rounded-3 shadow-none' 
-                            : 'bg-white border border-light-subtle text-dark-slate rounded-3 shadow-sm'
+                            ? 'bubble-self' 
+                            : 'bubble-other'
                     ]">
                         <!-- Reply Context In Bubble -->
-                        <div v-if="message.parent" class="reply-context-bubble mb-2 p-2 rounded-3 bg-black bg-opacity-10 border-start border-4 border-primary small cursor-pointer" @click="$emit('scroll-to', message.parent_id)">
-                           <div class="fw-bold opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-primary'">{{ message.parent.user?.name }}</div>
-                           <div class="text-truncate opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-muted'">{{ message.parent.message }}</div>
+                        <div v-if="message.parent" class="reply-context-bubble mb-2 p-2 rounded border-start border-3 border-primary small cursor-pointer" @click="$emit('scroll-to', message.parent_id)"
+                             :class="message.user_id === authUser.id ? 'bg-white bg-opacity-10' : 'bg-light'">
+                           <div class="fw-bold opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-primary'" style="font-size: 0.7rem;">{{ message.parent.user?.name }}</div>
+                           <div class="text-truncate opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-muted'" style="font-size: 0.7rem;">{{ message.parent.message }}</div>
                         </div>
 
                         <!-- Message Text -->
@@ -165,7 +163,7 @@ const renderedMessage = computed(() => {
                         </div>
 
                         <!-- Bottom Metadata -->
-                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1 opacity-75" style="font-size: 10px;">
+                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1 opacity-60" style="font-size: 10px;">
                             <span class="timestamp">{{ formatDate(message.created_at) }}</span>
                             <span v-if="message.is_edited">· edited</span>
                             <ReadReceipts v-if="message.user_id === authUser.id" :message="message" :read-by="message.read_by || []" />
@@ -173,22 +171,22 @@ const renderedMessage = computed(() => {
                     </div>
                     
                     <!-- Edit Window -->
-                    <div v-else class="edit-bubble p-3 bg-white border border-indigo rounded-4 shadow-sm w-100">
-                        <textarea v-model="editMessage" class="form-control border-0 shadow-none p-0 bg-transparent" rows="3"></textarea>
+                    <div v-else class="edit-bubble p-3 bg-white border rounded shadow-sm w-100">
+                        <textarea v-model="editMessage" class="form-control form-control-sm border-0 shadow-none p-0 bg-transparent" rows="3"></textarea>
                         <div class="d-flex gap-2 mt-2 justify-content-end">
                             <button @click="isEditing = false" class="btn btn-xs btn-link text-muted px-2">Cancel</button>
-                            <button @click="handleUpdate" class="btn btn-xs btn-indigo rounded-pill px-3" :disabled="updating">Save</button>
+                            <button @click="handleUpdate" class="btn btn-xs btn-primary px-3" :disabled="updating">Save</button>
                         </div>
                     </div>
 
                     <!-- Actions hover menu -->
                     <div class="message-actions opacity-0 group-hover-opacity-100 transition-all d-flex gap-1">
-                        <button v-if="!isEditing" @click="$emit('reply', message)" class="btn btn-icon btn-sm btn-light rounded-circle shadow-sm" title="Reply">
-                            <i class="ti ti-arrow-back-up fs-5"></i>
+                        <button v-if="!isEditing" @click="$emit('reply', message)" class="btn btn-action btn-sm btn-light rounded-circle shadow-sm" title="Reply">
+                            <i class="ti ti-arrow-back-up" style="font-size: 0.8rem;"></i>
                         </button>
                         <div class="btn-group shadow-sm rounded-pill overflow-hidden bg-white border">
-                            <button v-if="canEdit && !isEditing" @click="isEditing = true" class="btn btn-sm btn-white border-0 py-1 px-2" title="Edit"><i class="ti ti-pencil fs-6"></i></button>
-                            <button v-if="canDelete && !isEditing" @click="handleDelete" class="btn btn-sm btn-white border-0 py-1 px-2 text-danger" title="Delete"><i class="ti ti-trash fs-6"></i></button>
+                            <button v-if="canEdit && !isEditing" @click="isEditing = true" class="btn btn-sm btn-white border-0 py-1 px-2" title="Edit"><i class="ti ti-pencil" style="font-size: 0.75rem;"></i></button>
+                            <button v-if="canDelete && !isEditing" @click="handleDelete" class="btn btn-sm btn-white border-0 py-1 px-2 text-danger" title="Delete"><i class="ti ti-trash" style="font-size: 0.75rem;"></i></button>
                         </div>
                     </div>
                 </div>
@@ -210,55 +208,43 @@ const renderedMessage = computed(() => {
 
 <style scoped>
 .message-wrapper {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6rem;
     padding: 0 0.5rem;
 }
 
 .message-bubble {
     max-width: 80%;
-    padding: 0.85rem 1.15rem;
+    padding: 0.75rem 1rem;
     position: relative;
     line-height: 1.5;
+    font-size: 0.875rem;
     transition: all 0.2s ease;
 }
 
-.self .message-bubble {
-    background-color: #4c49e2;
+/* Self (my messages) - use admin primary color */
+.bubble-self {
+    background-color: var(--bs-primary, #3e60d5);
     color: #ffffff;
-    border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
-    box-shadow: 0 4px 12px rgba(76, 73, 226, 0.15);
+    border-radius: 0.75rem 0.75rem 0.2rem 0.75rem;
+    box-shadow: 0 2px 8px rgba(62, 96, 213, 0.15);
 }
 
-.other .message-bubble {
+/* Other (received messages) */
+.bubble-other {
     background-color: #ffffff;
-    color: #1e293b;
-    border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
-    box-shadow: 0 4px 12px rgba(18, 38, 63, 0.04);
-    border: 1px solid #f1f5f9;
-}
-
-.text-indigo-subtle { color: #818cf8 !important; }
-.text-slate-400 { color: #94a3b8 !important; }
-
-.x-small {
-    font-size: 0.65rem;
-    font-weight: 500;
-}
-
-.hover-lift:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important;
-}
-
-.transition-all {
-    transition: all 0.2s ease;
+    color: #343a40;
+    border-radius: 0.75rem 0.75rem 0.75rem 0.2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f7;
 }
 
 .reply-context-bubble {
     max-width: 100%;
     overflow: hidden;
+    border-radius: 4px;
 }
 
+/* Actions */
 .message-item:hover .message-actions {
     opacity: 1 !important;
     transform: translateX(0);
@@ -269,12 +255,13 @@ const renderedMessage = computed(() => {
     transition: all 0.2s ease;
 }
 
-.btn-icon {
-    width: 28px;
-    height: 28px;
+.btn-action {
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
 }
 
 .btn-xs {
@@ -286,6 +273,10 @@ const renderedMessage = computed(() => {
     white-space: pre-wrap;
 }
 
+.transition-all {
+    transition: all 0.2s ease;
+}
+
 .animate-slide-in {
     animation: slideIn 0.2s ease-out;
 }
@@ -295,10 +286,12 @@ const renderedMessage = computed(() => {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Mentions */
 :deep(.mention-badge) {
-    background-color: rgba(76, 73, 226, 0.1) !important;
-    color: #4c49e2 !important;
+    background-color: rgba(62, 96, 213, 0.1) !important;
+    color: var(--bs-primary, #3e60d5) !important;
     font-weight: 600;
+    font-size: 0.8em;
 }
 
 .self :deep(.mention-badge) {
@@ -306,28 +299,21 @@ const renderedMessage = computed(() => {
     color: white !important;
 }
 
-.self .message-bubble {
-    border-bottom-right-radius: 4px !important;
-}
-
-.other .message-bubble {
-    border-bottom-left-radius: 4px !important;
-}
-
-.text-dark-slate {
-    color: #1e293b !important;
-}
-
+/* Search highlights */
 :deep(.search-highlight) {
-    background-color: #fef08a !important; /* Yellow-200 */
-    color: #1e293b !important; /* Slate-800 */
+    background-color: #fef08a !important;
+    color: #1e293b !important;
     padding: 0 1px;
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.2);
 }
 
 .is-me :deep(.search-highlight) {
-    background-color: #fde047 !important; /* Yellow-300 */
+    background-color: #fde047 !important;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.opacity-60 {
+    opacity: 0.6;
 }
 </style>

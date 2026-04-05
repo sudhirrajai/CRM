@@ -76,7 +76,6 @@ const setupEcho = () => {
         return;
     }
 
-    // Join Private/Presence channel
     echoChannel.value = window.Echo.join(`project.${props.project.id}`)
         .here((users) => {
             onlineUsers.value = users;
@@ -142,16 +141,10 @@ const handleMessageDeleted = (e) => {
 };
 
 const handleReadEvent = (e) => {
-    // Only update if it's not the current user (own read receipts handled locally)
     if (e.userId === authUser.value.id) return;
-
-    // Update all messages in discussions that were read by this user
-    // A production app would compare dates. For now, we update read_by array.
     discussions.value.forEach(msg => {
         if (!msg.read_by) msg.read_by = [];
         if (!msg.read_by.some(u => u.id === e.userId)) {
-            // Check if msg date is <= last read date (would need last read msg data)
-            // Simplified: adding to the read_by list for messages.
             msg.read_by.push({ id: e.userId, name: e.userName });
         }
     });
@@ -204,7 +197,6 @@ let handleGlobalKeydown = null;
 onMounted(() => {
     fetchDiscussions();
     
-    // Global keyboard shortcut for search
     handleGlobalKeydown = (e) => {
         if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
             e.preventDefault();
@@ -216,7 +208,6 @@ onMounted(() => {
     
     setupEcho();
     
-    // Auto-mark as read when scroll bottom
     const container = document.getElementById('discussion-scroll');
     if (container) {
         container.addEventListener('scroll', () => {
@@ -242,15 +233,15 @@ onUnmounted(() => {
         <div class="discussion-main-row">
             <!-- Main Discussion Column -->
             <div class="discussion-chat-col">
-                <!-- Header -->
+                <!-- Header - Admin-style -->
                 <div class="discussion-header">
                     <div class="d-flex align-items-center gap-3 flex-shrink-0">
-                        <div class="avatar-box bg-indigo-subtle text-indigo rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 42px; height: 42px;">
-                            <i class="ti ti-brand-hipchat fs-3"></i>
+                        <div class="avatar-box rounded d-flex align-items-center justify-content-center fw-bold">
+                            <i class="ti ti-brand-hipchat fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="mb-0 fw-bold text-dark small-mobile-title">{{ project.name }}</h6>
-                            <div class="x-small text-success d-flex align-items-center gap-1">
+                            <h6 class="mb-0 fw-semibold small-mobile-title">{{ project.name }}</h6>
+                            <div class="online-status-text d-flex align-items-center gap-1">
                                 <span class="online-indicator"></span> {{ onlineUsers.length }} online
                             </div>
                         </div>
@@ -259,12 +250,12 @@ onUnmounted(() => {
                     <!-- Header Actions (Search) -->
                     <div class="discussion-search-wrap">
                         <div class="search-container position-relative">
-                            <i class="ti ti-search position-absolute top-50 translate-middle-y text-muted" style="left: 14px; font-size: 0.85rem;"></i>
+                            <i class="ti ti-search position-absolute top-50 translate-middle-y text-muted" style="left: 12px; font-size: 0.8rem;"></i>
                             <input 
                                 ref="searchInput"
                                 v-model="searchQuery" 
                                 type="text" 
-                                class="form-control search-input rounded-pill bg-light border-0 py-2 ps-5 pe-3 small" 
+                                class="form-control form-control-sm search-input ps-4" 
                                 placeholder="Search messages"
                                 @focus="isSearchFocused = true"
                                 @blur="isSearchFocused = false"
@@ -274,22 +265,22 @@ onUnmounted(() => {
                 </div>
                 
                 <!-- Chat View -->
-                <div class="discussion-messages-area bg-dot-pattern">
+                <div class="discussion-messages-area">
                     <div class="discussion-scroll-inner custom-scrollbar" id="discussion-scroll">
                         <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
-                            <div class="spinner-grow text-indigo" role="status">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
                         
                         <!-- Empty Search results -->
                         <div v-else-if="searchQuery && filteredDiscussions.length === 0" class="d-flex flex-column justify-content-center align-items-center h-100 p-5 text-center animate-fade-in">
-                            <div class="bg-light p-4 rounded-circle mb-3 shadow-boron-sm">
-                                <i class="ti ti-search-off fs-1 text-indigo opacity-50"></i>
+                            <div class="bg-light p-4 rounded-circle mb-3">
+                                <i class="ti ti-search-off fs-1 text-muted opacity-50"></i>
                             </div>
-                            <h5 class="fw-bold text-dark">No matches found</h5>
+                            <h6 class="fw-bold text-dark">No matches found</h6>
                             <p class="text-muted small">We couldn't find anything for "{{ searchQuery }}"</p>
-                            <button @click="searchQuery = ''" class="btn btn-sm btn-indigo rounded-pill px-4">Clear search</button>
+                            <button @click="searchQuery = ''" class="btn btn-sm btn-primary px-4">Clear search</button>
                         </div>
                         
                         <MessageList 
@@ -365,27 +356,62 @@ onUnmounted(() => {
     min-width: 0;
     min-height: 0;
     background: #fff;
-    border-right: 1px solid #e9ecef;
+    border-right: 1px solid #eef2f7;
 }
 
-/* Header */
+/* Header - Admin style */
 .discussion-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 12px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eef2f7;
     flex-shrink: 0;
-    z-index: 10;
+}
+
+.avatar-box {
+    width: 40px;
+    height: 40px;
+    background: rgba(62, 96, 213, 0.1);
+    color: var(--bs-primary, #3e60d5);
 }
 
 .discussion-search-wrap {
     flex-shrink: 1;
     min-width: 0;
-    max-width: 240px;
+    max-width: 220px;
     width: 100%;
+}
+
+.search-input {
+    font-size: 0.8rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding-left: 32px !important;
+    background: #fff;
+    height: 34px;
+}
+
+.search-input:focus {
+    border-color: var(--bs-primary, #3e60d5);
+    box-shadow: 0 0 0 0.15rem rgba(62, 96, 213, 0.15);
+}
+
+/* Online status text */
+.online-status-text {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #22c55e;
+}
+
+.online-indicator {
+    width: 6px;
+    height: 6px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
 }
 
 /* Messages area */
@@ -394,6 +420,9 @@ onUnmounted(() => {
     min-height: 0;
     position: relative;
     overflow: hidden;
+    background-color: #fafbfe;
+    background-image: radial-gradient(#e8ecf1 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
 }
 
 .discussion-scroll-inner {
@@ -405,9 +434,9 @@ onUnmounted(() => {
 /* Input area */
 .discussion-input-area {
     flex-shrink: 0;
-    padding: 12px 16px;
+    padding: 10px 16px 12px;
     background: #fff;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid #eef2f7;
 }
 
 /* --- Right sidebar column --- */
@@ -417,8 +446,8 @@ onUnmounted(() => {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    background: #f8fafc;
-    border-left: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-left: 1px solid #eef2f7;
 }
 
 .discussion-sidebar-inner {
@@ -430,53 +459,17 @@ onUnmounted(() => {
 /* ============================
    UTILITY CLASSES
    ============================ */
-.bg-boron-light { background-color: #f4f7fa !important; }
-.shadow-boron { box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03) !important; }
-.shadow-boron-sm { box-shadow: 0 0.25rem 0.5rem rgba(18, 38, 63, 0.05) !important; }
-
-.text-indigo { color: #4c49e2 !important; }
-.bg-indigo-subtle { background-color: rgba(76, 73, 226, 0.08) !important; }
-.btn-indigo { background-color: #4c49e2 !important; color: white !important; }
-.btn-indigo:hover { background-color: #413dd1 !important; transform: translateY(-1px); }
-
-.online-indicator {
-    width: 7px;
-    height: 7px;
-    background-color: #22c55e;
-    border-radius: 50%;
-    display: inline-block;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
-}
-
-.bg-dot-pattern {
-    background-color: #ffffff;
-    background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
-    background-size: 20px 20px;
-}
-
-.search-input {
-    transition: all 0.2s ease;
-    border: 1px solid transparent !important;
-    font-size: 0.85rem;
-}
-
-.search-input:focus {
-    background-color: #fff !important;
-    border-color: #4c49e2 !important;
-    box-shadow: 0 0 0 0.2rem rgba(76, 73, 226, 0.1) !important;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #e2e8f0;
+    background-color: #dee2e6;
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #cbd5e1;
+    background-color: #adb5bd;
 }
 
 .x-small {
@@ -485,6 +478,10 @@ onUnmounted(() => {
 
 .transition-all {
     transition: all 0.2s ease;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
 }
 
 /* ============================
@@ -519,8 +516,8 @@ onUnmounted(() => {
 
 @media (min-width: 1400px) {
     .discussion-sidebar-col {
-        flex: 0 0 320px;
-        max-width: 320px;
+        flex: 0 0 300px;
+        max-width: 300px;
     }
 }
 

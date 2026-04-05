@@ -35,7 +35,7 @@ const messageTextarea = ref(null);
 // Mentions logic
 const showMentionDropdown = ref(false);
 const mentionSearch = ref('');
-const mentions = ref([]); // Array of mentioned user IDs
+const mentions = ref([]);
 
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
@@ -58,7 +58,6 @@ const handleKeydown = (e) => {
             sendMessage();
         }
     } else {
-        // Update mention search if open
         if (showMentionDropdown.value) {
             setTimeout(() => {
                 const cursorPosition = messageTextarea.value.selectionStart;
@@ -67,7 +66,6 @@ const handleKeydown = (e) => {
                 
                 if (lastAtIdx !== -1) {
                     const currentQuery = textBeforeCursor.substring(lastAtIdx + 1);
-                    // Close if we typed a space or too many characters after @
                     if (currentQuery.includes(' ')) {
                         showMentionDropdown.value = false;
                     } else {
@@ -100,7 +98,6 @@ const insertMention = (user) => {
     
     showMentionDropdown.value = false;
     
-    // Position cursor after the mention
     nextTick(() => {
         const newPos = lastAtIdx + mentionText.length;
         messageTextarea.value.setSelectionRange(newPos, newPos);
@@ -166,7 +163,6 @@ const sendMessage = async () => {
 
 const isFocused = ref(false);
 const textareaHeight = computed(() => {
-    // Simple auto-expand logic could go here, for now fixed or minimal
     return 'auto';
 });
 
@@ -212,36 +208,36 @@ onUnmounted(() => {
 <template>
     <div class="message-input-container">
         <!-- Reply Context -->
-        <div v-if="replyTo" class="reply-context d-flex align-items-center gap-3 mb-0 p-3 bg-light border-start border-4 border-primary rounded-top-4 animate-slide-up">
+        <div v-if="replyTo" class="reply-context d-flex align-items-center gap-3 mb-0 p-3 bg-light border-start border-3 border-primary rounded-top animate-slide-up">
             <div class="flex-grow-1 overflow-hidden">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="ti ti-arrow-back-up text-primary fs-5"></i>
-                    <span class="fw-bold text-dark small">Replying to {{ replyTo.user.name }}</span>
+                    <i class="ti ti-arrow-back-up text-primary" style="font-size: 0.9rem;"></i>
+                    <span class="fw-semibold text-dark" style="font-size: 0.8rem;">Replying to {{ replyTo.user.name }}</span>
                 </div>
-                <div class="text-muted text-truncate x-small">{{ replyTo.message }}</div>
+                <div class="text-muted text-truncate" style="font-size: 0.7rem;">{{ replyTo.message }}</div>
             </div>
-            <button @click="$emit('cancel-reply')" class="btn btn-link btn-sm p-1 text-muted hover-text-danger transition-all border-0 shadow-none">
-                <i class="ti ti-x fs-5"></i>
+            <button @click="$emit('cancel-reply')" class="btn btn-link btn-sm p-1 text-muted transition-all border-0 shadow-none">
+                <i class="ti ti-x" style="font-size: 0.9rem;"></i>
             </button>
         </div>
 
         <!-- Selected Files Preview -->
-        <div v-if="files.length > 0" class="d-flex flex-wrap gap-2 mb-0 p-3 bg-light border-top border-light-subtle" :class="{ 'rounded-top-4': !replyTo }">
-            <div v-for="(file, index) in files" :key="index" class="file-preview-badge badge bg-white text-dark border d-flex align-items-center gap-2 p-2 shadow-sm rounded-3">
-                <i class="ti fs-5 text-primary" :class="getFileIcon(file)"></i>
+        <div v-if="files.length > 0" class="d-flex flex-wrap gap-2 mb-0 p-3 bg-light border-top border-light-subtle" :class="{ 'rounded-top': !replyTo }">
+            <div v-for="(file, index) in files" :key="index" class="file-preview-badge badge bg-white text-dark border d-flex align-items-center gap-2 p-2 shadow-sm rounded">
+                <i class="ti text-primary" :class="getFileIcon(file)" style="font-size: 1rem;"></i>
                 <div class="text-start overflow-hidden">
-                    <div class="text-truncate fw-medium" style="max-width: 120px;">{{ file.name }}</div>
-                    <div class="x-small text-muted">{{ (file.size / 1024).toFixed(1) }} KB</div>
+                    <div class="text-truncate fw-medium" style="max-width: 120px; font-size: 0.75rem;">{{ file.name }}</div>
+                    <div class="text-muted" style="font-size: 0.6rem;">{{ (file.size / 1024).toFixed(1) }} KB</div>
                 </div>
                 <button @click="removeFile(index)" class="btn btn-link btn-sm p-0 text-danger border-0 shadow-none">
-                    <i class="ti ti-circle-x-filled"></i>
+                    <i class="ti ti-circle-x-filled" style="font-size: 0.85rem;"></i>
                 </button>
             </div>
         </div>
 
-        <div ref="inputWrapperRef" class="input-actions-wrapper border bg-white transition-all shadow-boron" 
+        <div ref="inputWrapperRef" class="input-actions-wrapper border bg-white transition-all" 
              :class="[
-                replyTo || files.length > 0 ? 'rounded-bottom-3 border-top-0' : 'rounded-3',
+                replyTo || files.length > 0 ? 'rounded-bottom border-top-0' : 'rounded',
                 { 'focused': isFocused }
              ]">
             <textarea 
@@ -256,21 +252,22 @@ onUnmounted(() => {
                 :style="{ height: textareaHeight }"
             ></textarea>
             
-            <div class="d-flex justify-content-between align-items-center p-3 pt-2">
+            <div class="d-flex justify-content-between align-items-center p-3 pt-1">
                 <div class="d-flex gap-2">
-                    <button @click="triggerFileInput" class="btn btn-icon btn-sm btn-light border rounded-circle text-dark hover-text-indigo transition-all shadow-sm" title="Attach Files">
-                        <i class="ti ti-paperclip fs-5"></i>
+                    <button @click="triggerFileInput" class="btn btn-sm btn-light border rounded d-flex align-items-center justify-content-center transition-all" style="width: 32px; height: 32px;" title="Attach Files">
+                        <i class="ti ti-paperclip" style="font-size: 0.9rem;"></i>
                     </button>
                     <input type="file" ref="fileInput" class="d-none" multiple @change="handleFileChange">
                     
                     <div class="position-relative" style="z-index: 1050;">
                         <button 
                             @click="showEmojiPicker = !showEmojiPicker" 
-                            class="btn btn-icon btn-sm btn-light border rounded-circle text-dark hover-text-warning transition-all shadow-sm" 
+                            class="btn btn-sm btn-light border rounded d-flex align-items-center justify-content-center transition-all"
+                            style="width: 32px; height: 32px;"
                             :class="{ 'text-warning bg-warning-subtle border-warning': showEmojiPicker }"
                             title="Emoji"
                         >
-                            <i class="ti ti-mood-smile fs-5"></i>
+                            <i class="ti ti-mood-smile" style="font-size: 0.9rem;"></i>
                         </button>
                         <EmojiPicker 
                             v-if="showEmojiPicker" 
@@ -290,15 +287,15 @@ onUnmounted(() => {
                 </div>
                 
                 <div class="d-flex align-items-center gap-2">
-                    <span class="x-small text-muted d-none d-md-inline-block opacity-50">Press Ctrl + Enter to send</span>
+                    <span class="text-muted d-none d-md-inline-block" style="font-size: 0.65rem; opacity: 0.5;">Press Ctrl + Enter to send</span>
                     <button 
                         @click="sendMessage" 
-                        class="btn btn-indigo d-flex align-items-center justify-content-center rounded-circle shadow-indigo p-0 transition-all hover-scale"
-                        style="width: 40px; height: 40px;"
+                        class="btn btn-primary d-flex align-items-center justify-content-center rounded-circle p-0 transition-all send-btn"
+                        style="width: 36px; height: 36px;"
                         :disabled="uploading || (!message.trim() && files.length === 0)"
                     >
                         <div v-if="uploading" class="spinner-border spinner-border-sm" role="status"></div>
-                        <i v-else class="ti ti-send fs-4"></i>
+                        <i v-else class="ti ti-send" style="font-size: 1rem;"></i>
                     </button>
                 </div>
             </div>
@@ -315,55 +312,33 @@ onUnmounted(() => {
 .resize-none {
     resize: none;
     overflow-y: hidden;
-    min-height: 48px;
+    min-height: 44px;
     max-height: 200px;
+    font-size: 0.875rem;
 }
 
 .input-actions-wrapper {
-    border-color: #e5e7eb !important;
+    border-color: #dee2e6 !important;
     position: relative;
     z-index: 1;
 }
 
 .input-actions-wrapper.focused {
-    border-color: #4c49e2 !important;
-    box-shadow: 0 0.5rem 1rem rgba(76, 73, 226, 0.1) !important;
+    border-color: var(--bs-primary, #3e60d5) !important;
+    box-shadow: 0 0 0 0.15rem rgba(62, 96, 213, 0.12) !important;
 }
 
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
+.send-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(62, 96, 213, 0.3);
 }
 
-.btn-icon:hover {
-    background: #f3f4f6;
-}
-
-.btn-indigo { background-color: #4c49e2 !important; color: white !important; }
-.btn-indigo:hover { background-color: #413dd1 !important; transform: translateY(-1px); }
-
-.shadow-indigo {
-    box-shadow: 0 4px 10px rgba(76, 73, 226, 0.3);
-}
-
-.shadow-boron { box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03) !important; }
-.shadow-boron-sm { box-shadow: 0 0.25rem 0.5rem rgba(18, 38, 63, 0.05) !important; }
-
-.hover-scale:active {
+.send-btn:active {
     transform: scale(0.95);
 }
 
-.hover-text-primary:hover { color: #4c49e2 !important; }
-.hover-text-indigo:hover { color: #4c49e2 !important; }
-.hover-text-warning:hover { color: #f59e0b !important; }
-.hover-text-danger:hover { color: #ef4444 !important; }
-
-.x-small {
-    font-size: 0.7rem;
+.transition-all {
+    transition: all 0.2s ease;
 }
 
 .animate-slide-up {
