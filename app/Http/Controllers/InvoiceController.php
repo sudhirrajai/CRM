@@ -15,7 +15,8 @@ use App\Models\Invoice;
 class InvoiceController extends Controller
 {
     public function __construct(
-        protected InvoiceRepositoryInterface $invoiceRepo
+        protected InvoiceRepositoryInterface $invoiceRepo,
+        protected \App\Services\InvoiceService $invoiceService
     ) {}
 
     public function index()
@@ -66,9 +67,7 @@ class InvoiceController extends Controller
         if ($request->boolean('send_email')) {
             $invoiceModel = $invoice instanceof \App\Models\Invoice ? $invoice : \App\Models\Invoice::where('invoice_number', $validated['invoice_number'])->first();
             if ($invoiceModel) {
-                $invoiceModel->load(['client', 'project', 'currency', 'items']);
-                $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $this->invoiceService->sendToRecipients($invoiceModel);
             }
         }
 
@@ -126,10 +125,9 @@ class InvoiceController extends Controller
         $this->invoiceRepo->update($id, $validated);
 
         if ($request->boolean('send_email')) {
-            $invoiceModel = \App\Models\Invoice::find($id)->load(['client', 'project', 'currency', 'items']);
+            $invoiceModel = \App\Models\Invoice::find($id);
             if ($invoiceModel) {
-                $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $this->invoiceService->sendToRecipients($invoiceModel);
             }
         }
 
@@ -166,6 +164,20 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
         return $pdf->download('Invoice_' . $invoice->invoice_number . '.pdf');
+    }
+
+    public function sendEmail($id)
+    {
+        $invoice = Invoice::findOrFail($id)->load(['client', 'project', 'currency', 'items']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+            abort(403);
+        }
+
+        $this->invoiceService->sendToRecipients($invoice);
+
+        return redirect()->back()->with('success', 'Invoice sent to all recipients.');
     }
 
     /**
