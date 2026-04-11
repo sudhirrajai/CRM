@@ -1,5 +1,5 @@
 <script setup>
-import CRMAppLayout from '@/Layouts/CRMAppLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -10,7 +10,7 @@ const props = defineProps({
 <template>
     <Head title="Orders" />
 
-    <CRMAppLayout>
+    <AuthenticatedLayout>
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box d-flex align-items-center justify-content-between p-3">
@@ -79,5 +79,5 @@ const props = defineProps({
                 </div>
             </div>
         </div>
-    </CRMAppLayout>
+    </AuthenticatedLayout>
 </template>

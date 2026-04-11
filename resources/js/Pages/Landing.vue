@@ -31,7 +31,7 @@ const testimonials = [
     },
     {
       quote: "The interface is so clean and fast. Billing which used to take days is now done in a matter of clicks.",
-      name: "Michael Chang", role: "Founder, Apex Digital", avatarBg: "bg-green-100", initial: "M"
+      name: "Michael Chang", role: "Founder, Apex Digital", avatarBg: "bg-boron-100", initial: "M"
     },
     {
       quote: "We tried Salesforce and HubSpot, but they were too bloated. This CRM hits the sweet spot for modern agencies.",
@@ -92,13 +92,13 @@ onMounted(() => {
         <!-- ══════════════════════════════ -->
         <section class="relative pt-[200px] mb-32 px-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center overflow-hidden">
             <!-- Background radial gradient -->
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-green-500 opacity-[0.06] blur-[120px] rounded-full pointer-events-none -z-10"></div>
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-boron-500 opacity-[0.06] blur-[120px] rounded-full pointer-events-none -z-10"></div>
 
             <!-- New Badge -->
-            <div class="reveal flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-semibold tracking-wide uppercase mb-8 shadow-sm">
+            <div class="reveal flex items-center gap-2 px-3 py-1.5 rounded-full border border-boron-200 bg-boron-50 text-boron-700 text-xs font-semibold tracking-wide uppercase mb-8 shadow-sm">
                 <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-boron-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-boron-500"></span>
                 </span>
                 New — Workflow automation just launched
             </div>
@@ -106,7 +106,7 @@ onMounted(() => {
             <!-- H1 -->
             <h1 class="reveal reveal-delay-1 text-[52px] md:text-[68px] font-bold leading-[1.05] tracking-[-2.5px] text-zinc-950 mb-6 max-w-4xl m-0">
                 Manage clients seamlessly. <br />
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-500">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-boron-700 to-boron-500">
                     Close deals faster.
                 </span>
             </h1>
@@ -147,14 +147,14 @@ onMounted(() => {
             <!-- Mockup Component Embed -->
             <div class="reveal reveal-delay-5 w-full">
                 <div class="relative mx-auto w-full max-w-[900px] text-left">
-                    <div class="absolute -inset-1 rounded-[24px] bg-gradient-to-r from-green-300 via-green-100 to-green-300 opacity-40 blur-lg mix-blend-multiply"></div>
+                    <div class="absolute -inset-1 rounded-[24px] bg-gradient-to-r from-boron-300 via-boron-100 to-boron-300 opacity-40 blur-lg mix-blend-multiply"></div>
                     <div class="relative w-full rounded-2xl border border-zinc-200 bg-white shadow-[0_20px_48px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col h-[520px]">
                         <!-- macOS Title Bar -->
                         <div class="h-10 border-b border-zinc-200 bg-zinc-50 flex items-center px-4 w-full">
                             <div class="flex gap-1.5 p-1 w-[200px]">
                                 <div class="w-3 h-3 rounded-full bg-red-400 border border-red-500/20"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-400 border border-amber-500/20"></div>
-                                <div class="w-3 h-3 rounded-full bg-green-400 border border-green-500/20"></div>
+                                <div class="w-3 h-3 rounded-full bg-boron-400 border border-boron-500/20"></div>
                             </div>
                             <div class="flex-1 flex justify-center">
                                 <div class="h-7 w-48 bg-white rounded-md border border-zinc-200 shadow-sm flex items-center justify-center text-[11px] font-medium text-zinc-500">
@@ -201,12 +201,12 @@ onMounted(() => {
                                     <div class="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm flex flex-col gap-1">
                                         <div class="text-[13px] text-zinc-500 font-medium">Revenue</div>
                                         <div class="text-xl font-semibold text-zinc-950">$12,450</div>
-                                        <div class="text-[11px] font-medium mt-1 text-green-600">+14% from last month</div>
+                                        <div class="text-[11px] font-medium mt-1 text-boron-600">+14% from last month</div>
                                     </div>
                                     <div class="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm flex flex-col gap-1">
                                         <div class="text-[13px] text-zinc-500 font-medium">Clients</div>
                                         <div class="text-xl font-semibold text-zinc-950">34</div>
-                                        <div class="text-[11px] font-medium mt-1 text-green-600">+2 from last month</div>
+                                        <div class="text-[11px] font-medium mt-1 text-boron-600">+2 from last month</div>
                                     </div>
                                     <div class="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm flex flex-col gap-1">
                                         <div class="text-[13px] text-zinc-500 font-medium">Open Deals</div>
@@ -224,8 +224,8 @@ onMounted(() => {
                                     <div class="flex-1 bg-white border border-zinc-200 rounded-xl p-4 shadow-sm flex flex-col">
                                         <h4 class="text-[13px] font-semibold text-zinc-950 mb-4 m-0">Revenue trend</h4>
                                         <div class="flex-1 flex items-end justify-between gap-2 px-1 pb-1 border-b border-zinc-100">
-                                            <div v-for="(h, i) in [40, 65, 45, 80, 55, 90, 75]" :key="i" class="w-full bg-zinc-100 rounded-t-md relative group hover:bg-green-50 transition-colors" :style="{ height: `${h}%` }">
-                                                <div class="absolute bottom-0 w-full bg-green-500 rounded-t-md opacity-0 group-hover:opacity-100 transition-opacity" :style="{ height: `${h}%` }"></div>
+                                            <div v-for="(h, i) in [40, 65, 45, 80, 55, 90, 75]" :key="i" class="w-full bg-zinc-100 rounded-t-md relative group hover:bg-boron-50 transition-colors" :style="{ height: `${h}%` }">
+                                                <div class="absolute bottom-0 w-full bg-boron-500 rounded-t-md opacity-0 group-hover:opacity-100 transition-opacity" :style="{ height: `${h}%` }"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -234,7 +234,7 @@ onMounted(() => {
                                         <div class="flex flex-col gap-2 flex-1">
                                             <div class="flex items-center justify-between pb-2 border-b border-zinc-100">
                                                 <span class="text-[13px] font-medium text-zinc-700">Acme Corp Redesign</span>
-                                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md border text-green-700 bg-green-50 border-green-200">Won</span>
+                                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md border text-boron-700 bg-boron-50 border-boron-200">Won</span>
                                             </div>
                                             <div class="flex items-center justify-between pb-2 border-b border-zinc-100">
                                                 <span class="text-[13px] font-medium text-zinc-700">Stark Ind. API</span>
@@ -277,7 +277,7 @@ onMounted(() => {
             <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
                 <div v-for="(stat, i) in stats" :key="i" class="reveal flex flex-col items-center text-center gap-2" :class="`reveal-delay-${i + 1}`">
                     <div class="text-5xl font-bold tracking-tight text-white flex items-baseline">
-                        {{ stat.value }}<span class="text-green-500">{{ stat.unit }}</span>
+                        {{ stat.value }}<span class="text-boron-500">{{ stat.unit }}</span>
                     </div>
                     <div class="text-sm text-zinc-400 max-w-[120px] m-0">{{ stat.label }}</div>
                 </div>
@@ -289,7 +289,7 @@ onMounted(() => {
         <!-- ══════════════════════════════ -->
         <section id="features" class="py-32 px-10 w-full max-w-5xl mx-auto flex flex-col items-center">
             <div class="reveal text-center mb-16 flex flex-col items-center">
-                <span class="text-green-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Features</span>
+                <span class="text-boron-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Features</span>
                 <h2 class="text-[40px] md:text-[48px] font-bold tracking-tight text-zinc-950 mb-4 m-0">Everything you need to scale.</h2>
                 <p class="text-zinc-500 max-w-md mx-auto text-lg leading-relaxed m-0">
                     Powerful tools designed to stay out of your way. Focus on growing your business, we'll handle the rest.
@@ -337,7 +337,7 @@ onMounted(() => {
         <!-- ══════════════════════════════ -->
         <section id="testimonials" class="py-32 px-10 w-full max-w-5xl mx-auto">
             <div class="reveal text-center mb-16">
-                <span class="text-green-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Testimonials</span>
+                <span class="text-boron-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Testimonials</span>
                 <h2 class="text-[36px] md:text-[42px] font-bold tracking-tight text-zinc-950 mb-4 m-0">Don't just take our word for it.</h2>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -367,13 +367,13 @@ onMounted(() => {
         <section id="pricing" class="py-32 px-10 w-full bg-zinc-50 border-t border-zinc-200">
             <div class="max-w-5xl mx-auto">
                 <div class="reveal text-center mb-16">
-                    <span class="text-green-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Pricing</span>
+                    <span class="text-boron-600 text-xs font-semibold tracking-widest uppercase mb-4 block inline-block">Pricing</span>
                     <h2 class="text-[36px] md:text-[42px] font-bold tracking-tight text-zinc-950 mb-4 m-0">Simple, transparent pricing.</h2>
                     <p class="text-zinc-500 text-lg m-0">No hidden fees or unexpected charges.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center flex-1">
                     <div v-for="(plan, i) in plans" :key="i" class="reveal relative rounded-2xl p-8 flex flex-col h-full" :class="[plan.isPopular ? 'bg-zinc-950 text-white transform md:scale-[1.025] shadow-xl border-0 z-10' : 'bg-white text-zinc-950 border border-zinc-200 shadow-sm z-0', `reveal-delay-${i + 1}`]">
-                        <div v-if="plan.isPopular" class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white text-[11px] font-bold tracking-widest uppercase py-1 px-3 rounded-full">
+                        <div v-if="plan.isPopular" class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-boron-500 text-white text-[11px] font-bold tracking-widest uppercase py-1 px-3 rounded-full">
                             Most Popular
                         </div>
                         <div class="mb-8 border-b border-zinc-200/20 pb-8">
@@ -386,7 +386,7 @@ onMounted(() => {
                         </div>
                         <ul class="flex flex-col gap-4 mb-8 flex-1 p-0 m-0 list-none">
                             <li v-for="f in plan.features" :key="f" class="flex items-start gap-3">
-                                <Check :size="18" class="text-green-500 shrink-0 mt-0.5" />
+                                <Check :size="18" class="text-boron-500 shrink-0 mt-0.5" />
                                 <span :class="`text-[15px] ${plan.isPopular ? 'text-zinc-300' : 'text-zinc-700'}`">{{ f }}</span>
                             </li>
                         </ul>
@@ -401,8 +401,8 @@ onMounted(() => {
         <!-- ══════════════════════════════ -->
         <!-- 8 · CTA BANNER                 -->
         <!-- ══════════════════════════════ -->
-        <section class="w-full relative py-40 overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-green-700">
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
+        <section class="w-full relative py-40 overflow-hidden bg-gradient-to-br from-boron-900 via-boron-800 to-boron-700">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-boron-500/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
             <div class="max-w-5xl mx-auto px-10 relative z-10 flex flex-col items-center text-center">
                 <div class="reveal">
                     <h2 class="text-[40px] md:text-[52px] font-bold tracking-tight text-white mb-6 leading-tight max-w-2xl mx-auto m-0">
@@ -412,7 +412,7 @@ onMounted(() => {
                         Join thousands of modern teams building better client relationships. Free for 14 days, no credit card required.
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link :href="route('login')" class="w-full sm:w-auto px-8 py-3.5 bg-white text-green-950 font-semibold rounded-xl shadow-lg hover:bg-zinc-50 hover:scale-[1.02] transition-all cursor-pointer border-0" style="text-decoration: none;">
+                        <Link :href="route('login')" class="w-full sm:w-auto px-8 py-3.5 bg-white text-boron-950 font-semibold rounded-xl shadow-lg hover:bg-zinc-50 hover:scale-[1.02] transition-all cursor-pointer border-0" style="text-decoration: none;">
                             Get started for free
                         </Link>
                         <Link :href="route('login')" class="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-colors cursor-pointer" style="text-decoration: none;">

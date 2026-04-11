@@ -88,10 +88,46 @@ const toggleReports = () => {
                 </li>
 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Invoices') }">
-
                     <Link :href="route('invoices.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Invoices') }">
                         <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
                         <span class="menu-text"> Invoices </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-title mt-2 text-uppercase fs-12">Marketing</li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Marketing/Dashboard') }">
+                    <Link :href="route('marketing.dashboard')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Marketing/Dashboard') }">
+                        <span class="menu-icon"><i class="ti ti-chart-bar"></i></span>
+                        <span class="menu-text"> Marketing Hub </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Marketing/Campaigns') }">
+                    <Link :href="route('marketing.campaigns.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Marketing/Campaigns') }">
+                        <span class="menu-icon"><i class="ti ti-mail-forward"></i></span>
+                        <span class="menu-text"> Campaigns </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Marketing/Templates') }">
+                    <Link :href="route('marketing.templates.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Marketing/Templates') }">
+                        <span class="menu-icon"><i class="ti ti-template"></i></span>
+                        <span class="menu-text"> Templates </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Marketing/Lists') }">
+                    <Link :href="route('marketing.lists.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Marketing/Lists') }">
+                        <span class="menu-icon"><i class="ti ti-list-details"></i></span>
+                        <span class="menu-text"> Mailing Lists </span>
+                    </Link>
+                </li>
+
+                <li v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Marketing/Automations') }">
+                    <Link :href="route('marketing.automations.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Marketing/Automations') }">
+                        <span class="menu-icon"><i class="ti ti-robot"></i></span>
+                        <span class="menu-text"> Automations </span>
                     </Link>
                 </li>
 

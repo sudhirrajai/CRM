@@ -1,5 +1,5 @@
 <script setup>
-import CRMAppLayout from '@/Layouts/CRMAppLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -21,7 +21,7 @@ const submit = () => {
 <template>
     <Head title="Create Order" />
 
-    <CRMAppLayout>
+    <AuthenticatedLayout>
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box d-flex align-items-center justify-content-between p-3">
@@ -73,5 +73,5 @@ const submit = () => {
                 </div>
             </div>
         </div>
-    </CRMAppLayout>
+    </AuthenticatedLayout>
 </template>

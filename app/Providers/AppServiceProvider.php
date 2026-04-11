@@ -22,6 +22,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        // Register model observers for marketing automation triggers
+        \App\Models\Lead::observe(\App\Observers\LeadObserver::class);
+        \App\Models\Client::observe(\App\Observers\ClientObserver::class);
+        \App\Models\Invoice::observe(\App\Observers\InvoiceObserver::class);
+        \App\Models\Ticket::observe(\App\Observers\TicketObserver::class);
+        \App\Models\Project::observe(\App\Observers\ProjectObserver::class);
+
         // Load dynamic settings if table exists
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
@@ -29,13 +36,13 @@ class AppServiceProvider extends ServiceProvider
                 
                 if (isset($settings['smtp_host'])) {
                     config([
-                        'mail.mailers.smtp.host' => $settings['smtp_host'],
-                        'mail.mailers.smtp.port' => $settings['smtp_port'],
-                        'mail.mailers.smtp.username' => $settings['smtp_username'],
-                        'mail.mailers.smtp.password' => $settings['smtp_password'],
-                        'mail.mailers.smtp.encryption' => $settings['smtp_encryption'],
-                        'mail.from.address' => $settings['smtp_from_address'],
-                        'mail.from.name' => $settings['smtp_from_name'],
+                        'mail.mailers.smtp.host' => $settings['smtp_host'] ?? config('mail.mailers.smtp.host'),
+                        'mail.mailers.smtp.port' => $settings['smtp_port'] ?? config('mail.mailers.smtp.port'),
+                        'mail.mailers.smtp.username' => $settings['smtp_username'] ?? config('mail.mailers.smtp.username'),
+                        'mail.mailers.smtp.password' => $settings['smtp_password'] ?? config('mail.mailers.smtp.password'),
+                        'mail.mailers.smtp.encryption' => $settings['smtp_encryption'] ?? config('mail.mailers.smtp.encryption'),
+                        'mail.from.address' => $settings['smtp_from_address'] ?? config('mail.from.address'),
+                        'mail.from.name' => $settings['smtp_from_name'] ?? config('mail.from.name'),
                     ]);
                 }
             }

@@ -21,7 +21,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
 </script>
 
 <template>
-    <div class="min-h-screen bg-white text-zinc-950 font-sans antialiased selection:bg-green-100 selection:text-green-900 flex flex-col items-center" style="font-family: 'Geist', sans-serif;">
+    <div class="min-h-screen bg-white text-zinc-950 font-sans antialiased selection:bg-boron-100 selection:text-boron-900 flex flex-col items-center" style="font-family: 'Geist', sans-serif;">
         
         <!-- NAV -->
         <nav
