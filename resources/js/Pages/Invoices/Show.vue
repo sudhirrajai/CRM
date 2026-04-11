@@ -132,6 +132,15 @@ const isOverdue = (dueDate) => {
                             <h5 class="font-14">Notes:</h5>
                             <p class="text-muted">{{ invoice.notes }}</p>
                         </div>
+
+                        <div class="mt-4 border-top pt-3 bg-light p-3 rounded" v-if="invoice.status === 'paid' && (invoice.payment_mode || invoice.payment_reference || invoice.payment_note)">
+                            <h5 class="font-14 mb-2"><i class="ti ti-receipt-2 me-1"></i> Payment Details</h5>
+                            <ul class="list-unstyled text-muted mb-0 small">
+                                <li v-if="invoice.payment_mode" class="mb-1"><strong>Mode:</strong> <span class="text-capitalize">{{ invoice.payment_mode.replace('_', ' ') }}</span></li>
+                                <li v-if="invoice.payment_reference" class="mb-1"><strong>Reference:</strong> {{ invoice.payment_reference }}</li>
+                                <li v-if="invoice.payment_note" class="mt-1"><strong>Note:</strong> {{ invoice.payment_note }}</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

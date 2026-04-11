@@ -55,6 +55,9 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
         ]);
 
         // If sub_total is not provided, use total_amount
@@ -116,6 +119,9 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
         ]);
 
         if (!isset($validated['sub_total'])) {
