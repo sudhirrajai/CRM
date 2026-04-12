@@ -213,7 +213,7 @@ const submit = () => {
                                                         <input type="number" step="0.01" v-model="item.unit_price" class="form-control" required>
                                                     </td>
                                                     <td>
-                                                        <input type="text" :value="item.total.toFixed(2)" class="form-control bg-light" readonly>
+                                                        <input type="text" :value="Number(item.total || 0).toFixed(2)" class="form-control bg-light" readonly>
                                                     </td>
                                                     <td class="text-center align-middle">
                                                         <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeItem(index)" v-if="form.items.length > 1">
@@ -239,7 +239,7 @@ const submit = () => {
                                     <div class="d-flex justify-content-between align-items-center p-2 mb-3 bg-light rounded">
                                         <h5 class="m-0">Total Amount</h5>
                                         <h4 class="m-0 text-primary">
-                                            {{ selectedProject && selectedProject.client?.currency?.symbol || '$' }}{{ form.total_amount }}
+                                            {{ currencies.find(c => c.id === form.currency_id)?.symbol || '$' }}{{ form.total_amount }}
                                         </h4>
                                     </div>
                                     <div class="d-none">
