@@ -10,6 +10,10 @@ const props = defineProps({
     clients: {
         type: Array,
         required: true
+    },
+    users: {
+        type: Array,
+        required: true
     }
 });
 
@@ -25,7 +29,31 @@ const form = useForm({
     priority: props.project.priority || 'medium',
     max_file_size: props.project.max_file_size || 10,
     milestones: props.project.milestones || [],
+    members: props.project.members.map(member => ({
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        send_invoice: !!member.pivot.send_invoice,
+        assigned_at: member.pivot.assigned_at,
+        is_client: !!member.client_id
+    })) || [],
 });
+
+const addMember = (user) => {
+    if (form.members.some(m => m.id === user.id)) return;
+    form.members.push({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        send_invoice: false,
+        assigned_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        is_client: !!user.client_id
+    });
+};
+
+const removeMember = (index) => {
+    form.members.splice(index, 1);
+};
 
 const addMilestone = () => {
     form.milestones.push({
@@ -143,8 +171,79 @@ const submit = () => {
                                 </div>
                             </div>
 
+                            <!-- Members Section -->
+                            <div class="row mt-4 pt-4 border-top">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0">Project Members</h5>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="addMemberDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="ti ti-user-plus me-1"></i> Add Member
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="addMemberDropdown" style="max-height: 300px; overflow-y: auto;">
+                                                <li class="dropdown-header">Filter: Users from {{ project.client?.name }}</li>
+                                                <li v-for="user in users.filter(u => u.client_id === project.client_id)" :key="'client-'+user.id">
+                                                    <a class="dropdown-item" href="javascript:void(0)" @click="addMember(user)">
+                                                        {{ user.name }} ({{ user.email }})
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li class="dropdown-header">Other Users</li>
+                                                <li v-for="user in users.filter(u => u.client_id !== project.client_id)" :key="'other-'+user.id">
+                                                    <a class="dropdown-item" href="javascript:void(0)" @click="addMember(user)">
+                                                        {{ user.name }} ({{ user.email }})
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-centered table-nowrap mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Member</th>
+                                                    <th class="text-center">Receives Invoices</th>
+                                                    <th style="width: 50px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(member, index) in form.members" :key="member.id">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar-xs me-2">
+                                                                <span class="avatar-title rounded-circle bg-primary-subtle text-primary fw-bold">
+                                                                    {{ member.name.charAt(0) }}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0 fs-14">{{ member.name }}</h6>
+                                                                <small class="text-muted">{{ member.email }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="form-check form-switch d-inline-block">
+                                                            <input class="form-check-input" type="checkbox" v-model="member.send_invoice" :id="'send-inv-' + member.id">
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <button type="button" @click="removeMember(index)" class="btn btn-sm text-danger border-0">
+                                                            <i class="ti ti-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="form.members.length === 0">
+                                                    <td colspan="3" class="text-center py-3 text-muted italic">No members assigned to this project yet.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Milestones Section -->
-                            <div class="row mt-4">
+                            <div class="row mt-4 pt-4 border-top">
                                 <div class="col-12">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0">Project Milestones</h5>

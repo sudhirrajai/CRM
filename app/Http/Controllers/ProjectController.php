@@ -56,7 +56,7 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = $this->projectRepo->find($id)->load(['client.currency', 'invoices.currency', 'milestones', 'changeRequests']);
+        $project = $this->projectRepo->find($id)->load(['client.currency', 'invoices.currency', 'milestones', 'members', 'changeRequests']);
         $user = auth()->user();
 
         if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
@@ -70,7 +70,7 @@ class ProjectController extends Controller
 
     public function edit($id)
     {
-        $project = $this->projectRepo->find($id)->load('milestones');
+        $project = $this->projectRepo->find($id)->load(['milestones', 'members']);
         
         // Format dates for the HTML5 date input
         if ($project->start_date) {
@@ -93,6 +93,7 @@ class ProjectController extends Controller
         return Inertia::render('Projects/Edit', [
             'project' => $project,
             'clients' => \App\Models\Client::where('status', 'active')->get(),
+            'users' => \App\Models\User::all(),
         ]);
     }
 
@@ -142,6 +143,21 @@ class ProjectController extends Controller
             // Delete removed milestones
             $toDelete = array_diff($existingIds, $newIds);
             \App\Models\Milestone::whereIn('id', $toDelete)->delete();
+        }
+
+        // Handle members
+        if ($request->has('members')) {
+            $projectModel = \App\Models\Project::find($id);
+            $syncData = [];
+            foreach ($request->input('members') as $member) {
+                if (isset($member['id'])) {
+                    $syncData[$member['id']] = [
+                        'send_invoice' => $member['send_invoice'] ?? false,
+                        'assigned_at' => $member['assigned_at'] ?? now()
+                    ];
+                }
+            }
+            $projectModel->members()->sync($syncData);
         }
 
         return redirect()->route('projects.index');

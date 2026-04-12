@@ -187,6 +187,32 @@
             <p class="text-muted" style="white-space: pre-line;">{{ $invoice->notes }}</p>
         </div>
         @endif
+
+        @if($invoice->status === 'paid' && ($invoice->payment_mode || $invoice->payment_reference || $invoice->payment_note))
+        <div class="mt-4">
+            <strong>Payment Details:</strong>
+            <table style="width: 100%; max-width: 400px; margin-top: 5px;">
+                @if($invoice->payment_mode)
+                <tr>
+                    <td style="padding: 2px 0; color: #777;">Mode:</td>
+                    <td style="padding: 2px 0;">{{ ucwords(str_replace('_', ' ', $invoice->payment_mode)) }}</td>
+                </tr>
+                @endif
+                @if($invoice->payment_reference)
+                <tr>
+                    <td style="padding: 2px 0; color: #777;">Reference:</td>
+                    <td style="padding: 2px 0;">{{ $invoice->payment_reference }}</td>
+                </tr>
+                @endif
+                @if($invoice->payment_note)
+                <tr>
+                    <td style="padding: 2px 0; color: #777;">Note:</td>
+                    <td style="padding: 2px 0;">{{ $invoice->payment_note }}</td>
+                </tr>
+                @endif
+            </table>
+        </div>
+        @endif
         
         <div class="mt-4 text-center text-muted" style="font-size: 13px; border-top: 1px solid #eee; padding-top: 15px;">
             Thank you for your business with {{ \App\Models\Setting::getValue('brand_name', 'VmCore') }}! If you have any questions regarding this invoice, please contact us.

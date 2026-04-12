@@ -22,6 +22,9 @@ class Invoice extends Model
         'due_date',
         'notes',
         'last_reminder_type',
+        'payment_mode',
+        'payment_reference',
+        'payment_note',
     ];
 
     protected function casts(): array

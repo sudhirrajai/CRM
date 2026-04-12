@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     lead: { type: Object, required: true },
@@ -9,6 +9,8 @@ const props = defineProps({
     users: { type: Array, required: true },
     clients: { type: Array, required: true },
 });
+
+const defaultCurrencyId = usePage().props.defaultCurrency?.id || '';
 
 const form = useForm({
     title: props.lead.title || '',
@@ -19,7 +21,7 @@ const form = useForm({
     contact_phone: props.lead.contact_phone || '',
     company: props.lead.company || '',
     value: props.lead.value || '',
-    currency_id: props.lead.currency_id || '',
+    currency_id: props.lead.currency_id || defaultCurrencyId,
     source: props.lead.source || 'other',
     priority: props.lead.priority || 'medium',
     assigned_to: props.lead.assigned_to || '',

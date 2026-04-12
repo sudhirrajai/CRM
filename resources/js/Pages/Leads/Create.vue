@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     stages: { type: Array, required: true },
@@ -10,6 +10,7 @@ const props = defineProps({
 });
 
 const defaultStage = props.stages.find(s => s.is_default) || props.stages[0];
+const defaultCurrencyId = usePage().props.defaultCurrency?.id || '';
 
 const form = useForm({
     title: '',
@@ -20,7 +21,7 @@ const form = useForm({
     contact_phone: '',
     company: '',
     value: '',
-    currency_id: '',
+    currency_id: defaultCurrencyId,
     source: 'other',
     priority: 'medium',
     assigned_to: '',

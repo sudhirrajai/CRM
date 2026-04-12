@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/logo', [\App\Http\Controllers\SettingController::class, 'uploadLogo'])->name('settings.logo');
         Route::post('/settings/test-smtp', [\App\Http\Controllers\SettingController::class, 'testSmtp'])->name('settings.test-smtp');
         Route::post('/invoices/{invoice}/send-suspension', [\App\Http\Controllers\InvoiceController::class, 'sendSuspensionNotification'])->name('invoices.send-suspension');
+        Route::post('/invoices/{invoice}/send-email', [\App\Http\Controllers\InvoiceController::class, 'sendEmail'])->name('invoices.send-email');
         // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/', [\App\Http\Controllers\ReportController::class, 'index'])->name('index');
@@ -64,6 +65,26 @@ Route::middleware('auth')->group(function () {
             Route::get('/projects', [\App\Http\Controllers\ReportController::class, 'projects'])->name('projects');
             Route::get('/clients', [\App\Http\Controllers\ReportController::class, 'clients'])->name('clients');
             Route::get('/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('export');
+        });
+
+        // Marketing
+        Route::prefix('marketing')->name('marketing.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Marketing\DashboardController::class, 'index'])->name('dashboard');
+            Route::resource('templates', \App\Http\Controllers\Marketing\EmailTemplateController::class);
+            Route::post('templates/{template}/duplicate', [\App\Http\Controllers\Marketing\EmailTemplateController::class, 'duplicate'])->name('templates.duplicate');
+            Route::get('templates/{template}/preview', [\App\Http\Controllers\Marketing\EmailTemplateController::class, 'preview'])->name('templates.preview');
+            Route::resource('campaigns', \App\Http\Controllers\Marketing\CampaignController::class);
+            Route::post('campaigns/{campaign}/send', [\App\Http\Controllers\Marketing\CampaignController::class, 'sendNow'])->name('campaigns.send');
+            Route::post('campaigns/{campaign}/schedule', [\App\Http\Controllers\Marketing\CampaignController::class, 'schedule'])->name('campaigns.schedule');
+            Route::post('campaigns/{campaign}/pause', [\App\Http\Controllers\Marketing\CampaignController::class, 'pause'])->name('campaigns.pause');
+            Route::get('campaigns/{campaign}/analytics', [\App\Http\Controllers\Marketing\CampaignController::class, 'analytics'])->name('campaigns.analytics');
+            Route::resource('lists', \App\Http\Controllers\Marketing\MailingListController::class);
+            Route::post('lists/{list}/sync', [\App\Http\Controllers\Marketing\MailingListController::class, 'syncSubscribers'])->name('lists.sync');
+            Route::post('lists/{list}/import', [\App\Http\Controllers\Marketing\MailingListController::class, 'importSubscribers'])->name('lists.import');
+            Route::delete('lists/{list}/subscribers/{subscriber}', [\App\Http\Controllers\Marketing\MailingListController::class, 'removeSubscriber'])->name('lists.subscribers.remove');
+            Route::resource('automations', \App\Http\Controllers\Marketing\AutomationController::class);
+            Route::post('automations/{automation}/activate', [\App\Http\Controllers\Marketing\AutomationController::class, 'activate'])->name('automations.activate');
+            Route::post('automations/{automation}/deactivate', [\App\Http\Controllers\Marketing\AutomationController::class, 'deactivate'])->name('automations.deactivate');
         });
     });
 
@@ -115,4 +136,12 @@ Route::middleware('auth')->group(function () {
 // Public Shared Files
 Route::get('/shared-files/{token}', [ProjectFileController::class, 'publicDownload'])->name('public.files.download');
 
+// Public Marketing Tracking (no auth)
+Route::prefix('mkt')->group(function () {
+    Route::get('/o/{recipientId}', [\App\Http\Controllers\Marketing\TrackingController::class, 'trackOpen'])->name('marketing.track.open');
+    Route::get('/c/{recipientId}/{linkHash}', [\App\Http\Controllers\Marketing\TrackingController::class, 'trackClick'])->name('marketing.track.click');
+    Route::get('/u/{subscriberId}/{token}', [\App\Http\Controllers\Marketing\TrackingController::class, 'unsubscribe'])->name('marketing.unsubscribe');
+});
+
 require __DIR__.'/auth.php';
+

@@ -14,8 +14,8 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function create(array $attributes)
     {
-        $selectedCrs = $attributes['selected_crs'] ?? [];
-        unset($attributes['selected_crs']);
+        $items = $attributes['items'] ?? [];
+        unset($attributes['items']);
 
         $invoice = parent::create($attributes);
 
@@ -39,7 +39,40 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
             }
         }
 
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $invoice->items()->create([
+                    'description' => $item['description'],
+                    'unit_price' => $item['unit_price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $item['total']
+                ]);
+            }
+        }
+
         return $invoice;
+    }
+
+    public function update($id, array $attributes)
+    {
+        $items = $attributes['items'] ?? [];
+        unset($attributes['items']);
+
+        $record = parent::update($id, $attributes);
+
+        if (isset($items) && is_array($items)) {
+            $record->items()->delete();
+            foreach ($items as $item) {
+                $record->items()->create([
+                    'description' => $item['description'],
+                    'unit_price' => $item['unit_price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $item['total']
+                ]);
+            }
+        }
+
+        return $record;
     }
 
     public function getByClient($id)

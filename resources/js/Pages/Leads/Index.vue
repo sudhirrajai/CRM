@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import KanbanBoard from '@/Components/Leads/KanbanBoard.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import axios from 'axios';
 
@@ -65,6 +65,14 @@ function formatValue(value, currency) {
     const sym = currency?.symbol || '$';
     const formatted = parseFloat(value).toLocaleString();
     return currency?.symbol_position === 'suffix' ? `${formatted} ${sym}` : `${sym}${formatted}`;
+}
+
+const defaultCurrency = computed(() => usePage().props.defaultCurrency);
+
+function formatTotalValue(value) {
+    const sym = defaultCurrency.value?.symbol || '$';
+    const formatted = parseFloat(value || 0).toLocaleString();
+    return defaultCurrency.value?.symbol_position === 'suffix' ? `${formatted} ${sym}` : `${sym}${formatted}`;
 }
 
 function getPriorityClass(priority) {
@@ -224,11 +232,11 @@ function deleteStage(stage) {
                         <h5 class="text-muted fs-12 text-uppercase mb-2">Pipeline Value</h5>
                         <div class="d-flex align-items-center gap-3">
                             <div class="avatar-md flex-shrink-0">
-                                <span class="avatar-title bg-success-subtle text-success rounded-circle fs-20">
-                                    <i class="ti ti-currency-dollar"></i>
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle fs-20 fw-bold">
+                                    {{ defaultCurrency?.symbol || '$' }}
                                 </span>
                             </div>
-                            <h3 class="mb-0 fw-bold">${{ parseFloat(stats.total_value || 0).toLocaleString() }}</h3>
+                            <h3 class="mb-0 fw-bold">{{ formatTotalValue(stats.total_value) }}</h3>
                         </div>
                     </div>
                 </div>

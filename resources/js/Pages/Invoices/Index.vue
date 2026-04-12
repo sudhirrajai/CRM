@@ -26,6 +26,12 @@ const sendSuspension = (id) => {
     }
 };
 
+const sendEmail = (id) => {
+    if (confirm('Are you sure you want to send this invoice to all recipients?')) {
+        router.post(route('invoices.send-email', id));
+    }
+};
+
 const isOverdue = (dueDate) => {
     if (!dueDate) return false;
     return new Date(dueDate) < new Date();
@@ -93,6 +99,14 @@ const isOverdue = (dueDate) => {
                                                     title="Send Suspension Notification"
                                                     v-if="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) && isOverdue(invoice.due_date) && invoice.status !== 'paid'">
                                                 <i class="ti ti-alert-triangle"></i>
+                                            </button>
+
+                                            <!-- Send Email Button -->
+                                            <button @click="sendEmail(invoice.id)" 
+                                                    class="action-icon text-primary" 
+                                                    title="Send Invoice to Recipients"
+                                                    v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                                <i class="ti ti-mail"></i>
                                             </button>
 
                                             <button @click="deleteRecord(invoice.id, invoice.invoice_number)" class="action-icon text-danger" title="Delete" v-if="$page.props.auth.roles.includes('admin')"> <i class="ti ti-trash"></i></button>

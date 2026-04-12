@@ -121,6 +121,34 @@ const getPriorityBadgeClass = (priority) => {
                                     {{ project.description || 'No description provided.' }}
                                 </p>
                             </div>
+
+                            <div class="mt-4 border-top pt-3">
+                                <h5 class="font-14 mb-2">Project Members:</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-nowrap mb-0">
+                                        <tbody>
+                                            <tr v-for="member in project.members" :key="member.id">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar-xs me-2">
+                                                            <span class="avatar-title rounded-circle bg-secondary-subtle text-secondary fw-bold" style="font-size: 10px;">
+                                                                {{ member.name.charAt(0) }}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-0 fs-13 fw-medium">{{ member.name }}</p>
+                                                            <span class="badge bg-primary-subtle text-primary" v-if="member.pivot && member.pivot.send_invoice" style="font-size: 9px;">Receives Invoices</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr v-if="!project.members || project.members.length === 0">
+                                                <td class="text-center text-muted py-2 small italic">No members assigned.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div> <!-- end col-->
