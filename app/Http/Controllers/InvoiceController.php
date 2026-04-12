@@ -15,7 +15,8 @@ use App\Models\Invoice;
 class InvoiceController extends Controller
 {
     public function __construct(
-        protected InvoiceRepositoryInterface $invoiceRepo
+        protected InvoiceRepositoryInterface $invoiceRepo,
+        protected \App\Services\InvoiceService $invoiceService
     ) {}
 
     public function index()
@@ -54,6 +55,14 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
         ]);
 
         // If sub_total is not provided, use total_amount
@@ -66,9 +75,7 @@ class InvoiceController extends Controller
         if ($request->boolean('send_email')) {
             $invoiceModel = $invoice instanceof \App\Models\Invoice ? $invoice : \App\Models\Invoice::where('invoice_number', $validated['invoice_number'])->first();
             if ($invoiceModel) {
-                $invoiceModel->load(['client', 'project', 'currency', 'items']);
-                $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $this->invoiceService->sendToRecipients($invoiceModel);
             }
         }
 
@@ -91,7 +98,7 @@ class InvoiceController extends Controller
 
     public function edit($id)
     {
-        $invoice = $this->invoiceRepo->find($id);
+        $invoice = $this->invoiceRepo->find($id)->load('items');
         
         // Format dates for HTML5 date input
         $invoice->issue_date_formatted = $invoice->issue_date ? $invoice->issue_date->format('Y-m-d') : '';
@@ -117,6 +124,14 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
         ]);
 
         if (!isset($validated['sub_total'])) {
@@ -126,10 +141,9 @@ class InvoiceController extends Controller
         $this->invoiceRepo->update($id, $validated);
 
         if ($request->boolean('send_email')) {
-            $invoiceModel = \App\Models\Invoice::find($id)->load(['client', 'project', 'currency', 'items']);
+            $invoiceModel = \App\Models\Invoice::find($id);
             if ($invoiceModel) {
-                $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $this->invoiceService->sendToRecipients($invoiceModel);
             }
         }
 
@@ -166,6 +180,20 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoice]);
         return $pdf->download('Invoice_' . $invoice->invoice_number . '.pdf');
+    }
+
+    public function sendEmail($id)
+    {
+        $invoice = Invoice::findOrFail($id)->load(['client', 'project', 'currency', 'items']);
+        $user = auth()->user();
+
+        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+            abort(403);
+        }
+
+        $this->invoiceService->sendToRecipients($invoice);
+
+        return redirect()->back()->with('success', 'Invoice sent to all recipients.');
     }
 
     /**

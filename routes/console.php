@@ -25,3 +25,7 @@ Schedule::call(function () {
         Mail::to($invoice->client->email)->send(new InvoiceReminderMail($invoice));
     }
 })->dailyAt('09:00');
+
+use App\Jobs\AutoSendDueInvoicesJob;
+
+Schedule::job(new AutoSendDueInvoicesJob)->dailyAt('08:00');

@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            'defaultCurrency' => function () {
+                $defaultCurrencyId = \App\Models\Setting::getValue('default_currency_id');
+                return $defaultCurrencyId ? \App\Models\Currency::find($defaultCurrencyId) : null;
+            },
             'appName' => \App\Models\Setting::getValue('brand_name', config('app.name')),
             'appLogo' => \App\Models\Setting::getValue('app_logo', '/assets/images/vmcore.png'),
             'menuLogo' => \App\Models\Setting::getValue('menu_logo', '/assets/images/vmcore.png'),

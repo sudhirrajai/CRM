@@ -40,6 +40,6 @@ class User extends Authenticatable
 
     public function projects()
     {
-        return $this->belongsToMany(Project::class)->withTimestamps()->withPivot('assigned_at');
+        return $this->belongsToMany(Project::class)->withTimestamps()->withPivot(['assigned_at', 'send_invoice']);
     }
 }

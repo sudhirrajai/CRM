@@ -62,6 +62,11 @@ class Project extends Model
 
     public function members()
     {
-        return $this->belongsToMany(User::class)->withTimestamps()->withPivot('assigned_at');
+        return $this->belongsToMany(User::class)->withTimestamps()->withPivot(['assigned_at', 'send_invoice']);
+    }
+
+    public function invoiceRecipients()
+    {
+        return $this->belongsToMany(User::class)->wherePivot('send_invoice', true);
     }
 }
