@@ -26,7 +26,36 @@ const form = useForm({
     payment_reference: props.invoice.payment_reference || '',
     payment_note: props.invoice.payment_note || '',
     send_email: false,
+    items: props.invoice.items && props.invoice.items.length > 0
+        ? props.invoice.items.map(i => ({...i}))
+        : [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
 });
+
+import { watch } from 'vue';
+
+const calculateTotal = () => {
+    let tempTotal = 0;
+    
+    // Calculate from Items
+    form.items.forEach(item => {
+        item.total = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+        tempTotal += item.total;
+    });
+
+    form.total_amount = tempTotal.toFixed(2);
+};
+
+watch(() => form.items, () => {
+    calculateTotal();
+}, { deep: true });
+
+const addItem = () => {
+    form.items.push({ description: '', quantity: 1, unit_price: 0, total: 0 });
+};
+
+const removeItem = (index) => {
+    form.items.splice(index, 1);
+};
 
 const submit = () => {
     form.put(route('invoices.update', props.invoice.id), {
@@ -106,12 +135,75 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="total_amount" class="form-label">Total Amount <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" id="total_amount" v-model="form.total_amount" class="form-control" :class="{ 'is-invalid': form.errors.total_amount }" required>
-                                    <div class="invalid-feedback" v-if="form.errors.total_amount">{{ form.errors.total_amount }}</div>
+                            <div class="card border border-light mt-4 mb-4">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Invoice Items</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" @click="addItem">
+                                        <i class="ti ti-plus me-1"></i> Add Service
+                                    </button>
                                 </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Description</th>
+                                                    <th style="width: 15%">Quantity</th>
+                                                    <th style="width: 20%">Unit Price</th>
+                                                    <th style="width: 20%">Amount</th>
+                                                    <th style="width: 5%"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(item, index) in form.items" :key="index">
+                                                    <td>
+                                                        <input type="text" v-model="item.description" class="form-control" placeholder="e.g. Hosting Services" list="service-options" required>
+                                                        <div class="invalid-feedback" v-if="form.errors[`items.${index}.description`]">{{ form.errors[`items.${index}.description`] }}</div>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" v-model="item.quantity" class="form-control" min="1" required>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" step="0.01" v-model="item.unit_price" class="form-control" required>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" :value="item.total.toFixed(2)" class="form-control bg-light" readonly>
+                                                    </td>
+                                                    <td class="text-center align-middle">
+                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeItem(index)" v-if="form.items.length > 1">
+                                                            <i class="ti ti-trash fs-5"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <datalist id="service-options">
+                                            <option value="Project Creation"></option>
+                                            <option value="Hosting Services"></option>
+                                            <option value="Domain Registration"></option>
+                                            <option value="Maintenance & Support"></option>
+                                            <option value="Consulting"></option>
+                                        </datalist>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center mb-3">
+                                <div class="col-md-6 offset-md-6">
+                                    <div class="d-flex justify-content-between align-items-center p-2 mb-3 bg-light rounded">
+                                        <h5 class="m-0">Total Amount</h5>
+                                        <h4 class="m-0 text-primary">
+                                            {{ invoice.currency?.symbol || '$' }}{{ form.total_amount }}
+                                        </h4>
+                                    </div>
+                                    <div class="d-none">
+                                        <input type="number" step="0.01" id="total_amount" v-model="form.total_amount" class="form-control" :class="{ 'is-invalid': form.errors.total_amount }" required readonly>
+                                    </div>
+                                    <div class="invalid-feedback d-block" v-if="form.errors.total_amount">{{ form.errors.total_amount }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                                     <select id="status" v-model="form.status" class="form-select" :class="{ 'is-invalid': form.errors.status }" required>
@@ -145,6 +237,8 @@ const submit = () => {
                                                 <option value="bank_transfer">Bank Transfer</option>
                                                 <option value="credit_card">Credit Card</option>
                                                 <option value="paypal">PayPal</option>
+                                                <option value="neft_rtgs">NEFT / RTGS</option>
+                                                <option value="upi">UPI</option>
                                                 <option value="cash">Cash</option>
                                                 <option value="other">Other</option>
                                             </select>
