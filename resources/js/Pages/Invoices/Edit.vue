@@ -23,17 +23,6 @@ const form = useForm({
     status: props.invoice.status,
     notes: props.invoice.notes || '',
     send_email: false,
-<<<<<<< Updated upstream
-=======
-    items: props.invoice.items && props.invoice.items.length > 0
-        ? props.invoice.items.map(i => ({
-            description: i.description || '',
-            quantity: i.quantity || 1,
-            unit_price: i.unit_price || 0,
-            total: i.total || 0,
-        }))
-        : [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
->>>>>>> Stashed changes
 });
 
 const submit = () => {
