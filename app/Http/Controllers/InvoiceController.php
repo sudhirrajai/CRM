@@ -54,6 +54,19 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+<<<<<<< Updated upstream
+=======
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
+            'selected_crs' => 'nullable|array',
+            'selected_crs.*' => 'exists:change_requests,id',
+            'items' => 'nullable|array',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+>>>>>>> Stashed changes
         ]);
 
         // If sub_total is not provided, use total_amount
@@ -117,6 +130,19 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
+<<<<<<< Updated upstream
+=======
+            'payment_mode' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'payment_note' => 'nullable|string',
+            'selected_crs' => 'nullable|array',
+            'selected_crs.*' => 'exists:change_requests,id',
+            'items' => 'nullable|array',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+>>>>>>> Stashed changes
         ]);
 
         if (!isset($validated['sub_total'])) {

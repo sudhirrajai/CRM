@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Invoice;
 use App\Repositories\Interfaces\InvoiceRepositoryInterface;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInterface
 {
@@ -14,34 +15,89 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function create(array $attributes)
     {
+<<<<<<< Updated upstream
         $selectedCrs = $attributes['selected_crs'] ?? [];
+=======
+        $items = $attributes['items'] ?? [];
+        $selectedCrs = $attributes['selected_crs'] ?? [];
+        unset($attributes['items']);
+>>>>>>> Stashed changes
         unset($attributes['selected_crs']);
 
-        $invoice = parent::create($attributes);
+        return DB::transaction(function () use ($attributes, $items, $selectedCrs) {
+            $invoice = parent::create($attributes);
 
-        if (!empty($selectedCrs)) {
-            \App\Models\ChangeRequest::whereIn('id', $selectedCrs)->update([
-                'invoice_id' => $invoice->id,
-                'status' => 'invoiced'
-            ]);
+            if (!empty($selectedCrs)) {
+                \App\Models\ChangeRequest::whereIn('id', $selectedCrs)->update([
+                    'invoice_id' => $invoice->id,
+                    'status' => 'invoiced'
+                ]);
 
-            // Create individual invoice items for CRs
-            foreach ($selectedCrs as $crId) {
-                $cr = \App\Models\ChangeRequest::find($crId);
-                if ($cr) {
-                    $invoice->items()->create([
-                        'description' => ($invoice->project ? 'Project: ' . $invoice->project->name . ' - ' : '') . 'Change Request: ' . $cr->title,
-                        'unit_price' => $cr->amount,
-                        'quantity' => 1,
-                        'total' => $cr->amount
-                    ]);
+                foreach ($selectedCrs as $crId) {
+                    $cr = \App\Models\ChangeRequest::find($crId);
+                    if ($cr) {
+                        $invoice->items()->create([
+                            'description' => ($invoice->project ? 'Project: ' . $invoice->project->name . ' - ' : '') . 'Change Request: ' . $cr->title,
+                            'unit_price' => $cr->amount,
+                            'quantity' => 1,
+                            'total' => $cr->amount
+                        ]);
+                    }
                 }
             }
-        }
 
+<<<<<<< Updated upstream
         return $invoice;
     }
 
+=======
+            foreach ($items as $item) {
+                if (blank($item['description'] ?? null)) {
+                    continue;
+                }
+
+                $invoice->items()->create([
+                    'description' => $item['description'],
+                    'unit_price' => $item['unit_price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $item['total']
+                ]);
+            }
+
+            return $invoice->load('items');
+        });
+    }
+
+    public function update($id, array $attributes)
+    {
+        $items = $attributes['items'] ?? [];
+        unset($attributes['items']);
+
+        return DB::transaction(function () use ($id, $attributes, $items) {
+            $record = parent::update($id, $attributes);
+
+            if (is_array($items)) {
+                $record->items()->delete();
+
+                foreach ($items as $item) {
+                    if (blank($item['description'] ?? null)) {
+                        continue;
+                    }
+
+                    $record->items()->create([
+                        'description' => $item['description'],
+                        'unit_price' => $item['unit_price'],
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total']
+                    ]);
+                }
+            }
+
+            return $record->load('items');
+        });
+    }
+
+>>>>>>> Stashed changes
     public function getByClient($id)
     {
         return $this->model->where('client_id', $id)->get();

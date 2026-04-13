@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
-defineProps({
+const props = defineProps({
     clients: { type: Array, required: true },
     projects: { type: Array, required: true },
     currencies: { type: Array, required: true },
@@ -47,6 +47,8 @@ const toggleCR = (cr) => {
 };
 
 const submit = () => {
+    calculateTotal();
+
     form.post(route('invoices.store'), {
         preserveScroll: true,
     });
