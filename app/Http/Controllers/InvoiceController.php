@@ -54,8 +54,6 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
-<<<<<<< Updated upstream
-=======
             'payment_mode' => 'nullable|string',
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
@@ -66,7 +64,6 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.total' => 'required|numeric|min:0',
->>>>>>> Stashed changes
         ]);
 
         // If sub_total is not provided, use total_amount
@@ -104,7 +101,7 @@ class InvoiceController extends Controller
 
     public function edit($id)
     {
-        $invoice = $this->invoiceRepo->find($id);
+        $invoice = $this->invoiceRepo->find($id)->load('items');
         
         // Format dates for HTML5 date input
         $invoice->issue_date_formatted = $invoice->issue_date ? $invoice->issue_date->format('Y-m-d') : '';
@@ -130,8 +127,6 @@ class InvoiceController extends Controller
             'total_amount' => 'required|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
-<<<<<<< Updated upstream
-=======
             'payment_mode' => 'nullable|string',
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
@@ -142,7 +137,6 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.total' => 'required|numeric|min:0',
->>>>>>> Stashed changes
         ]);
 
         if (!isset($validated['sub_total'])) {
