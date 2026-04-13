@@ -120,6 +120,11 @@ const testimonials = [
 
 onMounted(() => {
     nextTick(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+            return;
+        }
+
         const observer = new IntersectionObserver(
             (entries) => entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -154,7 +159,7 @@ onMounted(() => {
                             <p class="fs-5 text-muted mb-4 hero-copy">
                                 VMCore brings leads, clients, projects, invoices, and reporting into one operational workspace built with the same clean card-driven feel as the dashboard.
                             </p>
-                            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                            <div class="d-flex flex-column flex-sm-row gap-3 mb-3 hero-cta-group">
                                 <Link :href="route('login')" class="btn btn-primary btn-lg px-4 d-inline-flex align-items-center justify-content-center gap-2">
                                     Open CRM
                                     <ArrowRight :size="18" />
@@ -164,6 +169,7 @@ onMounted(() => {
                                     Explore Features
                                 </a>
                             </div>
+                            <p class="small text-muted mb-4">No setup friction. Start with your existing client workflow in minutes.</p>
                             <div class="d-flex flex-wrap gap-3 text-muted small">
                                 <span class="d-inline-flex align-items-center gap-2">
                                     <CheckCircle2 :size="16" class="text-success" />
@@ -286,7 +292,7 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div class="row g-3 mt-2">
+                <div class="row g-3 mt-2 quick-metrics">
                     <div v-for="highlight in highlights" :key="`${highlight.label}-mini`" class="col-md-3 col-6">
                         <div class="card h-100 mb-0 reveal" :class="`reveal-delay-${(highlights.indexOf(highlight) % 4) + 1}`">
                             <div class="card-body py-3">
@@ -448,6 +454,7 @@ onMounted(() => {
 .landing-shell {
     background:
         radial-gradient(circle at top right, rgba(62, 96, 213, 0.08), transparent 30%),
+        radial-gradient(circle at 12% 20%, rgba(70, 183, 255, 0.08), transparent 26%),
         linear-gradient(180deg, #f8f9fc 0%, #ffffff 40%);
 }
 
@@ -458,6 +465,10 @@ onMounted(() => {
 
 .hero-copy {
     max-width: 42rem;
+}
+
+.hero-cta-group .btn {
+    min-height: 3.25rem;
 }
 
 .hero-preview {
@@ -528,6 +539,10 @@ onMounted(() => {
     background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
 }
 
+.quick-metrics .card {
+    border-color: #e9edf4;
+}
+
 .reveal {
     opacity: 0;
     transform: translateY(28px);
@@ -569,7 +584,61 @@ onMounted(() => {
 
 @media (max-width: 991.98px) {
     .hero-space {
-        padding-top: 5rem;
+        padding-top: 4.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .hero-copy {
+        max-width: 100%;
+    }
+
+    .chart-bars {
+        height: 180px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    h1.display-4 {
+        font-size: clamp(1.85rem, 6.5vw, 2.35rem);
+        line-height: 1.2;
+    }
+
+    .hero-cta-group .btn {
+        width: 100%;
+    }
+
+    .hero-preview .card-body {
+        padding: 1rem !important;
+    }
+
+    .feature-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.6rem;
+    }
+
+    .chart-bars {
+        height: 150px;
+    }
+
+    .bar-slot {
+        border-radius: 0.6rem 0.6rem 0.3rem 0.3rem;
+    }
+
+    .bar-fill {
+        border-radius: 0.6rem 0.6rem 0.3rem 0.3rem;
+    }
+
+    .quick-metrics h4 {
+        font-size: 1.05rem;
+    }
+
+    .activity-item {
+        gap: 0.7rem;
+    }
+
+    .crm-banner .card-body {
+        padding: 1.25rem !important;
     }
 }
 </style>
