@@ -11,6 +11,7 @@ use App\Mail\InvoiceReminderMail;
 use App\Mail\HostingSuspensionMail;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Support\InvoiceRecipientResolver;
 
 #[Signature('app:send-invoice-reminders')]
 #[Description('Send invoice reminders and handle automated hosting suspension')]
@@ -21,6 +22,7 @@ class SendInvoiceReminders extends Command
      */
     public function handle()
     {
+        $recipientResolver = app(InvoiceRecipientResolver::class);
         $today = Carbon::today();
         
         // 1. Send Reminders (30, 15, 0 days)
@@ -36,7 +38,10 @@ class SendInvoiceReminders extends Command
             $reminderType = $daysUntilDue == 30 ? '30_days' : ($daysUntilDue == 15 ? '15_days' : 'due_date');
 
             if ($invoice->last_reminder_type !== $reminderType) {
-                Mail::to($invoice->client->email)->send(new InvoiceReminderMail($invoice));
+                $recipients = $recipientResolver->emails($invoice);
+                if (!empty($recipients)) {
+                    Mail::to($recipients)->send(new InvoiceReminderMail($invoice));
+                }
                 $invoice->update(['last_reminder_type' => $reminderType]);
                 $this->info("Sent {$reminderType} reminder for Invoice #{$invoice->invoice_number}");
             }
@@ -55,7 +60,10 @@ class SendInvoiceReminders extends Command
 
             if ($hosting) {
                 $hosting->update(['status' => 'suspended']);
-                Mail::to($invoice->client->email)->send(new HostingSuspensionMail($invoice, $hosting));
+                $recipients = $recipientResolver->emails($invoice);
+                if (!empty($recipients)) {
+                    Mail::to($recipients)->send(new HostingSuspensionMail($invoice, $hosting));
+                }
                 $this->warn("Suspended hosting for Invoice #{$invoice->invoice_number} (7 days overdue)");
             }
         }

@@ -17,10 +17,14 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
     {
         $items = $attributes['items'] ?? [];
         $selectedCrs = $attributes['selected_crs'] ?? [];
+        $sharedClientIds = $attributes['shared_client_ids'] ?? [];
+        $extraRecipients = $attributes['extra_recipients'] ?? [];
         unset($attributes['items']);
         unset($attributes['selected_crs']);
+        unset($attributes['shared_client_ids']);
+        unset($attributes['extra_recipients']);
 
-        return DB::transaction(function () use ($attributes, $items, $selectedCrs) {
+        return DB::transaction(function () use ($attributes, $items, $selectedCrs, $sharedClientIds, $extraRecipients) {
             $invoice = parent::create($attributes);
 
             if (!empty($selectedCrs)) {
@@ -55,16 +59,22 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
                 ]);
             }
 
-            return $invoice->load('items');
+            $this->syncInvoiceRecipients($invoice, $sharedClientIds, $extraRecipients);
+
+            return $invoice->load(['items', 'sharedClients', 'emailRecipients']);
         });
     }
 
     public function update($id, array $attributes)
     {
         $items = $attributes['items'] ?? [];
+        $sharedClientIds = $attributes['shared_client_ids'] ?? [];
+        $extraRecipients = $attributes['extra_recipients'] ?? [];
         unset($attributes['items']);
+        unset($attributes['shared_client_ids']);
+        unset($attributes['extra_recipients']);
 
-        return DB::transaction(function () use ($id, $attributes, $items) {
+        return DB::transaction(function () use ($id, $attributes, $items, $sharedClientIds, $extraRecipients) {
             $record = parent::update($id, $attributes);
 
             if (is_array($items)) {
@@ -84,12 +94,46 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
                 }
             }
 
-            return $record->load('items');
+            $this->syncInvoiceRecipients($record, $sharedClientIds, $extraRecipients);
+
+            return $record->load(['items', 'sharedClients', 'emailRecipients']);
         });
+    }
+
+    private function syncInvoiceRecipients(Invoice $invoice, array $sharedClientIds, array $extraRecipients): void
+    {
+        $primaryClientId = $invoice->client_id;
+
+        $normalizedClientIds = collect($sharedClientIds)
+            ->filter()
+            ->map(fn ($id) => (string) $id)
+            ->reject(fn ($id) => $id === (string) $primaryClientId)
+            ->unique()
+            ->values()
+            ->all();
+        $invoice->sharedClients()->sync($normalizedClientIds);
+
+        $normalizedEmails = collect($extraRecipients)
+            ->filter(fn ($email) => is_string($email) && filled(trim($email)))
+            ->map(fn ($email) => strtolower(trim($email)))
+            ->unique()
+            ->values();
+
+        $invoice->emailRecipients()->delete();
+        foreach ($normalizedEmails as $email) {
+            $invoice->emailRecipients()->create(['email' => $email]);
+        }
     }
     public function getByClient($id)
     {
-        return $this->model->where('client_id', $id)->get();
+        return $this->model
+            ->where(function ($query) use ($id) {
+                $query->where('client_id', $id)
+                    ->orWhereHas('sharedClients', function ($sharedQuery) use ($id) {
+                        $sharedQuery->whereKey($id);
+                    });
+            })
+            ->get();
     }
 
     public function getByProject($id)
@@ -104,7 +148,17 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function getRecentByClient($clientId, $limit = 5)
     {
-        return $this->model->where('client_id', $clientId)->with(['project', 'currency'])->latest()->limit($limit)->get();
+        return $this->model
+            ->where(function ($query) use ($clientId) {
+                $query->where('client_id', $clientId)
+                    ->orWhereHas('sharedClients', function ($sharedQuery) use ($clientId) {
+                        $sharedQuery->whereKey($clientId);
+                    });
+            })
+            ->with(['project', 'currency'])
+            ->latest()
+            ->limit($limit)
+            ->get();
     }
 
     public function getTotalRevenue()
@@ -133,7 +187,13 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function getMonthlyRevenueByClient($clientId, $months = 12)
     {
-        return $this->model->where('client_id', $clientId)
+        return $this->model
+            ->where(function ($query) use ($clientId) {
+                $query->where('client_id', $clientId)
+                    ->orWhereHas('sharedClients', function ($sharedQuery) use ($clientId) {
+                        $sharedQuery->whereKey($clientId);
+                    });
+            })
             ->selectRaw('DATE_FORMAT(issue_date, "%Y-%m") as month, SUM(total_amount) as total')
             ->where('issue_date', '>=', now()->subMonths($months))
             ->groupBy('month')

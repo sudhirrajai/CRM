@@ -169,6 +169,29 @@ const isOverdue = (dueDate) => {
                     </div>
                 </div>
 
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">Invoice Recipients</h4>
+                        <ul class="list-unstyled small mb-0 vstack gap-2">
+                            <li class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Primary Client</span>
+                                <span class="badge bg-primary-subtle text-primary">{{ invoice.client?.email || 'N/A' }}</span>
+                            </li>
+                            <li v-for="client in (invoice.shared_clients || [])" :key="`shared-${client.id}`" class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">{{ client.name }}</span>
+                                <span class="badge bg-light text-dark border">{{ client.email || 'N/A' }}</span>
+                            </li>
+                            <li v-for="recipient in (invoice.email_recipients || [])" :key="`email-${recipient.id}`" class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">{{ recipient.name || 'Extra Recipient' }}</span>
+                                <span class="badge bg-light text-dark border">{{ recipient.email }}</span>
+                            </li>
+                            <li v-if="(invoice.shared_clients || []).length === 0 && (invoice.email_recipients || []).length === 0" class="text-muted">
+                                No additional recipients configured.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Project Info -->
                 <div class="card" v-if="invoice.project">
                     <div class="card-body">

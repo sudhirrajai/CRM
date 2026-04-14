@@ -37,6 +37,12 @@ class Invoice extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function sharedClients()
+    {
+        return $this->belongsToMany(Client::class, 'invoice_clients')
+            ->withTimestamps();
+    }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
@@ -50,5 +56,10 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function emailRecipients()
+    {
+        return $this->hasMany(InvoiceEmailRecipient::class);
     }
 }

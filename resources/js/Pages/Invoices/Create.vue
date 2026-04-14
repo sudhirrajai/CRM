@@ -12,6 +12,9 @@ const props = defineProps({
 
 const form = useForm({
     client_id: '',
+    shared_client_ids: [],
+    extra_recipients: [],
+    extra_recipients_input: '',
     project_id: '',
     currency_id: '',
     invoice_number: 'INV-' + Math.floor(1000 + Math.random() * 9000),
@@ -148,6 +151,10 @@ const calculateTotal = () => {
 
 const submit = () => {
     calculateTotal();
+    form.extra_recipients = form.extra_recipients_input
+        .split(/[\n,;]+/)
+        .map((email) => email.trim().toLowerCase())
+        .filter((email, index, arr) => email && arr.indexOf(email) === index);
 
     form.post(route('invoices.store'), {
         preserveScroll: true,
@@ -210,6 +217,43 @@ const submit = () => {
                                         </option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.currency_id">{{ form.errors.currency_id }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="shared_client_ids" class="form-label">Partner Clients</label>
+                                    <select
+                                        id="shared_client_ids"
+                                        v-model="form.shared_client_ids"
+                                        class="form-select"
+                                        :class="{ 'is-invalid': form.errors.shared_client_ids }"
+                                        multiple
+                                    >
+                                        <option
+                                            v-for="client in clients.filter((c) => c.id !== form.client_id)"
+                                            :key="client.id"
+                                            :value="client.id"
+                                        >
+                                            {{ client.name }} ({{ client.company || 'Individual' }})
+                                        </option>
+                                    </select>
+                                    <div class="form-text">Hold Ctrl/Cmd to choose multiple partner clients.</div>
+                                    <div class="invalid-feedback" v-if="form.errors.shared_client_ids">{{ form.errors.shared_client_ids }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="extra_recipients_input" class="form-label">Additional Recipient Emails</label>
+                                    <textarea
+                                        id="extra_recipients_input"
+                                        v-model="form.extra_recipients_input"
+                                        rows="3"
+                                        class="form-control"
+                                        :class="{ 'is-invalid': form.errors.extra_recipients || form.errors['extra_recipients.0'] }"
+                                        placeholder="partner@example.com, accounts@example.com"
+                                    />
+                                    <div class="form-text">Separate emails with commas or new lines.</div>
+                                    <div class="invalid-feedback" v-if="form.errors.extra_recipients">{{ form.errors.extra_recipients }}</div>
+                                    <div class="invalid-feedback" v-else-if="form.errors['extra_recipients.0']">{{ form.errors['extra_recipients.0'] }}</div>
                                 </div>
                             </div>
 
@@ -349,7 +393,7 @@ const submit = () => {
                                 <div class="col-12">
                                     <div class="form-check">
                                         <input type="checkbox" id="send_email" v-model="form.send_email" class="form-check-input">
-                                        <label for="send_email" class="form-check-label user-select-none">Send copy to client via email</label>
+                                        <label for="send_email" class="form-check-label user-select-none">Send copy to all invoice recipients via email</label>
                                     </div>
                                 </div>
                             </div>

@@ -12,11 +12,13 @@ use App\Mail\HostingSuspensionMail;
 use App\Models\ClientHosting;
 use App\Models\Invoice;
 use App\Models\ChangeRequest;
+use App\Support\InvoiceRecipientResolver;
 
 class InvoiceController extends Controller
 {
     public function __construct(
-        protected InvoiceRepositoryInterface $invoiceRepo
+        protected InvoiceRepositoryInterface $invoiceRepo,
+        protected InvoiceRecipientResolver $invoiceRecipientResolver
     ) {}
 
     public function index()
@@ -49,6 +51,10 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'shared_client_ids' => 'nullable|array',
+            'shared_client_ids.*' => 'distinct|exists:clients,id',
+            'extra_recipients' => 'nullable|array',
+            'extra_recipients.*' => 'email',
             'project_id' => 'nullable|exists:projects,id',
             'currency_id' => 'required|exists:currencies,id',
             'invoice_number' => 'required|string|unique:invoices,invoice_number',
@@ -77,9 +83,12 @@ class InvoiceController extends Controller
         if ($request->boolean('send_email')) {
             $invoiceModel = $invoice instanceof \App\Models\Invoice ? $invoice : \App\Models\Invoice::where('invoice_number', $validated['invoice_number'])->first();
             if ($invoiceModel) {
-                $invoiceModel->load(['client', 'project', 'currency', 'items']);
+                $invoiceModel->load(['client', 'project', 'currency', 'items', 'sharedClients', 'emailRecipients']);
                 $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $recipients = $this->invoiceRecipientResolver->emails($invoiceModel);
+                if (!empty($recipients)) {
+                    Mail::to($recipients)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                }
             }
         }
 
@@ -88,10 +97,10 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items', 'sharedClients', 'emailRecipients']);
         $user = auth()->user();
 
-        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+        if (!$user->hasRole(['admin', 'staff']) && !$this->canClientAccessInvoice($invoice, $user->client_id)) {
             abort(403);
         }
 
@@ -102,7 +111,7 @@ class InvoiceController extends Controller
 
     public function edit($id)
     {
-        $invoice = $this->invoiceRepo->find($id)->load('items');
+        $invoice = $this->invoiceRepo->find($id)->load(['items', 'sharedClients', 'emailRecipients']);
         
         // Format dates for HTML5 date input
         $invoice->issue_date_formatted = $invoice->issue_date ? $invoice->issue_date->format('Y-m-d') : '';
@@ -122,6 +131,10 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'shared_client_ids' => 'nullable|array',
+            'shared_client_ids.*' => 'distinct|exists:clients,id',
+            'extra_recipients' => 'nullable|array',
+            'extra_recipients.*' => 'email',
             'project_id' => 'nullable|exists:projects,id',
             'currency_id' => 'required|exists:currencies,id',
             'invoice_number' => 'required|string|unique:invoices,invoice_number,'.$id,
@@ -148,10 +161,13 @@ class InvoiceController extends Controller
         $this->invoiceRepo->update($id, $validated);
 
         if ($request->boolean('send_email')) {
-            $invoiceModel = \App\Models\Invoice::find($id)->load(['client', 'project', 'currency', 'items']);
+            $invoiceModel = \App\Models\Invoice::find($id)->load(['client', 'project', 'currency', 'items', 'sharedClients', 'emailRecipients']);
             if ($invoiceModel) {
                 $pdf = Pdf::loadView('invoices.template', ['invoice' => $invoiceModel]);
-                Mail::to($invoiceModel->client->email)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                $recipients = $this->invoiceRecipientResolver->emails($invoiceModel);
+                if (!empty($recipients)) {
+                    Mail::to($recipients)->send(new InvoiceMail($invoiceModel, $pdf->output()));
+                }
             }
         }
 
@@ -166,10 +182,10 @@ class InvoiceController extends Controller
 
     public function viewPdf($id)
     {
-        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items', 'sharedClients', 'emailRecipients']);
         $user = auth()->user();
 
-        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+        if (!$user->hasRole(['admin', 'staff']) && !$this->canClientAccessInvoice($invoice, $user->client_id)) {
             abort(403);
         }
 
@@ -179,10 +195,10 @@ class InvoiceController extends Controller
 
     public function downloadPdf($id)
     {
-        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items']);
+        $invoice = $this->invoiceRepo->find($id)->load(['client', 'project', 'currency', 'items', 'sharedClients', 'emailRecipients']);
         $user = auth()->user();
 
-        if (!$user->hasRole(['admin', 'staff']) && $invoice->client_id !== $user->client_id) {
+        if (!$user->hasRole(['admin', 'staff']) && !$this->canClientAccessInvoice($invoice, $user->client_id)) {
             abort(403);
         }
 
@@ -195,7 +211,7 @@ class InvoiceController extends Controller
      */
     public function sendSuspensionNotification($id)
     {
-        $invoice = Invoice::with(['client', 'project'])->findOrFail($id);
+        $invoice = Invoice::with(['client', 'project', 'sharedClients', 'emailRecipients'])->findOrFail($id);
         
         // Find associated hosting
         $hosting = ClientHosting::where('project_id', $invoice->project_id)
@@ -206,7 +222,10 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'No associated hosting found for this invoice.');
         }
 
-        Mail::to($invoice->client->email)->send(new HostingSuspensionMail($invoice, $hosting));
+        $recipients = $this->invoiceRecipientResolver->emails($invoice);
+        if (!empty($recipients)) {
+            Mail::to($recipients)->send(new HostingSuspensionMail($invoice, $hosting));
+        }
 
         return redirect()->back()->with('success', 'Suspension notification sent to ' . $invoice->client->name);
     }
@@ -238,5 +257,18 @@ class InvoiceController extends Controller
         if (!isset($validated['sub_total'])) {
             $validated['sub_total'] = $validated['total_amount'];
         }
+    }
+
+    private function canClientAccessInvoice(Invoice $invoice, ?string $clientId): bool
+    {
+        if (!$clientId) {
+            return false;
+        }
+
+        if ($invoice->client_id === $clientId) {
+            return true;
+        }
+
+        return $invoice->sharedClients()->whereKey($clientId)->exists();
     }
 }

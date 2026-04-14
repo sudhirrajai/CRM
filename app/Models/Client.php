@@ -34,6 +34,12 @@ class Client extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function sharedInvoices()
+    {
+        return $this->belongsToMany(Invoice::class, 'invoice_clients')
+            ->withTimestamps();
+    }
+
     public function hostings()
     {
         return $this->hasMany(ClientHosting::class);

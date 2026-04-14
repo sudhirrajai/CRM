@@ -12,8 +12,10 @@ use App\Models\Invoice;
 use App\Models\Setting;
 use App\Mail\InvoiceReminderMail;
 use Illuminate\Support\Facades\Mail;
+use App\Support\InvoiceRecipientResolver;
 
 Schedule::call(function () {
+    $recipientResolver = app(InvoiceRecipientResolver::class);
     $days = (int) Setting::getValue('invoice_due_reminder_days', 3);
     $targetDate = now()->addDays($days)->toFormattedDateString();
     
@@ -22,6 +24,9 @@ Schedule::call(function () {
         ->get();
 
     foreach ($invoices as $invoice) {
-        Mail::to($invoice->client->email)->send(new InvoiceReminderMail($invoice));
+        $recipients = $recipientResolver->emails($invoice);
+        if (!empty($recipients)) {
+            Mail::to($recipients)->send(new InvoiceReminderMail($invoice));
+        }
     }
 })->dailyAt('09:00');
