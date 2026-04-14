@@ -15,13 +15,9 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function create(array $attributes)
     {
-<<<<<<< Updated upstream
-        $selectedCrs = $attributes['selected_crs'] ?? [];
-=======
         $items = $attributes['items'] ?? [];
         $selectedCrs = $attributes['selected_crs'] ?? [];
         unset($attributes['items']);
->>>>>>> Stashed changes
         unset($attributes['selected_crs']);
 
         return DB::transaction(function () use ($attributes, $items, $selectedCrs) {
@@ -46,11 +42,6 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
                 }
             }
 
-<<<<<<< Updated upstream
-        return $invoice;
-    }
-
-=======
             foreach ($items as $item) {
                 if (blank($item['description'] ?? null)) {
                     continue;
@@ -96,8 +87,6 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
             return $record->load('items');
         });
     }
-
->>>>>>> Stashed changes
     public function getByClient($id)
     {
         return $this->model->where('client_id', $id)->get();
