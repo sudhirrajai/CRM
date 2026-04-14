@@ -10,6 +10,10 @@ Route::get('/', function () {
     return Inertia::render('Landing');
 });
 
+Route::get('/terms-and-conditions', function () {
+    return Inertia::render('TermsAndConditions');
+})->name('terms');
+
 Route::get('/dashboard', function (\App\Services\DashboardService $dashboardService) {
     return Inertia::render('Dashboard', [
         'analytics' => $dashboardService->getAnalytics()

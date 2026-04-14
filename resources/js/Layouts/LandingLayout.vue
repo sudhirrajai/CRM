@@ -152,7 +152,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
                     </p>
                     <div class="flex items-center gap-6">
                         <a href="#" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors" style="text-decoration: none;">Privacy</a>
-                        <a href="#" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors" style="text-decoration: none;">Terms</a>
+                        <Link :href="route('terms')" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors" style="text-decoration: none;">Terms</Link>
                         <a href="#" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors" style="text-decoration: none;">Security</a>
                     </div>
                 </div>

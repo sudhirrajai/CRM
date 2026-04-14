@@ -76,6 +76,12 @@
     </style>
 </head>
 <body>
+    @php
+        $hasHostingService = $invoice->items && $invoice->items->contains(function ($item) {
+            $description = \Illuminate\Support\Str::lower($item->description ?? '');
+            return \Illuminate\Support\Str::contains($description, ['hosting', 'vps', 'domain']);
+        });
+    @endphp
     <div class="invoice-box">
         <table cellpadding="0" cellspacing="0">
             <tr class="top">
@@ -185,6 +191,14 @@
         <div class="mt-4">
             <strong>Notes / Terms:</strong>
             <p class="text-muted" style="white-space: pre-line;">{{ $invoice->notes }}</p>
+        </div>
+        @endif
+
+        @if($hasHostingService)
+        <div class="mt-4" style="font-size: 13px; line-height: 1.6; border: 1px solid #e5e7eb; background: #f8fafc; padding: 12px; border-radius: 6px;">
+            <strong>Hosting Terms &amp; Conditions:</strong>
+            This invoice includes hosting services. By continuing to use the hosting service, you agree to our
+            <a href="{{ route('terms') }}">Web Hosting Terms &amp; Conditions</a>.
         </div>
         @endif
         

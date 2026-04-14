@@ -4,6 +4,11 @@
     $contactEmail = \App\Models\Setting::getValue('contact_email', config('mail.from.address'));
     $contactPhone = \App\Models\Setting::getValue('contact_phone', '');
     $contactAddress = \App\Models\Setting::getValue('contact_address', '');
+    $hasHostingService = $invoice->items && $invoice->items->contains(function ($item) {
+        $description = \Illuminate\Support\Str::lower($item->description ?? '');
+        return \Illuminate\Support\Str::contains($description, ['hosting', 'vps', 'domain']);
+    });
+    $termsUrl = route('terms');
 @endphp
 
 Hi {{ $invoice->client->name }},
@@ -33,6 +38,14 @@ Your invoice is ready. We have attached the PDF for your records and included a 
 Please review the attached invoice and process payment by the due date to avoid service interruption.
 
 If anything needs correction, simply reply to this email and our team will assist you.
+
+@if($hasHostingService)
+<p style="margin-top: 14px;">
+    <strong>Hosting Terms &amp; Conditions:</strong><br>
+    This invoice includes hosting services. By continuing to use the hosting service, you agree to our
+    <a href="{{ $termsUrl }}">Web Hosting Terms &amp; Conditions</a>.
+</p>
+@endif
 
 <p style="font-size: 13px; color: #64748b; margin-top: 20px;">
 {{ $brandName }}<br>
