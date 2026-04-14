@@ -1,4 +1,11 @@
 <x-mail::message>
+@php
+    $brandName = \App\Models\Setting::getValue('brand_name', config('app.name'));
+    $contactEmail = \App\Models\Setting::getValue('contact_email', config('mail.from.address'));
+    $contactPhone = \App\Models\Setting::getValue('contact_phone', '');
+    $contactAddress = \App\Models\Setting::getValue('contact_address', '');
+@endphp
+
 Hi {{ $invoice->client->name }},
 
 Your invoice is ready. We have attached the PDF for your records and included a quick summary below.
@@ -27,6 +34,13 @@ Please review the attached invoice and process payment by the due date to avoid 
 
 If anything needs correction, simply reply to this email and our team will assist you.
 
+<p style="font-size: 13px; color: #64748b; margin-top: 20px;">
+{{ $brandName }}<br>
+@if($contactEmail){{ $contactEmail }}<br>@endif
+@if($contactPhone){{ $contactPhone }}<br>@endif
+@if($contactAddress){!! nl2br(e($contactAddress)) !!}@endif
+</p>
+
 Regards,<br>
-<strong>{{ config('app.name') }} Billing Team</strong>
+<strong>{{ $brandName }} Billing Team</strong>
 </x-mail::message>

@@ -33,6 +33,13 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
+            'brand_name' => 'nullable|string|max:255',
+            'contact_phone' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_address' => 'nullable|string|max:1000',
+            'app_logo_height' => 'nullable|integer|min:20|max:300',
+            'menu_logo_height' => 'nullable|integer|min:20|max:300',
+            'pdf_logo_height' => 'nullable|integer|min:20|max:300',
             'smtp_host' => 'nullable|string',
             'smtp_port' => 'nullable|string',
             'smtp_username' => 'nullable|string',
