@@ -1,18 +1,32 @@
 <x-mail::message>
-# Dear {{ $invoice->client->name }},
+Hi {{ $invoice->client->name }},
 
-We've generated a new invoice for your recent project/services. Please find the summary below and the full invoice attached as a PDF.
+Your invoice is ready. We have attached the PDF for your records and included a quick summary below.
 
 <x-mail::panel>
-**Invoice Number:** #{{ $invoice->invoice_number }}<br>
-**Total Amount:** <span style="color: #4f46e5; font-size: 1.1em; font-weight: bold;">{{ $invoice->currency->symbol }}{{ number_format($invoice->total_amount, 2) }}</span><br>
-**Due Date:** <span style="color: #e11d48; font-weight: bold;">{{ $invoice->due_date->format('M d, Y') }}</span>
+<strong style="font-size: 16px; color: #0f172a;">Invoice #{{ $invoice->invoice_number }}</strong><br>
+<span style="color: #475569;">Issued: {{ $invoice->issue_date?->format('M d, Y') ?? '-' }}</span><br>
+<span style="color: #475569;">Due: {{ $invoice->due_date?->format('M d, Y') ?? '-' }}</span><br><br>
+<span style="color: #475569;">Total Amount</span><br>
+<span style="color: #4f46e5; font-size: 22px; font-weight: 700;">
+    {{ $invoice->currency->symbol }}{{ number_format($invoice->total_amount, 2) }}
+</span>
 </x-mail::panel>
 
-If you have any questions regarding this invoice, please feel free to reply directly to this email or contact support.
+@if($invoice->items && $invoice->items->count())
+<x-mail::table>
+| Service | Qty | Rate | Amount |
+|:--------|:---:|-----:|-------:|
+@foreach($invoice->items as $item)
+| {{ $item->description }} | {{ $item->quantity }} | {{ $invoice->currency->symbol }}{{ number_format($item->unit_price, 2) }} | {{ $invoice->currency->symbol }}{{ number_format($item->total, 2) }} |
+@endforeach
+</x-mail::table>
+@endif
 
-Thank you for your business!
+Please review the attached invoice and process payment by the due date to avoid service interruption.
 
-Best Regards,<br>
-**{{ config('app.name') }} Team**
+If anything needs correction, simply reply to this email and our team will assist you.
+
+Regards,<br>
+<strong>{{ config('app.name') }} Billing Team</strong>
 </x-mail::message>
