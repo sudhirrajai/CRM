@@ -11,6 +11,7 @@ use App\Mail\InvoiceMail;
 use App\Mail\HostingSuspensionMail;
 use App\Models\ClientHosting;
 use App\Models\Invoice;
+use App\Models\ChangeRequest;
 
 class InvoiceController extends Controller
 {
@@ -38,6 +39,8 @@ class InvoiceController extends Controller
         return Inertia::render('Invoices/Create', [
             'clients' => \App\Models\Client::where('status', 'active')->get(),
             'projects' => \App\Models\Project::with(['changeRequests' => fn($q) => $q->where('status', 'pending')])->get(),
+            'hostings' => ClientHosting::with(['project:id,name', 'currency:id,code,symbol,symbol_position'])
+                ->get(['id', 'client_id', 'project_id', 'currency_id', 'domain', 'plan_details', 'price', 'billing_cycle']),
             'currencies' => \App\Models\Currency::all(),
         ]);
     }
@@ -57,6 +60,7 @@ class InvoiceController extends Controller
             'payment_mode' => 'nullable|string',
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
+            'tax' => 'nullable|numeric|min:0',
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',
@@ -66,10 +70,7 @@ class InvoiceController extends Controller
             'items.*.total' => 'required|numeric|min:0',
         ]);
 
-        // If sub_total is not provided, use total_amount
-        if (!isset($validated['sub_total'])) {
-            $validated['sub_total'] = $validated['total_amount'];
-        }
+        $this->syncInvoiceTotals($validated);
 
         $invoice = $this->invoiceRepo->create($validated);
 
@@ -111,6 +112,8 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'clients' => \App\Models\Client::where('status', 'active')->get(),
             'projects' => \App\Models\Project::where('status', 'in_progress')->get(),
+            'hostings' => ClientHosting::with(['project:id,name', 'currency:id,code,symbol,symbol_position'])
+                ->get(['id', 'client_id', 'project_id', 'currency_id', 'domain', 'plan_details', 'price', 'billing_cycle']),
             'currencies' => \App\Models\Currency::all(),
         ]);
     }
@@ -130,6 +133,7 @@ class InvoiceController extends Controller
             'payment_mode' => 'nullable|string',
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
+            'tax' => 'nullable|numeric|min:0',
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',
@@ -139,9 +143,7 @@ class InvoiceController extends Controller
             'items.*.total' => 'required|numeric|min:0',
         ]);
 
-        if (!isset($validated['sub_total'])) {
-            $validated['sub_total'] = $validated['total_amount'];
-        }
+        $this->syncInvoiceTotals($validated);
 
         $this->invoiceRepo->update($id, $validated);
 
@@ -207,5 +209,34 @@ class InvoiceController extends Controller
         Mail::to($invoice->client->email)->send(new HostingSuspensionMail($invoice, $hosting));
 
         return redirect()->back()->with('success', 'Suspension notification sent to ' . $invoice->client->name);
+    }
+
+    private function syncInvoiceTotals(array &$validated): void
+    {
+        $itemsTotal = collect($validated['items'] ?? [])->sum(function ($item) {
+            $lineTotal = $item['total'] ?? null;
+            if ($lineTotal === null || $lineTotal === '') {
+                $lineTotal = ((float) ($item['quantity'] ?? 0)) * ((float) ($item['unit_price'] ?? 0));
+            }
+
+            return (float) $lineTotal;
+        });
+
+        $crTotal = 0;
+        if (!empty($validated['selected_crs'])) {
+            $crTotal = (float) ChangeRequest::whereIn('id', $validated['selected_crs'])->sum('amount');
+        }
+
+        $subTotal = round($itemsTotal + $crTotal, 2);
+        if ($subTotal > 0) {
+            $tax = (float) ($validated['tax'] ?? 0);
+            $validated['sub_total'] = $subTotal;
+            $validated['total_amount'] = round($subTotal + $tax, 2);
+            return;
+        }
+
+        if (!isset($validated['sub_total'])) {
+            $validated['sub_total'] = $validated['total_amount'];
+        }
     }
 }
