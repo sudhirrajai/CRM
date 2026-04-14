@@ -23,6 +23,9 @@ const form = useForm({
     total_amount: 0,
     status: 'draft',
     notes: '',
+    payment_mode: '',
+    payment_reference: '',
+    payment_note: '',
     send_email: false,
     selected_crs: [],
     items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
@@ -386,6 +389,45 @@ const submit = () => {
                                     <label for="notes" class="form-label">Notes</label>
                                     <textarea id="notes" v-model="form.notes" class="form-control" :class="{ 'is-invalid': form.errors.notes }" rows="3"></textarea>
                                     <div class="invalid-feedback" v-if="form.errors.notes">{{ form.errors.notes }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="payment_mode" class="form-label">Payment Mode</label>
+                                    <select id="payment_mode" v-model="form.payment_mode" class="form-select" :class="{ 'is-invalid': form.errors.payment_mode }">
+                                        <option value="">Not specified</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="bank">Bank</option>
+                                        <option value="paypal">PayPal</option>
+                                        <option value="upi">UPI</option>
+                                    </select>
+                                    <div class="invalid-feedback" v-if="form.errors.payment_mode">{{ form.errors.payment_mode }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="payment_reference" class="form-label">Payment Reference</label>
+                                    <input
+                                        type="text"
+                                        id="payment_reference"
+                                        v-model="form.payment_reference"
+                                        class="form-control"
+                                        :class="{ 'is-invalid': form.errors.payment_reference }"
+                                        placeholder="Txn/cheque/reference number"
+                                    >
+                                    <div class="invalid-feedback" v-if="form.errors.payment_reference">{{ form.errors.payment_reference }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="payment_note" class="form-label">Payment Note</label>
+                                    <input
+                                        type="text"
+                                        id="payment_note"
+                                        v-model="form.payment_note"
+                                        class="form-control"
+                                        :class="{ 'is-invalid': form.errors.payment_note }"
+                                        placeholder="Optional note"
+                                    >
+                                    <div class="invalid-feedback" v-if="form.errors.payment_note">{{ form.errors.payment_note }}</div>
                                 </div>
                             </div>
 
