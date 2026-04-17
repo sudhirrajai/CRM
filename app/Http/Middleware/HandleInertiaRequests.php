@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
             'appLogoHeight' => \App\Models\Setting::getValue('app_logo_height', '80'),
             'menuLogoHeight' => \App\Models\Setting::getValue('menu_logo_height', '40'),
             'pdfLogoHeight' => \App\Models\Setting::getValue('pdf_logo_height', '50'),
+            'defaultCurrency' => \App\Models\Currency::find(\App\Models\Setting::getValue('default_currency_id')) ?? \App\Models\Currency::first(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

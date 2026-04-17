@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     stages: { type: Array, required: true },
@@ -103,11 +104,19 @@ function getSourceIcon(source) {
     return map[source] || 'ti-dots';
 }
 
-function formatValue(value, currency) {
+function formatValue(value, currency = null) {
     if (!value) return null;
-    const sym = currency?.symbol || '$';
+    
+    const defaultCurrency = usePage().props.defaultCurrency;
+    const activeCurrency = currency || defaultCurrency;
+    
+    const sym = activeCurrency?.symbol || '$';
     const formatted = parseFloat(value).toLocaleString();
-    return currency?.symbol_position === 'suffix' ? `${formatted} ${sym}` : `${sym}${formatted}`;
+    
+    if (activeCurrency?.symbol_position === 'suffix') {
+        return `${formatted} ${sym}`;
+    }
+    return `${sym}${formatted}`;
 }
 
 function getInitials(name) {

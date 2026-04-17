@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
 const props = defineProps({
@@ -37,11 +37,19 @@ function deleteLead() {
     }
 }
 
-function formatValue(value, currency) {
+function formatValue(value, currency = null) {
     if (!value) return '-';
-    const sym = currency?.symbol || '$';
+    
+    const defaultCurrency = usePage().props.defaultCurrency;
+    const activeCurrency = currency || defaultCurrency;
+    
+    const sym = activeCurrency?.symbol || '$';
     const formatted = parseFloat(value).toLocaleString();
-    return currency?.symbol_position === 'suffix' ? `${formatted} ${sym}` : `${sym}${formatted}`;
+    
+    if (activeCurrency?.symbol_position === 'suffix') {
+        return `${formatted} ${sym}`;
+    }
+    return `${sym}${formatted}`;
 }
 
 function formatDate(date) {

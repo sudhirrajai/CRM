@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import KanbanBoard from '@/Components/Leads/KanbanBoard.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import axios from 'axios';
 
@@ -60,11 +60,19 @@ const filteredLeads = computed(() => {
     return leads;
 });
 
-function formatValue(value, currency) {
+function formatValue(value, currency = null) {
     if (!value) return '-';
-    const sym = currency?.symbol || '$';
+    
+    const defaultCurrency = usePage().props.defaultCurrency;
+    const activeCurrency = currency || defaultCurrency;
+    
+    const sym = activeCurrency?.symbol || '$';
     const formatted = parseFloat(value).toLocaleString();
-    return currency?.symbol_position === 'suffix' ? `${formatted} ${sym}` : `${sym}${formatted}`;
+    
+    if (activeCurrency?.symbol_position === 'suffix') {
+        return `${formatted} ${sym}`;
+    }
+    return `${sym}${formatted}`;
 }
 
 function getPriorityClass(priority) {
@@ -228,7 +236,7 @@ function deleteStage(stage) {
                                     <i class="ti ti-currency-dollar"></i>
                                 </span>
                             </div>
-                            <h3 class="mb-0 fw-bold">${{ parseFloat(stats.total_value || 0).toLocaleString() }}</h3>
+                            <h3 class="mb-0 fw-bold">{{ formatValue(stats.total_value || 0) }}</h3>
                         </div>
                     </div>
                 </div>
