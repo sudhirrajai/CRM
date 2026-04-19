@@ -65,6 +65,13 @@ const toggleReports = () => {
                         <span class="menu-text"> Leads </span>
                     </Link>
                 </li>
+
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('LeadGetter') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                    <Link :href="route('lead-getter.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('LeadGetter') }">
+                        <span class="menu-icon"><i class="ti ti-radar"></i></span>
+                        <span class="menu-text"> Lead Getter </span>
+                    </Link>
+                </li>
                 
                 <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Projects') }">
                     <Link :href="route('projects.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Projects') }">

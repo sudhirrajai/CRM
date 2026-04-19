@@ -51,6 +51,21 @@ Route::middleware('auth')->group(function () {
         Route::put('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'update'])->name('pipeline-stages.update');
         Route::delete('/pipeline-stages/{stage}', [\App\Http\Controllers\LeadPipelineStageController::class, 'destroy'])->name('pipeline-stages.destroy');
         Route::post('/pipeline-stages/reorder', [\App\Http\Controllers\LeadPipelineStageController::class, 'reorder'])->name('pipeline-stages.reorder');
+
+        // Lead Getter
+        Route::prefix('lead-getter')->name('lead-getter.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\LeadGetterController::class, 'index'])->name('index');
+            Route::post('/groups', [\App\Http\Controllers\LeadGetterController::class, 'storeGroup'])->name('groups.store');
+            Route::put('/groups/{group}', [\App\Http\Controllers\LeadGetterController::class, 'updateGroup'])->name('groups.update');
+            Route::delete('/groups/{group}', [\App\Http\Controllers\LeadGetterController::class, 'destroyGroup'])->name('groups.destroy');
+            Route::get('/groups/{group}', [\App\Http\Controllers\LeadGetterController::class, 'showGroup'])->name('groups.show');
+            Route::post('/groups/{group}/tasks', [\App\Http\Controllers\LeadGetterController::class, 'storeTask'])->name('tasks.store');
+            Route::get('/tasks/{task}', [\App\Http\Controllers\LeadGetterController::class, 'showTask'])->name('tasks.show');
+            Route::post('/results/{result}/qualify', [\App\Http\Controllers\LeadGetterController::class, 'qualifyResult'])->name('results.qualify');
+            Route::post('/results/bulk-qualify', [\App\Http\Controllers\LeadGetterController::class, 'bulkQualify'])->name('results.bulk-qualify');
+            Route::post('/results/{result}/disqualify', [\App\Http\Controllers\LeadGetterController::class, 'disqualifyResult'])->name('results.disqualify');
+            Route::get('/tasks/{task}/export', [\App\Http\Controllers\LeadGetterController::class, 'exportResults'])->name('tasks.export');
+        });
         
         Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
         Route::put('/roles/{role}', [\App\Http\Controllers\RoleController::class, 'update'])->name('roles.update');

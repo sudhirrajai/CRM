@@ -51,10 +51,12 @@ class SettingController extends Controller
             'invoice_15_day_reminder' => 'nullable|boolean',
             'invoice_due_date_reminder' => 'nullable|boolean',
             'default_currency_id' => 'nullable|string|exists:currencies,id',
+            'serpapi_key' => 'nullable|string|max:255',
+            'lead_getter_provider' => 'nullable|string|in:serpapi',
         ]);
 
         foreach ($validated as $key => $value) {
-            $group = str_starts_with($key, 'smtp_') ? 'smtp' : (str_starts_with($key, 'invoice_') ? 'invoices' : 'general');
+            $group = str_starts_with($key, 'smtp_') ? 'smtp' : (str_starts_with($key, 'invoice_') ? 'invoices' : (in_array($key, ['serpapi_key', 'lead_getter_provider']) ? 'lead_getter' : 'general'));
             Setting::setValue($key, $value, $group);
         }
 

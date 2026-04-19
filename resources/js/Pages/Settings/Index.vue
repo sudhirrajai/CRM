@@ -56,6 +56,11 @@ const invoiceForm = useForm({
     invoice_due_date_reminder: props.settings.invoice_due_date_reminder === '1' || props.settings.invoice_due_date_reminder === true,
 });
 
+const leadGetterForm = useForm({
+    serpapi_key: props.settings.serpapi_key || '',
+    lead_getter_provider: props.settings.lead_getter_provider || 'serpapi',
+});
+
 const updateLogo = (type) => {
     logoForms[type].post(route('settings.logo'), {
         preserveScroll: true,
@@ -77,6 +82,12 @@ const updateSmtp = () => {
 
 const updateInvoice = () => {
     invoiceForm.post(route('settings.update'), {
+        preserveScroll: true,
+    });
+};
+
+const updateLeadGetter = () => {
+    leadGetterForm.post(route('settings.update'), {
         preserveScroll: true,
     });
 };
@@ -109,8 +120,11 @@ const handleFileChange = (e, type) => {
                             <button @click="activeTab = 'smtp'" class="nav-link text-start rounded-0 py-3 border-bottom" :class="{ 'active': activeTab === 'smtp' }">
                                 <i class="ti ti-mail me-2"></i> SMTP Credentials
                             </button>
-                            <button @click="activeTab = 'invoices'" class="nav-link text-start rounded-0 py-3" :class="{ 'active': activeTab === 'invoices' }">
+                            <button @click="activeTab = 'invoices'" class="nav-link text-start rounded-0 py-3 border-bottom" :class="{ 'active': activeTab === 'invoices' }">
                                 <i class="ti ti-file-invoice me-2"></i> Invoice Settings
+                            </button>
+                            <button @click="activeTab = 'lead_getter'" class="nav-link text-start rounded-0 py-3" :class="{ 'active': activeTab === 'lead_getter' }">
+                                <i class="ti ti-radar me-2"></i> Lead Getter
                             </button>
                         </div>
                     </div>
@@ -346,6 +360,40 @@ const handleFileChange = (e, type) => {
                                     <div class="col-12">
                                         <button type="submit" class="btn btn-primary" :disabled="invoiceForm.processing">
                                             <i class="ti ti-device-floppy me-1"></i> Save Invoice Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Lead Getter Settings -->
+                        <div v-if="activeTab === 'lead_getter'">
+                            <h4 class="header-title mb-4">Lead Getter API Configuration</h4>
+                            <div class="alert alert-info py-2 mb-4">
+                                <small><i class="ti ti-info-circle me-1"></i>
+                                The Lead Getter uses search APIs to find potential business leads. Configure your API key below to enable lead fetching.</small>
+                            </div>
+                            <form @submit.prevent="updateLeadGetter">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Search Provider</label>
+                                        <select v-model="leadGetterForm.lead_getter_provider" class="form-select">
+                                            <option value="serpapi">SerpApi (Google Maps)</option>
+                                        </select>
+                                        <small class="text-muted">Currently supports SerpApi for Google Maps business data.</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label">SerpApi API Key</label>
+                                        <input type="password" v-model="leadGetterForm.serpapi_key" class="form-control" placeholder="Enter your SerpApi API key">
+                                        <small class="text-muted">Get your API key from <a href="https://serpapi.com/manage-api-key" target="_blank" class="text-primary">serpapi.com</a>. Free tier includes 100 searches/month.</small>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary" :disabled="leadGetterForm.processing">
+                                            <i class="ti ti-device-floppy me-1"></i> Save Lead Getter Settings
                                         </button>
                                     </div>
                                 </div>
