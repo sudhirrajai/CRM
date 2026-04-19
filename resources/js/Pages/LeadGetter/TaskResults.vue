@@ -276,9 +276,9 @@ function getRowClass(result) {
                                     <input type="checkbox" class="form-check-input" v-model="selectAll" @change="toggleSelectAll">
                                 </th>
                                 <th>Business</th>
-                                <th>Phone</th>
+                                <th>Contact Info</th>
                                 <th>Website</th>
-                                <th>Address</th>
+                                <th>Location / Address</th>
                                 <th style="width: 80px;">Rating</th>
                                 <th style="width: 100px;">Status</th>
                                 <th style="width: 150px;" class="text-end">Actions</th>
@@ -298,10 +298,20 @@ function getRowClass(result) {
                                     <small v-if="result.category" class="text-muted">{{ result.category }}</small>
                                 </td>
                                 <td>
-                                    <span v-if="result.phone">
-                                        <a :href="'tel:' + result.phone" class="text-dark">{{ result.phone }}</a>
-                                    </span>
-                                    <span v-else class="text-muted">—</span>
+                                    <div class="mb-1">
+                                        <i class="ti ti-phone text-muted me-1"></i>
+                                        <span v-if="result.phone">
+                                            <a :href="'tel:' + result.phone" class="text-dark">{{ result.phone }}</a>
+                                        </span>
+                                        <span v-else class="text-muted small">No Phone</span>
+                                    </div>
+                                    <div>
+                                        <i class="ti ti-mail text-muted me-1"></i>
+                                        <span v-if="result.email">
+                                            <a :href="'mailto:' + result.email" class="text-dark">{{ result.email }}</a>
+                                        </span>
+                                        <span v-else class="text-muted small">No Email</span>
+                                    </div>
                                 </td>
                                 <td>
                                     <a v-if="result.website" :href="result.website" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width: 180px;">
@@ -310,10 +320,14 @@ function getRowClass(result) {
                                     <span v-else class="text-muted">—</span>
                                 </td>
                                 <td>
-                                    <span v-if="result.address" class="text-truncate d-inline-block" style="max-width: 200px;" :title="result.address">
+                                    <div class="fw-medium text-dark mb-1">
+                                        <i class="ti ti-map-pin text-muted me-1"></i>
+                                        {{ task.location }}
+                                    </div>
+                                    <span v-if="result.address" class="text-truncate d-inline-block text-muted small" style="max-width: 200px;" :title="result.address">
                                         {{ result.address }}
                                     </span>
-                                    <span v-else class="text-muted">—</span>
+                                    <span v-else class="text-muted small">—</span>
                                 </td>
                                 <td>
                                     <span v-if="result.rating" class="text-warning">
