@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('status')->default('pending'); // pending, running, completed, failed
             $table->integer('total_results')->default(0);
             $table->text('error_message')->nullable();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
