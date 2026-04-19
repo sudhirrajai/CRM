@@ -24,7 +24,7 @@ class LeadGetterController extends Controller
         $groups = LeadGetterGroup::withCount('tasks')
             ->withCount(['results as total_results_count'])
             ->withCount(['results as qualified_results_count' => function ($q) {
-                $q->where('status', 'qualified');
+                $q->where('lead_getter_results.status', 'qualified');
             }])
             ->with('user:id,name')
             ->latest()
@@ -89,10 +89,10 @@ class LeadGetterController extends Controller
         $tasks = LeadGetterTask::where('lead_getter_group_id', $id)
             ->withCount('results')
             ->withCount(['results as qualified_count' => function ($q) {
-                $q->where('status', 'qualified');
+                $q->where('lead_getter_results.status', 'qualified');
             }])
             ->withCount(['results as new_count' => function ($q) {
-                $q->where('status', 'new');
+                $q->where('lead_getter_results.status', 'new');
             }])
             ->with('user:id,name')
             ->latest()
