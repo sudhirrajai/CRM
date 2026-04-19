@@ -37,29 +37,19 @@ class LeadGetterService
         $maxPages = 3; // Fetch up to 3 pages of results (60 results)
 
         for ($page = 0; $page < $maxPages; $page++) {
+            // Combine query and location for a natural search (e.g., "Web design in New York")
+            // This is safer than the strict 'location' parameter which fails on non-canonical names.
+            $searchQuery = "{$task->query} in {$task->location}";
+
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                 'engine' => 'google_maps',
-                'q' => $task->query,
-                'll' => null, // We use text-based location
+                'q' => $searchQuery,
                 'type' => 'search',
                 'api_key' => $apiKey,
                 'start' => $start,
                 'hl' => 'en',
                 'google_domain' => 'google.com',
             ]);
-
-            // Also try with location parameter for better results
-            if ($page === 0) {
-                $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
-                    'engine' => 'google_maps',
-                    'q' => $task->query,
-                    'location' => $task->location,
-                    'type' => 'search',
-                    'api_key' => $apiKey,
-                    'start' => $start,
-                    'hl' => 'en',
-                ]);
-            }
 
             if (!$response->successful()) {
                 Log::error('SerpApi request failed', [
