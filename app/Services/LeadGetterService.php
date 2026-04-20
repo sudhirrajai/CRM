@@ -110,6 +110,17 @@ class LeadGetterService
             }
         }
 
+        // Keep CRM data clean and prevent 1406 'Data too long' errors for varchar(255) column limit
+        if ($website && strlen($website) > 255) {
+            $parsedUrl = parse_url($website);
+            if (isset($parsedUrl['scheme']) && isset($parsedUrl['host'])) {
+                // Strip long Google tracking query strings like ?utm_content=...
+                $website = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . ($parsedUrl['path'] ?? '');
+            }
+            // Fallback limit enforcement
+            $website = substr($website, 0, 255);
+        }
+
         return [
             'lead_getter_task_id' => $task->id,
             'title' => $item['title'] ?? 'Unknown Business',
