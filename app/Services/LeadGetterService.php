@@ -101,9 +101,9 @@ class LeadGetterService
         $address = $item['address'] ?? null;
 
         // Try to extract from extensions or service_options
-        if (!$phone && isset($item['extensions'])) {
+        if (!$phone && isset($item['extensions']) && is_array($item['extensions'])) {
             foreach ($item['extensions'] as $ext) {
-                if (preg_match('/^[\+\d\s\-\(\)]+$/', $ext)) {
+                if (is_string($ext) && preg_match('/^[\+\d\s\-\(\)]+$/', $ext)) {
                     $phone = $ext;
                     break;
                 }
