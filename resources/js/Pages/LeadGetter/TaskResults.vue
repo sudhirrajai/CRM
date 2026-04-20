@@ -320,14 +320,11 @@ function getRowClass(result) {
                                     <span v-else class="text-muted">—</span>
                                 </td>
                                 <td>
-                                    <div class="fw-medium text-dark mb-1">
+                                    <div v-if="result.address" class="text-truncate d-inline-block" style="max-width: 250px;" :title="result.address">
                                         <i class="ti ti-map-pin text-muted me-1"></i>
-                                        {{ task.location }}
-                                    </div>
-                                    <span v-if="result.address" class="text-truncate d-inline-block text-muted small" style="max-width: 200px;" :title="result.address">
                                         {{ result.address }}
-                                    </span>
-                                    <span v-else class="text-muted small">—</span>
+                                    </div>
+                                    <div v-else class="text-muted small">—</div>
                                 </td>
                                 <td>
                                     <span v-if="result.rating" class="text-warning">
