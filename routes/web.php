@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/groups/{group}', [\App\Http\Controllers\LeadGetterController::class, 'showGroup'])->name('groups.show');
             Route::post('/groups/{group}/tasks', [\App\Http\Controllers\LeadGetterController::class, 'storeTask'])->name('tasks.store');
             Route::get('/tasks/{task}', [\App\Http\Controllers\LeadGetterController::class, 'showTask'])->name('tasks.show');
+            Route::delete('/tasks/{task}', [\App\Http\Controllers\LeadGetterController::class, 'destroyTask'])->name('tasks.destroy');
             Route::post('/results/{result}/qualify', [\App\Http\Controllers\LeadGetterController::class, 'qualifyResult'])->name('results.qualify');
             Route::post('/results/bulk-qualify', [\App\Http\Controllers\LeadGetterController::class, 'bulkQualify'])->name('results.bulk-qualify');
             Route::post('/results/{result}/disqualify', [\App\Http\Controllers\LeadGetterController::class, 'disqualifyResult'])->name('results.disqualify');

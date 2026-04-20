@@ -12,6 +12,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    keywords: {
+        type: Array,
+        default: () => [],
+    },
+    locations: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const showSearchModal = ref(false);
@@ -34,6 +42,16 @@ function submitSearch() {
             searchForm.reset();
         },
     });
+}
+
+function deleteTask(task) {
+    if (confirm(`Are you sure you want to delete the search task for "${task.query}"? This will permanently delete all associated leads from this tab.`)) {
+        router.delete(route('lead-getter.tasks.destroy', task.id), {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['tasks', 'flash'],
+        });
+    }
 }
 
 function getStatusBadge(status) {
@@ -129,19 +147,24 @@ onUnmounted(() => {
                 <div class="card card-hover">
                     <div class="card-body">
                         <div class="d-flex align-items-start justify-content-between mb-2">
-                            <div>
-                                <h5 class="card-title mb-1">
+                            <div class="me-2 text-truncate">
+                                <h5 class="card-title mb-1 text-truncate" :title="task.query">
                                     <i class="ti ti-search me-1 text-muted"></i>
                                     {{ task.query }}
                                 </h5>
-                                <p class="text-muted small mb-0">
+                                <p class="text-muted small mb-0 text-truncate" :title="task.location">
                                     <i class="ti ti-map-pin me-1"></i> {{ task.location }}
                                 </p>
                             </div>
-                            <span class="badge" :class="getStatusBadge(task.status).class">
-                                <i class="me-1" :class="'ti ' + getStatusBadge(task.status).icon"></i>
-                                {{ getStatusBadge(task.status).label }}
-                            </span>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="badge" :class="getStatusBadge(task.status).class">
+                                    <i class="me-1" :class="'ti ' + getStatusBadge(task.status).icon"></i>
+                                    {{ getStatusBadge(task.status).label }}
+                                </span>
+                                <button class="btn btn-sm text-danger p-0 border-0 bg-transparent mt-1" title="Delete Task" @click="deleteTask(task)">
+                                    <i class="ti ti-trash"></i> <small>Delete</small>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Error message -->
@@ -196,12 +219,18 @@ onUnmounted(() => {
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Search Query <span class="text-danger">*</span></label>
-                                <input type="text" v-model="searchForm.query" class="form-control" placeholder="e.g., web design agency, plumber, restaurant" required>
+                                <input type="text" list="keywordSuggestions" v-model="searchForm.query" class="form-control" autocomplete="off" placeholder="e.g., boutique hotels, coffee shops" required>
+                                <datalist id="keywordSuggestions">
+                                    <option v-for="kw in keywords" :key="kw" :value="kw"></option>
+                                </datalist>
                                 <div v-if="searchForm.errors.query" class="text-danger small mt-1">{{ searchForm.errors.query }}</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Location <span class="text-danger">*</span></label>
-                                <input type="text" v-model="searchForm.location" class="form-control" placeholder="e.g., New York, USA or Mumbai, India" required>
+                                <input type="text" list="locationSuggestions" v-model="searchForm.location" class="form-control" autocomplete="off" placeholder="e.g., Sydney, Australia or London, UK" required>
+                                <datalist id="locationSuggestions">
+                                    <option v-for="loc in locations" :key="loc" :value="loc"></option>
+                                </datalist>
                                 <div v-if="searchForm.errors.location" class="text-danger small mt-1">{{ searchForm.errors.location }}</div>
                             </div>
                         </div>

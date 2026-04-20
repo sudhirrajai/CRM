@@ -98,9 +98,14 @@ class LeadGetterController extends Controller
             ->latest()
             ->get();
 
+        $keywords = \App\Models\LeadGetterKeyword::orderByDesc('use_count')->limit(15)->pluck('keyword');
+        $locations = \App\Models\LeadGetterLocation::orderByDesc('use_count')->limit(15)->pluck('location');
+
         return Inertia::render('LeadGetter/GroupShow', [
             'group' => $group,
             'tasks' => $tasks,
+            'keywords' => $keywords,
+            'locations' => $locations,
         ]);
     }
 
@@ -130,6 +135,16 @@ class LeadGetterController extends Controller
             'status' => 'pending',
             'user_id' => auth()->id(),
         ]);
+
+        // Record suggestions for tracking
+        if (!empty($validated['query'])) {
+            $k = \App\Models\LeadGetterKeyword::firstOrCreate(['keyword' => trim($validated['query'])], ['use_count' => 0]);
+            $k->increment('use_count');
+        }
+        if (!empty($validated['location'])) {
+            $l = \App\Models\LeadGetterLocation::firstOrCreate(['location' => trim($validated['location'])], ['use_count' => 0]);
+            $l->increment('use_count');
+        }
 
         // Dispatch background job
         FetchLeadsJob::dispatch($task);
@@ -326,5 +341,16 @@ class LeadGetterController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
+    }
+
+    /**
+     * Delete a task and its results via cascade.
+     */
+    public function destroyTask($taskId)
+    {
+        $task = LeadGetterTask::findOrFail($taskId);
+        $task->delete(); // Database constraint handles cascade deletion of results
+
+        return redirect()->back()->with('success', 'Task deleted successfully.');
     }
 }
