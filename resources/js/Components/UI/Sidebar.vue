@@ -205,6 +205,13 @@ const toggleReports = () => {
                     </Link>
                 </li>
 
+                <li class="side-nav-item" :class="{ 'active': $page.component.startsWith('Vault') }" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                    <Link :href="route('vault.index')" class="side-nav-link" :class="{ 'active': $page.component.startsWith('Vault') }">
+                        <span class="menu-icon"><i class="ti ti-shield-lock"></i></span>
+                        <span class="menu-text"> Secrets Vault </span>
+                    </Link>
+                </li>
+
                 <li v-if="$page.props.auth.permissions.includes('users.view') || $page.props.auth.permissions.includes('roles.view') || $page.props.auth.permissions.includes('settings.view')" class="side-nav-title mt-2 text-uppercase fs-12">Administration</li>
 
                 <li v-if="$page.props.auth.permissions.includes('users.view')" class="side-nav-item" :class="{ 'active': $page.component.startsWith('Users/') }">
