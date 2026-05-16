@@ -11,7 +11,7 @@ class Secret extends Model
 
     protected $fillable = [
         'name', 'type', 'encrypted_data', 'tags', 'url',
-        'is_favorite', 'category_id', 'created_by', 'last_accessed_at',
+        'is_favorite', 'category_id', 'created_by', 'shared_with_roles', 'last_accessed_at',
     ];
 
     protected function casts(): array
@@ -19,6 +19,7 @@ class Secret extends Model
         return [
             'encrypted_data' => 'encrypted:array',
             'is_favorite' => 'boolean',
+            'shared_with_roles' => 'array',
             'last_accessed_at' => 'datetime',
         ];
     }

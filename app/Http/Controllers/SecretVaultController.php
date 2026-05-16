@@ -17,7 +17,17 @@ class SecretVaultController extends Controller
     {
         Gate::authorize('secrets.view');
 
-        $query = Secret::where('created_by', auth()->id())
+        $user = auth()->user();
+        $userRoles = $user->getRoleNames();
+
+        $query = Secret::where(function ($q) use ($user, $userRoles) {
+                $q->where('created_by', $user->id)
+                  ->orWhere(function($sub) use ($userRoles) {
+                      foreach ($userRoles as $role) {
+                          $sub->orWhereJsonContains('shared_with_roles', $role);
+                      }
+                  });
+            })
             ->with('category');
 
         // Filter by category
@@ -58,6 +68,8 @@ class SecretVaultController extends Controller
                     'is_favorite' => $secret->is_favorite,
                     'category_id' => $secret->category_id,
                     'category' => $secret->category,
+                    'created_by' => $secret->created_by,
+                    'shared_with_roles' => $secret->shared_with_roles,
                     'last_accessed_at' => $secret->last_accessed_at?->diffForHumans(),
                     'created_at' => $secret->created_at->diffForHumans(),
                     'updated_at' => $secret->updated_at->diffForHumans(),
@@ -72,6 +84,7 @@ class SecretVaultController extends Controller
         return Inertia::render('Vault/Index', [
             'secrets' => $secrets,
             'categories' => $categories,
+            'roles' => \App\Models\Role::all(['id', 'name']),
             'typeConfig' => Secret::typeConfig(),
             'filters' => $request->only(['category', 'type', 'search', 'favorites']),
         ]);
@@ -92,6 +105,7 @@ class SecretVaultController extends Controller
             'url' => 'nullable|string|max:500',
             'category_id' => 'nullable|exists:secret_categories,id',
             'custom_fields' => 'nullable|array',
+            'shared_with_roles' => 'nullable|array',
         ]);
 
         // For custom type, merge custom fields into encrypted_data
@@ -107,6 +121,7 @@ class SecretVaultController extends Controller
             'tags' => $validated['tags'] ?? null,
             'url' => $validated['url'] ?? null,
             'category_id' => $validated['category_id'] ?? null,
+            'shared_with_roles' => $validated['shared_with_roles'] ?? [],
             'created_by' => auth()->id(),
         ]);
 
@@ -133,6 +148,7 @@ class SecretVaultController extends Controller
             'url' => 'nullable|string|max:500',
             'category_id' => 'nullable|exists:secret_categories,id',
             'custom_fields' => 'nullable|array',
+            'shared_with_roles' => 'nullable|array',
         ]);
 
         $data = $validated['encrypted_data'];
@@ -147,6 +163,7 @@ class SecretVaultController extends Controller
             'tags' => $validated['tags'] ?? null,
             'url' => $validated['url'] ?? null,
             'category_id' => $validated['category_id'] ?? null,
+            'shared_with_roles' => $validated['shared_with_roles'] ?? [],
         ]);
 
         return redirect()->route('vault.index')->with('success', 'Secret updated.');
@@ -174,7 +191,16 @@ class SecretVaultController extends Controller
     {
         Gate::authorize('secrets.view');
 
-        if ($secret->created_by !== auth()->id()) {
+        $user = auth()->user();
+        $isShared = false;
+        foreach ($user->getRoleNames() as $role) {
+            if (in_array($role, $secret->shared_with_roles ?? [])) {
+                $isShared = true;
+                break;
+            }
+        }
+
+        if ($secret->created_by !== $user->id && !$isShared) {
             abort(403);
         }
 
@@ -193,7 +219,16 @@ class SecretVaultController extends Controller
     {
         Gate::authorize('secrets.view');
 
-        if ($secret->created_by !== auth()->id()) {
+        $user = auth()->user();
+        $isShared = false;
+        foreach ($user->getRoleNames() as $role) {
+            if (in_array($role, $secret->shared_with_roles ?? [])) {
+                $isShared = true;
+                break;
+            }
+        }
+
+        if ($secret->created_by !== $user->id && !$isShared) {
             abort(403);
         }
 

@@ -8,6 +8,7 @@ const props = defineProps({
     categories: Array,
     typeConfig: Object,
     filters: Object,
+    roles: Array,
 });
 
 // State
@@ -33,6 +34,7 @@ const secretForm = useForm({
     url: '',
     category_id: '',
     custom_fields: {},
+    shared_with_roles: [],
 });
 
 const categoryForm = useForm({
@@ -107,6 +109,7 @@ const openEditModal = async (secret) => {
     secretForm.tags = secret.tags || '';
     secretForm.url = secret.url || '';
     secretForm.category_id = secret.category_id || '';
+    secretForm.shared_with_roles = secret.shared_with_roles || [];
 
     try {
         const res = await fetch(route('vault.decrypt', secret.id));
@@ -302,6 +305,7 @@ const getTypeLabel = (type) => props.typeConfig[type]?.label || type;
                                         <th>Type</th>
                                         <th>Category</th>
                                         <th>Tags</th>
+                                        <th>Shared With</th>
                                         <th>Updated</th>
                                         <th style="width:140px;">Actions</th>
                                     </tr>
@@ -327,6 +331,14 @@ const getTypeLabel = (type) => props.typeConfig[type]?.label || type;
                                         <td><span class="badge" :style="{ background: getTypeColor(secret.type) + '20', color: getTypeColor(secret.type) }">{{ getTypeLabel(secret.type) }}</span></td>
                                         <td><span v-if="secret.category" class="badge bg-light text-dark"><i :class="secret.category.icon" class="me-1" :style="{ color: secret.category.color }"></i>{{ secret.category.name }}</span><span v-else class="text-muted">—</span></td>
                                         <td><small class="text-muted">{{ secret.tags || '—' }}</small></td>
+                                        <td>
+                                            <div v-if="secret.shared_with_roles?.length > 0" class="d-flex gap-1 flex-wrap">
+                                                <span v-for="role in secret.shared_with_roles" :key="role" class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style="font-size: 10px;">
+                                                    {{ role }}
+                                                </span>
+                                            </div>
+                                            <span v-else class="text-muted small">Private</span>
+                                        </td>
                                         <td><small class="text-muted">{{ secret.updated_at }}</small></td>
                                         <td>
                                             <button @click="viewSecret(secret)" class="btn btn-sm btn-outline-primary me-1" title="View"><i class="ti ti-eye"></i></button>
@@ -421,6 +433,27 @@ const getTypeLabel = (type) => props.typeConfig[type]?.label || type;
                                 <input v-model="secretForm.url" type="text" class="form-control" placeholder="https://..." />
                             </div>
                         </div>
+
+                        <div class="row" v-if="$page.props.auth.roles.includes('admin')">
+                            <div class="col-12">
+                                <label class="form-label d-block">Share with Roles</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div v-for="role in roles" :key="role.id" class="form-check">
+                                        <input 
+                                            class="form-check-input" 
+                                            type="checkbox" 
+                                            :id="'role_' + role.id" 
+                                            :value="role.name"
+                                            v-model="secretForm.shared_with_roles"
+                                        >
+                                        <label class="form-check-label text-capitalize" :for="'role_' + role.id">
+                                            {{ role.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Users with these roles will be able to view and decrypt this secret.</small>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button @click="showAddModal=false" class="btn btn-secondary">Cancel</button>
@@ -459,6 +492,7 @@ const getTypeLabel = (type) => props.typeConfig[type]?.label || type;
                                 <span class="badge" :style="{ background: getTypeColor(viewingSecret.type) + '20', color: getTypeColor(viewingSecret.type) }">{{ getTypeLabel(viewingSecret.type) }}</span>
                                 <span v-if="viewingSecret.category" class="badge bg-light text-dark"><i :class="viewingSecret.category.icon" class="me-1"></i>{{ viewingSecret.category.name }}</span>
                                 <span v-if="viewingSecret.tags" class="badge bg-light text-dark"><i class="ti ti-tag me-1"></i>{{ viewingSecret.tags }}</span>
+                                <span v-if="viewingSecret.created_by !== $page.props.auth.user.id" class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25"><i class="ti ti-user me-1"></i>Shared by Staff</span>
                             </div>
 
                             <div class="table-responsive mt-3">
