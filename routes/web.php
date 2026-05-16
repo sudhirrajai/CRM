@@ -69,16 +69,16 @@ Route::middleware('auth')->group(function () {
         });
 
         // Secrets Vault
-        Route::prefix('vault')->name('vault.')->group(function () {
+        Route::prefix('vault')->name('vault.')->middleware('can:secrets.view')->group(function () {
             Route::get('/', [\App\Http\Controllers\SecretVaultController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\SecretVaultController::class, 'store'])->name('store');
-            Route::put('/{secret}', [\App\Http\Controllers\SecretVaultController::class, 'update'])->name('update');
-            Route::delete('/{secret}', [\App\Http\Controllers\SecretVaultController::class, 'destroy'])->name('destroy');
+            Route::post('/', [\App\Http\Controllers\SecretVaultController::class, 'store'])->name('store')->middleware('can:secrets.create');
+            Route::put('/{secret}', [\App\Http\Controllers\SecretVaultController::class, 'update'])->name('update')->middleware('can:secrets.edit');
+            Route::delete('/{secret}', [\App\Http\Controllers\SecretVaultController::class, 'destroy'])->name('destroy')->middleware('can:secrets.delete');
             Route::get('/{secret}/decrypt', [\App\Http\Controllers\SecretVaultController::class, 'decrypt'])->name('decrypt');
             Route::post('/{secret}/favorite', [\App\Http\Controllers\SecretVaultController::class, 'toggleFavorite'])->name('favorite');
-            Route::post('/categories', [\App\Http\Controllers\SecretVaultController::class, 'storeCategory'])->name('categories.store');
-            Route::put('/categories/{category}', [\App\Http\Controllers\SecretVaultController::class, 'updateCategory'])->name('categories.update');
-            Route::delete('/categories/{category}', [\App\Http\Controllers\SecretVaultController::class, 'destroyCategory'])->name('categories.destroy');
+            Route::post('/categories', [\App\Http\Controllers\SecretVaultController::class, 'storeCategory'])->name('categories.store')->middleware('can:secrets.create');
+            Route::put('/categories/{category}', [\App\Http\Controllers\SecretVaultController::class, 'updateCategory'])->name('categories.update')->middleware('can:secrets.edit');
+            Route::delete('/categories/{category}', [\App\Http\Controllers\SecretVaultController::class, 'destroyCategory'])->name('categories.destroy')->middleware('can:secrets.delete');
         });
         
         Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');

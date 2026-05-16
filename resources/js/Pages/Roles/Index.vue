@@ -51,7 +51,7 @@ const formatLabel = (name) => {
 
 const moduleOrder = [
     'clients', 'projects', 'invoices', 'hostings', 'servers', 'orders', 
-    'expenses', 'expense_categories', 'reports', 'users', 'roles', 'settings'
+    'expenses', 'expense_categories', 'secrets', 'reports', 'users', 'roles', 'settings'
 ];
 
 const sortedModules = computed(() => {

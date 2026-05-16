@@ -30,6 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'users' => ['view', 'create', 'edit', 'delete'],
             'roles' => ['view', 'edit'],
             'settings' => ['view', 'edit'],
+            'secrets' => ['view', 'create', 'edit', 'delete'],
         ];
 
         $allPermissionNames = [];

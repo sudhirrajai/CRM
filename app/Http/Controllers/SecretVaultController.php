@@ -6,6 +6,7 @@ use App\Models\Secret;
 use App\Models\SecretCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Gate;
 
 class SecretVaultController extends Controller
 {
@@ -14,6 +15,8 @@ class SecretVaultController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('secrets.view');
+
         $query = Secret::where('created_by', auth()->id())
             ->with('category');
 
@@ -79,6 +82,8 @@ class SecretVaultController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('secrets.create');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:password,database,email,ssh_key,api_key,command,note,custom',
@@ -113,6 +118,8 @@ class SecretVaultController extends Controller
      */
     public function update(Request $request, Secret $secret)
     {
+        Gate::authorize('secrets.edit');
+
         // Ensure the user owns this secret
         if ($secret->created_by !== auth()->id()) {
             abort(403);
@@ -150,6 +157,8 @@ class SecretVaultController extends Controller
      */
     public function destroy(Secret $secret)
     {
+        Gate::authorize('secrets.delete');
+
         if ($secret->created_by !== auth()->id()) {
             abort(403);
         }
@@ -163,6 +172,8 @@ class SecretVaultController extends Controller
      */
     public function decrypt(Secret $secret)
     {
+        Gate::authorize('secrets.view');
+
         if ($secret->created_by !== auth()->id()) {
             abort(403);
         }
@@ -180,6 +191,8 @@ class SecretVaultController extends Controller
      */
     public function toggleFavorite(Secret $secret)
     {
+        Gate::authorize('secrets.view');
+
         if ($secret->created_by !== auth()->id()) {
             abort(403);
         }
@@ -194,6 +207,8 @@ class SecretVaultController extends Controller
      */
     public function storeCategory(Request $request)
     {
+        Gate::authorize('secrets.create');
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'icon' => 'nullable|string|max:50',
@@ -215,6 +230,8 @@ class SecretVaultController extends Controller
      */
     public function updateCategory(Request $request, SecretCategory $category)
     {
+        Gate::authorize('secrets.edit');
+
         if ($category->created_by !== auth()->id()) {
             abort(403);
         }
@@ -235,6 +252,8 @@ class SecretVaultController extends Controller
      */
     public function destroyCategory(SecretCategory $category)
     {
+        Gate::authorize('secrets.delete');
+
         if ($category->created_by !== auth()->id()) {
             abort(403);
         }
