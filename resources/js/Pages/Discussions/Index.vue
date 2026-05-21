@@ -304,6 +304,8 @@ const formatStatus = (status) => {
                                 <p class="text-muted small mb-0">Choose a project from the left panel to join live discussions with your team and clients.</p>
                             </div>
                         </div>
+                    </div>
+                </div>
             </div>
         </div>
 
