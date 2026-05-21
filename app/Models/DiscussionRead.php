@@ -11,6 +11,7 @@ class DiscussionRead extends Model
 
     protected $fillable = [
         'project_id',
+        'group_id',
         'user_id',
         'last_read_message_id',
         'last_read_at',
@@ -23,6 +24,11 @@ class DiscussionRead extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(DiscussionGroup::class, 'group_id');
     }
 
     public function user()

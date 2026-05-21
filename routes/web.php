@@ -144,6 +144,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/projects/{project}/discussions/members/{user}', [\App\Http\Controllers\ProjectDiscussionController::class, 'unassignMember'])->name('projects.discussions.unassign');
     Route::get('/projects/{project}/attachments/{attachment}/download', [\App\Http\Controllers\ProjectDiscussionController::class, 'downloadAttachment'])->name('projects.discussions.download');
     
+    // Group Discussions
+    Route::get('/discussion-groups/users', [\App\Http\Controllers\DiscussionGroupController::class, 'allUsers'])->name('discussion-groups.users');
+    Route::post('/discussion-groups', [\App\Http\Controllers\DiscussionGroupController::class, 'store'])->name('discussion-groups.store');
+    Route::put('/discussion-groups/{group}', [\App\Http\Controllers\DiscussionGroupController::class, 'update'])->name('discussion-groups.update');
+    Route::delete('/discussion-groups/{group}', [\App\Http\Controllers\DiscussionGroupController::class, 'destroy'])->name('discussion-groups.destroy');
+    Route::get('/groups/{group}/discussions', [\App\Http\Controllers\DiscussionGroupController::class, 'index'])->name('groups.discussions.index');
+    Route::post('/groups/{group}/discussions', [\App\Http\Controllers\DiscussionGroupController::class, 'storeMessage'])->name('groups.discussions.store');
+    Route::put('/groups/{group}/discussions/{discussion}', [\App\Http\Controllers\DiscussionGroupController::class, 'updateMessage'])->name('groups.discussions.update');
+    Route::delete('/groups/{group}/discussions/{discussion}', [\App\Http\Controllers\DiscussionGroupController::class, 'destroyMessage'])->name('groups.discussions.destroy');
+    Route::post('/groups/{group}/discussions/read', [\App\Http\Controllers\DiscussionGroupController::class, 'markAsRead'])->name('groups.discussions.read');
+    Route::get('/groups/{group}/discussions/available-members', [\App\Http\Controllers\DiscussionGroupController::class, 'availableMembers'])->name('groups.discussions.available-members');
+    Route::post('/groups/{group}/discussions/members', [\App\Http\Controllers\DiscussionGroupController::class, 'assignMember'])->name('groups.discussions.assign');
+    Route::delete('/groups/{group}/discussions/members/{user}', [\App\Http\Controllers\DiscussionGroupController::class, 'unassignMember'])->name('groups.discussions.unassign');
+    Route::get('/groups/{group}/attachments/{attachment}/download', [\App\Http\Controllers\DiscussionGroupController::class, 'downloadAttachment'])->name('groups.discussions.download');
+    
     // Project Change Requests
     Route::post('/projects/{project}/change-requests', [\App\Http\Controllers\ChangeRequestController::class, 'store'])->name('projects.change-requests.store');
     Route::put('/change-requests/{changeRequest}', [\App\Http\Controllers\ChangeRequestController::class, 'update'])->name('change-requests.update');

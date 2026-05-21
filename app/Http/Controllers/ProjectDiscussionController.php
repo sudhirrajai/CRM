@@ -46,9 +46,30 @@ class ProjectDiscussionController extends Controller
                 ];
             });
 
+        // Fetch groups this user is member of (or all if they are admin)
+        $groupsQuery = \App\Models\DiscussionGroup::query();
+        if (!$user->hasRole('admin')) {
+            $groupsQuery->whereHas('members', function($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
+
+        $groups = $groupsQuery->latest()
+            ->get()
+            ->map(function($group) {
+                return [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'is_group' => true,
+                    'members_count' => $group->members()->count(),
+                ];
+            });
+
         return Inertia::render('Discussions/Index', [
             'projects' => $projects,
-            'selectedProjectId' => request('project_id')
+            'groups' => $groups,
+            'selectedProjectId' => request('project_id'),
+            'selectedGroupId' => request('group_id')
         ]);
     }
 
@@ -148,7 +169,7 @@ class ProjectDiscussionController extends Controller
         }
 
         // 10 minutes edit window
-        if (Carbon::now()->diffInMinutes($discussion->created_at) > 10) {
+        if (abs(Carbon::now()->diffInMinutes($discussion->created_at)) > 10) {
             return response()->json(['message' => 'Edit time window (10 mins) has expired.'], 403);
         }
 

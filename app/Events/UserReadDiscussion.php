@@ -14,22 +14,30 @@ class UserReadDiscussion implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $projectId;
+    public $groupId;
     public $userId;
     public $userName;
     public $lastReadMessageId;
 
-    public function __construct($projectId, $userId, $userName, $lastReadMessageId)
+    public function __construct($projectId, $userId, $userName, $lastReadMessageId, $groupId = null)
     {
         $this->projectId = $projectId;
         $this->userId = $userId;
         $this->userName = $userName;
         $this->lastReadMessageId = $lastReadMessageId;
+        $this->groupId = $groupId;
     }
 
     public function broadcastOn(): array
     {
+        if ($this->projectId) {
+            return [
+                new PresenceChannel('project.' . $this->projectId),
+            ];
+        }
+
         return [
-            new PresenceChannel('project.' . $this->projectId),
+            new PresenceChannel('group.' . $this->groupId),
         ];
     }
 

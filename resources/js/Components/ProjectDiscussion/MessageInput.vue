@@ -21,6 +21,10 @@ const props = defineProps({
     replyTo: {
         type: Object,
         default: null
+    },
+    isGroup: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -145,7 +149,10 @@ const sendMessage = async () => {
     });
 
     try {
-        const response = await axios.post(route('projects.discussions.store', props.project.id), formData, {
+        const url = props.isGroup 
+            ? route('groups.discussions.store', props.project.id)
+            : route('projects.discussions.store', props.project.id);
+        const response = await axios.post(url, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         message.value = '';

@@ -34,3 +34,24 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
 
     return false;
 });
+
+/**
+ * Group Discussion Channel
+ * Presence channel: authorized for admin OR members of the group.
+ */
+Broadcast::channel('group.{groupId}', function ($user, $groupId) {
+    $group = \App\Models\DiscussionGroup::find($groupId);
+    if (!$group) return false;
+
+    // Admin always authorized
+    if ($user->hasRole('admin')) {
+        return ['id' => $user->id, 'name' => $user->name];
+    }
+
+    // Members must be assigned to the group
+    if ($group->members()->where('users.id', $user->id)->exists()) {
+        return ['id' => $user->id, 'name' => $user->name];
+    }
+
+    return false;
+});

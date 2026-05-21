@@ -11,6 +11,7 @@ class ProjectDiscussion extends Model
 
     protected $fillable = [
         'project_id',
+        'group_id',
         'user_id',
         'parent_id',
         'message',
@@ -28,6 +29,11 @@ class ProjectDiscussion extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(DiscussionGroup::class, 'group_id');
     }
 
     public function user()
@@ -63,8 +69,13 @@ class ProjectDiscussion extends Model
      */
     public function getReadByAttribute()
     {
-        return DiscussionRead::where('project_id', $this->project_id)
-            ->where('last_read_at', '>=', $this->created_at)
+        $query = DiscussionRead::query();
+        if ($this->project_id) {
+            $query->where('project_id', $this->project_id);
+        } else {
+            $query->where('group_id', $this->group_id);
+        }
+        return $query->where('last_read_at', '>=', $this->created_at)
             ->with('user')
             ->get()
             ->pluck('user');

@@ -23,6 +23,10 @@ const props = defineProps({
     members: {
         type: Array,
         default: () => []
+    },
+    isGroup: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -51,7 +55,10 @@ const canDelete = computed(() => {
 const handleUpdate = async () => {
     updating.value = true;
     try {
-        await axios.put(route('projects.discussions.update', [props.project.id, props.message.id]), {
+        const url = props.isGroup
+            ? route('groups.discussions.update', [props.project.id, props.message.id])
+            : route('projects.discussions.update', [props.project.id, props.message.id]);
+        await axios.put(url, {
             message: editMessage.value
         });
         isEditing.value = false;
@@ -70,7 +77,10 @@ const handleDelete = () => {
 const confirmDelete = async () => {
     isDeleting.value = true;
     try {
-        await axios.delete(route('projects.discussions.destroy', [props.project.id, props.message.id]));
+        const url = props.isGroup
+            ? route('groups.discussions.destroy', [props.project.id, props.message.id])
+            : route('projects.discussions.destroy', [props.project.id, props.message.id]);
+        await axios.delete(url);
         showDeleteModal.value = false;
         emit('deleted', { id: props.message.id, parent_id: props.message.parent_id });
     } catch (error) {
@@ -159,7 +169,7 @@ const renderedMessage = computed(() => {
                         
                         <!-- Attachments -->
                         <div v-if="message.attachments && message.attachments.length > 0" class="attachments-row d-flex flex-wrap gap-2 mt-2">
-                            <AttachmentPreview v-for="attachment in message.attachments" :key="attachment.id" :attachment="attachment" :project="project" />
+                            <AttachmentPreview v-for="attachment in message.attachments" :key="attachment.id" :attachment="attachment" :project="project" :is-group="isGroup" />
                         </div>
 
                         <!-- Bottom Metadata -->

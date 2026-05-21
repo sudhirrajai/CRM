@@ -20,13 +20,36 @@ class ProjectDiscussionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Seed Spatie roles so assigning role works correctly
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
         
-        $this->client = User::factory()->create();
-        // Assume client role assignment logic exists or manually add if not
+        $currency = \App\Models\Currency::create([
+            'name' => 'US Dollar',
+            'code' => 'USD',
+            'symbol' => '$',
+            'symbol_position' => 'prefix',
+            'decimal_places' => 2,
+        ]);
+
+        $clientRecord = \App\Models\Client::create([
+            'name' => 'Test Client',
+            'email' => 'client@example.com',
+            'status' => 'active',
+            'currency_id' => $currency->id,
+        ]);
+
+        $this->client = User::factory()->create([
+            'client_id' => $clientRecord->id
+        ]);
         
-        $this->project = Project::factory()->create(['client_id' => $this->client->client_id ?? null]);
+        $this->project = Project::create([
+            'client_id' => $clientRecord->id,
+            'name' => 'Test Project',
+            'status' => 'in_progress',
+        ]);
     }
 
     public function test_admin_can_post_message()
@@ -48,12 +71,15 @@ class ProjectDiscussionTest extends TestCase
     {
         $this->actingAs($this->admin);
         
-        $discussion = ProjectDiscussion::create([
+        $discussion = new ProjectDiscussion([
             'project_id' => $this->project->id,
             'user_id' => $this->admin->id,
             'message' => 'Initial message',
-            'created_at' => Carbon::now()->subMinutes(11)
         ]);
+        $discussion->timestamps = false;
+        $discussion->created_at = Carbon::now()->subMinutes(11);
+        $discussion->updated_at = Carbon::now()->subMinutes(11);
+        $discussion->save();
 
         $response = $this->putJson(route('projects.discussions.update', [$this->project->id, $discussion->id]), [
             'message' => 'Updated message'

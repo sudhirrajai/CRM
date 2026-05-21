@@ -16,18 +16,26 @@ class DiscussionMessageDeleted implements ShouldBroadcast
     public $messageId;
     public $parentId;
     public $projectId;
+    public $groupId;
 
-    public function __construct($projectId, $messageId, $parentId = null)
+    public function __construct($projectId, $messageId, $parentId = null, $groupId = null)
     {
         $this->projectId = $projectId;
         $this->messageId = $messageId;
         $this->parentId = $parentId;
+        $this->groupId = $groupId;
     }
 
     public function broadcastOn(): array
     {
+        if ($this->projectId) {
+            return [
+                new PresenceChannel('project.' . $this->projectId),
+            ];
+        }
+
         return [
-            new PresenceChannel('project.' . $this->projectId),
+            new PresenceChannel('group.' . $this->groupId),
         ];
     }
 

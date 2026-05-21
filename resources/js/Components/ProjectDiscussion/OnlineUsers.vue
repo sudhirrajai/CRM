@@ -11,10 +11,14 @@ const props = defineProps({
     members: {
         type: Array,
         default: () => []
+    },
+    isGroup: {
+        type: Boolean,
+        default: false
     }
 });
 
-const emit = defineEmits(['memberAdded', 'memberRemoved']);
+const emit = defineEmits(['memberAdded', 'memberRemoved', 'updated']);
 
 const isOnline = (userId) => {
     return props.onlineUsers.some(u => u.id === userId);
@@ -29,6 +33,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 const page = usePage();
 const isAdmin = computed(() => page.props.auth.roles.includes('admin'));
+const authUser = computed(() => page.props.auth.user);
 
 const showTeamModal = ref(false);
 const availableStaff = ref([]);
@@ -38,7 +43,10 @@ const processing = ref(null);
 const fetchAvailableStaff = async () => {
     loading.value = true;
     try {
-        const response = await axios.get(route('projects.discussions.available-staff', props.project.id));
+        const url = props.isGroup
+            ? route('groups.discussions.available-members', props.project.id)
+            : route('projects.discussions.available-staff', props.project.id);
+        const response = await axios.get(url);
         availableStaff.value = response.data;
     } catch (error) {
         console.error('Error fetching staff:', error);
@@ -50,9 +58,13 @@ const fetchAvailableStaff = async () => {
 const assignMember = async (userId) => {
     processing.value = userId;
     try {
-        await axios.post(route('projects.discussions.assign', props.project.id), { user_id: userId });
+        const url = props.isGroup
+            ? route('groups.discussions.assign', props.project.id)
+            : route('projects.discussions.assign', props.project.id);
+        await axios.post(url, { user_id: userId });
         await fetchAvailableStaff();
         emit('memberAdded');
+        emit('updated');
     } catch (error) {
         alert('Error assigning member');
     } finally {
@@ -61,12 +73,19 @@ const assignMember = async (userId) => {
 };
 
 const unassignMember = async (userId) => {
-    if (!confirm('Remove this staff member from the project?')) return;
+    const confirmMessage = props.isGroup
+        ? 'Remove this member from the group?'
+        : 'Remove this staff member from the project?';
+    if (!confirm(confirmMessage)) return;
     
     processing.value = userId;
     try {
-        await axios.delete(route('projects.discussions.unassign', [props.project.id, userId]));
+        const url = props.isGroup
+            ? route('groups.discussions.unassign', [props.project.id, userId])
+            : route('projects.discussions.unassign', [props.project.id, userId]);
+        await axios.delete(url);
         emit('memberRemoved');
+        emit('updated');
     } catch (error) {
         alert('Error removing member');
     } finally {
@@ -93,8 +112,8 @@ const sortedMembers = computed(() => {
 <template>
     <div class="online-users card border shadow-none rounded mb-0">
         <div class="card-header bg-light py-2 px-3 d-flex align-items-center justify-content-between">
-            <h6 class="mb-0 fw-semibold text-uppercase card-header-title">Project Members</h6>
-            <button v-if="isAdmin" @click="openModal" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center shadow-none btn-add-member" title="Manage Team">
+            <h6 class="mb-0 fw-semibold text-uppercase card-header-title">{{ isGroup ? 'Group Members' : 'Project Members' }}</h6>
+            <button v-if="isAdmin" @click="openModal" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center shadow-none btn-add-member" :title="isGroup ? 'Manage Members' : 'Manage Team'">
                 <i class="ti ti-plus fw-bold" style="font-size: 0.7rem;"></i>
             </button>
         </div>
@@ -102,7 +121,7 @@ const sortedMembers = computed(() => {
             <div v-for="member in sortedMembers" :key="member.id" class="member-item d-flex align-items-center gap-2 p-2 px-3 rounded transition-all group">
                 <div class="position-relative">
                     <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                         :class="isOnline(member.id) ? 'avatar-online' : 'avatar-offline'">
+                          :class="isOnline(member.id) ? 'avatar-online' : 'avatar-offline'">
                         {{ member.avatar_initial }}
                     </div>
                     <span v-if="isOnline(member.id)" class="status-dot-online position-absolute bottom-0 end-0 rounded-circle"></span>
@@ -113,7 +132,7 @@ const sortedMembers = computed(() => {
                     </div>
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="role-badge text-uppercase text-muted">{{ member.role }}</span>
-                        <button v-if="isAdmin && member.role === 'staff'" @click="unassignMember(member.id)" class="btn-remove opacity-0 group-hover-opacity-100 transition-all">
+                        <button v-if="isAdmin && (isGroup ? member.id !== authUser.id : member.role === 'staff')" @click="unassignMember(member.id)" class="btn-remove opacity-0 group-hover-opacity-100 transition-all">
                             <i class="ti ti-trash" style="font-size: 0.65rem;"></i>
                         </button>
                     </div>
@@ -127,7 +146,7 @@ const sortedMembers = computed(() => {
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="ti ti-users-plus text-primary fs-4"></i>
-                        Manage Project Team
+                        {{ isGroup ? 'Manage Group Members' : 'Manage Project Team' }}
                     </h5>
                     <button @click="showTeamModal = false" class="btn-close shadow-none opacity-50"></button>
                 </div>
@@ -135,11 +154,11 @@ const sortedMembers = computed(() => {
                 <div class="mb-4">
                     <div v-if="loading" class="text-center py-5">
                         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                        <p class="mt-2 text-muted small">Discovering available staff...</p>
+                        <p class="mt-2 text-muted small">{{ isGroup ? 'Discovering available members...' : 'Discovering available staff...' }}</p>
                     </div>
                     <div v-else-if="availableStaff.length === 0" class="text-center py-5 bg-light rounded border">
                         <i class="ti ti-mood-empty fs-2 text-muted mb-2"></i>
-                        <p class="text-muted small mb-0">Everyone is already assigned!</p>
+                        <p class="text-muted small mb-0">{{ isGroup ? 'All users are already in the group!' : 'Everyone is already assigned!' }}</p>
                     </div>
                     <div v-else class="available-list pe-1" style="max-height: 300px; overflow-y: auto;">
                         <div v-for="user in availableStaff" :key="user.id" class="d-flex align-items-center justify-content-between p-3 rounded bg-white border transition-all mb-2 staff-item">
@@ -154,7 +173,7 @@ const sortedMembers = computed(() => {
                             </div>
                             <button @click="assignMember(user.id)" :disabled="processing === user.id" class="btn btn-sm btn-primary px-3 py-1">
                                 <span v-if="processing === user.id" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                Assign
+                                {{ isGroup ? 'Add' : 'Assign' }}
                             </button>
                         </div>
                     </div>

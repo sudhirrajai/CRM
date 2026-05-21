@@ -9,7 +9,17 @@ const props = defineProps({
     attachment: {
         type: Object,
         required: true
+    },
+    isGroup: {
+        type: Boolean,
+        default: false
     }
+});
+
+const downloadUrl = computed(() => {
+    return props.isGroup 
+        ? route('groups.discussions.download', [props.project.id, props.attachment.id])
+        : route('projects.discussions.download', [props.project.id, props.attachment.id]);
 });
 
 const isImage = computed(() => {
@@ -42,7 +52,7 @@ const formatSize = (bytes) => {
             </a>
             <div class="attachment-info p-2 mt-1 rounded bg-light border-0 d-flex justify-content-between align-items-center">
                 <span class="small text-truncate" style="max-width: 150px;">{{ attachment.file_name }}</span>
-                <a :href="route('projects.discussions.download', [project.id, attachment.id])" class="text-primary btn btn-sm btn-link p-0"><i class="ti ti-download"></i></a>
+                <a :href="downloadUrl" class="text-primary btn btn-sm btn-link p-0"><i class="ti ti-download"></i></a>
             </div>
         </div>
 
@@ -55,7 +65,7 @@ const formatSize = (bytes) => {
                 <div class="fw-bold text-dark text-truncate small mb-0">{{ attachment.file_name }}</div>
                 <div class="text-muted x-small">{{ formatSize(attachment.file_size) }}</div>
             </div>
-            <a :href="route('projects.discussions.download', [project.id, attachment.id])" class="text-primary btn btn-sm btn-link p-0 flex-shrink-0">
+            <a :href="downloadUrl" class="text-primary btn btn-sm btn-link p-0 flex-shrink-0">
                 <i class="ti ti-download fs-5"></i>
             </a>
         </div>

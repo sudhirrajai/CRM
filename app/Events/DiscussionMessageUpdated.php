@@ -23,8 +23,14 @@ class DiscussionMessageUpdated implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
+        if ($this->message->project_id) {
+            return [
+                new PresenceChannel('project.' . $this->message->project_id),
+            ];
+        }
+
         return [
-            new PresenceChannel('project.' . $this->message->project_id),
+            new PresenceChannel('group.' . $this->message->group_id),
         ];
     }
 

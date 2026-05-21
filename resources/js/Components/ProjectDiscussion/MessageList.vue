@@ -22,6 +22,10 @@ const props = defineProps({
     searchQuery: {
         type: String,
         default: ''
+    },
+    isGroup: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -107,6 +111,7 @@ const firstUnreadId = computed(() => {
                     :project="project" 
                     :members="members"
                     :search-query="searchQuery"
+                    :is-group="isGroup"
                     @updated="emit('message-updated')" 
                     @deleted="emit('message-deleted')"
                     @reply="emit('reply', $event)"
@@ -123,6 +128,7 @@ const firstUnreadId = computed(() => {
                         :project="project"
                         :members="members"
                         :search-query="searchQuery"
+                        :is-group="isGroup"
                         @updated="emit('message-updated')" 
                         @deleted="emit('message-deleted')"
                         @reply="emit('reply', $event)"

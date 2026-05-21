@@ -15,6 +15,8 @@ const props = defineProps({
     }
 });
 
+const isGroup = computed(() => !!props.project.is_group);
+
 const discussions = ref([]);
 const members = ref([]);
 const loading = ref(true);
@@ -34,7 +36,10 @@ const authUser = computed(() => page.props.auth.user);
 const fetchDiscussions = async () => {
     loading.value = true;
     try {
-        const response = await axios.get(route('projects.discussions.index', props.project.id));
+        const url = isGroup.value 
+            ? route('groups.discussions.index', props.project.id)
+            : route('projects.discussions.index', props.project.id);
+        const response = await axios.get(url);
         discussions.value = response.data.discussions.data;
         members.value = response.data.project_members || [];
         lastReadId.value = response.data.read_status?.last_read_message_id || null;
@@ -61,7 +66,10 @@ const markAsRead = async () => {
     if (latestMessageId === lastReadId.value) return;
 
     try {
-        await axios.post(route('projects.discussions.read', props.project.id), {
+        const url = isGroup.value 
+            ? route('groups.discussions.read', props.project.id)
+            : route('projects.discussions.read', props.project.id);
+        await axios.post(url, {
             last_read_message_id: latestMessageId
         });
         lastReadId.value = latestMessageId;
@@ -76,7 +84,8 @@ const setupEcho = () => {
         return;
     }
 
-    echoChannel.value = window.Echo.join(`project.${props.project.id}`)
+    const channelName = isGroup.value ? `group.${props.project.id}` : `project.${props.project.id}`;
+    echoChannel.value = window.Echo.join(channelName)
         .here((users) => {
             onlineUsers.value = users;
         })
@@ -220,7 +229,8 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (echoChannel.value) {
-        window.Echo.leave(`project.${props.project.id}`);
+        const channelName = isGroup.value ? `group.${props.project.id}` : `project.${props.project.id}`;
+        window.Echo.leave(channelName);
     }
     if (handleGlobalKeydown) {
         window.removeEventListener('keydown', handleGlobalKeydown);
@@ -290,6 +300,7 @@ onUnmounted(() => {
                             :members="members"
                             :search-query="searchQuery"
                             :last-read-id="lastReadId"
+                            :is-group="isGroup"
                             @message-updated="fetchDiscussions" 
                             @message-deleted="fetchDiscussions"
                             @reply="handleReplyStart"
@@ -310,6 +321,7 @@ onUnmounted(() => {
                         :members="members"
                         :reply-to="replyTo"
                         :parent-id="replyTo?.id"
+                        :is-group="isGroup"
                         @sent="(msg) => { handleNewMessage(msg); cancelReply(); }" 
                         @typing="sendTypingWhisper"
                         @cancel-reply="cancelReply"
@@ -320,7 +332,7 @@ onUnmounted(() => {
             <!-- Right Sidebar: Details -->
             <div class="discussion-sidebar-col d-none d-lg-flex">
                 <div class="discussion-sidebar-inner custom-scrollbar">
-                    <OnlineUsers :project="project" :online-users="onlineUsers" :members="members" @updated="fetchDiscussions" />
+                    <OnlineUsers :project="project" :online-users="onlineUsers" :members="members" :is-group="isGroup" @updated="fetchDiscussions" />
                     <div class="mt-3">
                         <FileSummary :project="project" :discussions="discussions" />
                     </div>
