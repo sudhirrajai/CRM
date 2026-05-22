@@ -122,6 +122,12 @@ const isOverdue = (dueDate) => {
                                                 <th class="text-end pb-0 fs-16">Total :</th>
                                                 <td class="text-end pb-0 fs-16 fw-bold">{{ formatCurrency(invoice.total_amount, invoice.currency) }}</td>
                                             </tr>
+                                            <tr v-if="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) && invoice.vmcore_profit !== null">
+                                                <th class="text-end pb-0 fs-14 text-success pt-2">
+                                                    <i class="ti ti-shield-lock me-1"></i> VmCore Profit :
+                                                </th>
+                                                <td class="text-end pb-0 fs-14 fw-bold text-success pt-2">{{ formatCurrency(invoice.vmcore_profit, invoice.currency) }}</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>

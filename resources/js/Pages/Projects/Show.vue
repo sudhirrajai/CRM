@@ -104,6 +104,13 @@ const getPriorityBadgeClass = (priority) => {
                                     <span class="badge ms-2" :class="getPriorityBadgeClass(project.priority)">{{ formatStatus(project.priority) }}</span>
                                 </p>
                                 <p class="text-muted mb-2 font-13"><strong>Budget :</strong> <span class="ms-2 text-dark fw-bold">{{ formatCurrency(project.budget, project.client?.currency?.code) }}</span></p>
+                                <p class="text-muted mb-2 font-13" v-if="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) && project.vmcore_profit !== null">
+                                    <strong>VmCore Profit :</strong>
+                                    <span class="ms-2 text-success fw-bold">
+                                        {{ formatCurrency(project.vmcore_profit, project.client?.currency?.code) }}
+                                        <i class="ti ti-shield-lock text-success ms-1 fs-14" title="Staff Only"></i>
+                                    </span>
+                                </p>
                                 <p class="text-muted mb-2 font-13"><strong>Start Date :</strong> <span class="ms-2">{{ formatDate(project.start_date) }}</span></p>
                                 <p class="text-muted mb-2 font-13"><strong>End Date :</strong> <span class="ms-2">{{ formatDate(project.end_date) }}</span></p>
                             </div>
@@ -120,6 +127,14 @@ const getPriorityBadgeClass = (priority) => {
                                 <p class="text-muted font-13">
                                     {{ project.description || 'No description provided.' }}
                                 </p>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-light border border-success border-dashed rounded-3" style="border-style: dashed !important;" v-if="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) && project.internal_notes">
+                                <h5 class="font-14 text-success d-flex align-items-center mb-2">
+                                    <i class="ti ti-shield-lock me-1"></i> Internal Notes
+                                    <span class="badge bg-soft-success text-success ms-2 fs-10 fw-normal">Staff Only</span>
+                                </h5>
+                                <p class="text-muted font-13 mb-0" style="white-space: pre-wrap;">{{ project.internal_notes }}</p>
                             </div>
                         </div>
                     </div>

@@ -29,6 +29,7 @@ const form = useForm({
     send_email: false,
     selected_crs: [],
     items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
+    vmcore_profit: '',
 });
 
 const selectedProject = ref(null);
@@ -66,6 +67,9 @@ watch(() => form.project_id, (newProjectId) => {
     if (newProjectId) {
         selectedProject.value = props.projects.find(p => p.id === newProjectId);
         form.selected_crs = [];
+        if (selectedProject.value && selectedProject.value.vmcore_profit) {
+            form.vmcore_profit = selectedProject.value.vmcore_profit;
+        }
     } else {
         selectedProject.value = null;
         form.selected_crs = [];
@@ -366,23 +370,28 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="total_amount" class="form-label">Total Amount <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" id="total_amount" v-model="form.total_amount" class="form-control" :class="{ 'is-invalid': form.errors.total_amount }" required>
-                                    <div class="invalid-feedback" v-if="form.errors.total_amount">{{ form.errors.total_amount }}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                                    <select id="status" v-model="form.status" class="form-select" :class="{ 'is-invalid': form.errors.status }" required>
-                                        <option value="draft">Draft</option>
-                                        <option value="sent">Sent</option>
-                                        <option value="paid">Paid</option>
-                                        <option value="overdue">Overdue</option>
-                                    </select>
-                                    <div class="invalid-feedback" v-if="form.errors.status">{{ form.errors.status }}</div>
-                                </div>
-                            </div>
+                             <div class="row mb-3">
+                                 <div :class="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) ? 'col-md-4' : 'col-md-6'">
+                                     <label for="total_amount" class="form-label">Total Amount <span class="text-danger">*</span></label>
+                                     <input type="number" step="0.01" id="total_amount" v-model="form.total_amount" class="form-control" :class="{ 'is-invalid': form.errors.total_amount }" required>
+                                     <div class="invalid-feedback" v-if="form.errors.total_amount">{{ form.errors.total_amount }}</div>
+                                 </div>
+                                 <div class="col-md-4" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                     <label for="vmcore_profit" class="form-label fw-semibold text-success">VmCore Profit <i class="ti ti-lock text-muted ms-1" title="Internal Only"></i></label>
+                                     <input type="number" step="0.01" id="vmcore_profit" v-model="form.vmcore_profit" class="form-control border-success-subtle shadow-none" :class="{ 'is-invalid': form.errors.vmcore_profit }" placeholder="0.00">
+                                     <div class="invalid-feedback" v-if="form.errors.vmcore_profit">{{ form.errors.vmcore_profit }}</div>
+                                 </div>
+                                 <div :class="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) ? 'col-md-4' : 'col-md-6'">
+                                     <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                     <select id="status" v-model="form.status" class="form-select" :class="{ 'is-invalid': form.errors.status }" required>
+                                         <option value="draft">Draft</option>
+                                         <option value="sent">Sent</option>
+                                         <option value="paid">Paid</option>
+                                         <option value="overdue">Overdue</option>
+                                     </select>
+                                     <div class="invalid-feedback" v-if="form.errors.status">{{ form.errors.status }}</div>
+                                 </div>
+                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-12">

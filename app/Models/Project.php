@@ -20,6 +20,8 @@ class Project extends Model
         'budget',
         'priority',
         'max_file_size',
+        'vmcore_profit',
+        'internal_notes',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class Project extends Model
         return [
             'start_date' => 'date:Y-m-d',
             'end_date' => 'date:Y-m-d',
+            'vmcore_profit' => 'float',
         ];
     }
 

@@ -34,6 +34,7 @@ const form = useForm({
     payment_reference: props.invoice.payment_reference || '',
     payment_note: props.invoice.payment_note || '',
     send_email: false,
+    vmcore_profit: props.invoice.vmcore_profit || '',
     items: props.invoice.items?.length
         ? props.invoice.items.map((item) => ({
             description: item.description,
@@ -77,6 +78,15 @@ watch(() => form.client_id, () => {
     }
     selectedProjectServiceId.value = '';
     selectedHostingServiceId.value = '';
+});
+
+watch(() => form.project_id, (newProjectId) => {
+    if (newProjectId) {
+        const selected = props.projects.find(p => p.id === newProjectId);
+        if (selected && selected.vmcore_profit) {
+            form.vmcore_profit = selected.vmcore_profit;
+        }
+    }
 });
 
 watch(() => form.items, () => {
@@ -335,12 +345,17 @@ const submit = () => {
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div :class="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) ? 'col-md-4' : 'col-md-6'">
                                     <label for="total_amount" class="form-label">Total Amount <span class="text-danger">*</span></label>
                                     <input type="number" step="0.01" id="total_amount" v-model="form.total_amount" class="form-control" :class="{ 'is-invalid': form.errors.total_amount }" required>
                                     <div class="invalid-feedback" v-if="form.errors.total_amount">{{ form.errors.total_amount }}</div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                    <label for="vmcore_profit" class="form-label fw-semibold text-success">VmCore Profit <i class="ti ti-lock text-muted ms-1" title="Internal Only"></i></label>
+                                    <input type="number" step="0.01" id="vmcore_profit" v-model="form.vmcore_profit" class="form-control border-success-subtle shadow-none" :class="{ 'is-invalid': form.errors.vmcore_profit }" placeholder="0.00">
+                                    <div class="invalid-feedback" v-if="form.errors.vmcore_profit">{{ form.errors.vmcore_profit }}</div>
+                                </div>
+                                <div :class="($page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')) ? 'col-md-4' : 'col-md-6'">
                                     <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                                     <select id="status" v-model="form.status" class="form-select" :class="{ 'is-invalid': form.errors.status }" required>
                                         <option value="draft">Draft</option>

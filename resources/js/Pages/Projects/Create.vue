@@ -20,6 +20,8 @@ const form = useForm({
     budget: '',
     priority: 'medium',
     max_file_size: 10,
+    vmcore_profit: '',
+    internal_notes: '',
 });
 
 const submit = () => {
@@ -43,18 +45,18 @@ const submit = () => {
 
         <div class="row justify-content-center">
             <div class="col-lg-9 col-xl-8">
-                <div class="card">
-                    <div class="card-body">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body p-4">
                         <form @submit.prevent="submit">
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
-                                    <input type="text" id="name" v-model="form.name" class="form-control" :class="{ 'is-invalid': form.errors.name }" required>
+                                    <label for="name" class="form-label fw-semibold text-muted fs-13">Project Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="name" v-model="form.name" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.name }" required>
                                     <div class="invalid-feedback" v-if="form.errors.name">{{ form.errors.name }}</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
-                                    <select id="client_id" v-model="form.client_id" class="form-select" :class="{ 'is-invalid': form.errors.client_id }" required>
+                                    <label for="client_id" class="form-label fw-semibold text-muted fs-13">Client <span class="text-danger">*</span></label>
+                                    <select id="client_id" v-model="form.client_id" class="form-select rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.client_id }" required>
                                         <option value="" disabled>Select Client</option>
                                         <option v-for="client in clients" :key="client.id" :value="client.id">
                                             {{ client.name }} ({{ client.company || 'Individual' }})
@@ -66,26 +68,26 @@ const submit = () => {
 
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <label for="description" class="form-label">Project Description</label>
-                                    <textarea id="description" v-model="form.description" class="form-control" :class="{ 'is-invalid': form.errors.description }" rows="4"></textarea>
+                                    <label for="description" class="form-label fw-semibold text-muted fs-13">Project Description</label>
+                                    <textarea id="description" v-model="form.description" class="form-control rounded-2 border-light-subtle shadow-none" :class="{ 'is-invalid': form.errors.description }" rows="4"></textarea>
                                     <div class="invalid-feedback" v-if="form.errors.description">{{ form.errors.description }}</div>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label for="start_date" class="form-label">Start Date</label>
-                                    <input type="date" id="start_date" v-model="form.start_date" class="form-control" :class="{ 'is-invalid': form.errors.start_date }">
+                                    <label for="start_date" class="form-label fw-semibold text-muted fs-13">Start Date</label>
+                                    <input type="date" id="start_date" v-model="form.start_date" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.start_date }">
                                     <div class="invalid-feedback" v-if="form.errors.start_date">{{ form.errors.start_date }}</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="end_date" class="form-label">End Date</label>
-                                    <input type="date" id="end_date" v-model="form.end_date" class="form-control" :class="{ 'is-invalid': form.errors.end_date }">
+                                    <label for="end_date" class="form-label fw-semibold text-muted fs-13">End Date</label>
+                                    <input type="date" id="end_date" v-model="form.end_date" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.end_date }">
                                     <div class="invalid-feedback" v-if="form.errors.end_date">{{ form.errors.end_date }}</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                                    <select id="status" v-model="form.status" class="form-select" :class="{ 'is-invalid': form.errors.status }" required>
+                                    <label for="status" class="form-label fw-semibold text-muted fs-13">Status <span class="text-danger">*</span></label>
+                                    <select id="status" v-model="form.status" class="form-select rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.status }" required>
                                         <option value="pending">Pending</option>
                                         <option value="in_progress">In Progress</option>
                                         <option value="on_hold">On Hold</option>
@@ -98,35 +100,57 @@ const submit = () => {
 
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label for="budget" class="form-label">Budget</label>
-                                    <input type="number" step="0.01" id="budget" v-model="form.budget" class="form-control" :class="{ 'is-invalid': form.errors.budget }" placeholder="0.00">
+                                    <label for="budget" class="form-label fw-semibold text-muted fs-13">Budget</label>
+                                    <input type="number" step="0.01" id="budget" v-model="form.budget" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.budget }" placeholder="0.00">
                                     <div class="invalid-feedback" v-if="form.errors.budget">{{ form.errors.budget }}</div>
                                 </div>
+                                <div class="col-md-4" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                    <label for="vmcore_profit" class="form-label fw-semibold text-success fs-13">VmCore Profit <i class="ti ti-lock text-muted ms-1" title="Internal Only"></i></label>
+                                    <input type="number" step="0.01" id="vmcore_profit" v-model="form.vmcore_profit" class="form-control rounded-2 border-success-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.vmcore_profit }" placeholder="0.00">
+                                    <div class="invalid-feedback" v-if="form.errors.vmcore_profit">{{ form.errors.vmcore_profit }}</div>
+                                </div>
                                 <div class="col-md-4">
-                                    <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
-                                    <select id="priority" v-model="form.priority" class="form-select" :class="{ 'is-invalid': form.errors.priority }" required>
+                                    <label for="priority" class="form-label fw-semibold text-muted fs-13">Priority <span class="text-danger">*</span></label>
+                                    <select id="priority" v-model="form.priority" class="form-select rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.priority }" required>
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
                                         <option value="high">High</option>
                                     </select>
                                     <div class="invalid-feedback" v-if="form.errors.priority">{{ form.errors.priority }}</div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="tech_stack" class="form-label">Tech Stack</label>
-                                    <input type="text" id="tech_stack" v-model="form.tech_stack" class="form-control" :class="{ 'is-invalid': form.errors.tech_stack }" placeholder="e.g. Laravel, Vue, Tailwind">
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="tech_stack" class="form-label fw-semibold text-muted fs-13">Tech Stack</label>
+                                    <input type="text" id="tech_stack" v-model="form.tech_stack" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.tech_stack }" placeholder="e.g. Laravel, Vue, Tailwind">
                                     <div class="invalid-feedback" v-if="form.errors.tech_stack">{{ form.errors.tech_stack }}</div>
                                 </div>
-                                <div class="col-md-4 mt-3">
-                                    <label for="max_file_size" class="form-label">Max File Size (MB) <span class="text-danger">*</span></label>
-                                    <input type="number" id="max_file_size" v-model="form.max_file_size" class="form-control" :class="{ 'is-invalid': form.errors.max_file_size }" required>
+                                <div class="col-md-6">
+                                    <label for="max_file_size" class="form-label fw-semibold text-muted fs-13">Max File Size (MB) <span class="text-danger">*</span></label>
+                                    <input type="number" id="max_file_size" v-model="form.max_file_size" class="form-control rounded-2 border-light-subtle shadow-none py-2" :class="{ 'is-invalid': form.errors.max_file_size }" required>
                                     <div class="invalid-feedback" v-if="form.errors.max_file_size">{{ form.errors.max_file_size }}</div>
-                                    <small class="text-muted">Limit for each individual file upload.</small>
+                                    <small class="text-muted fs-11">Limit for each individual file upload.</small>
+                                </div>
+                            </div>
+
+                            <!-- Internal Notes (Visible only to Admin and Staff) -->
+                            <div class="row mb-3" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                <div class="col-12">
+                                    <div class="p-3 bg-light border border-dashed rounded-3">
+                                        <label for="internal_notes" class="form-label fw-bold text-success fs-13 d-flex align-items-center">
+                                            <i class="ti ti-shield-lock me-1 fs-15 text-success"></i> Internal Notes
+                                            <span class="badge bg-soft-success text-success ms-2 fs-10 fw-normal">Staff Only</span>
+                                        </label>
+                                        <textarea id="internal_notes" v-model="form.internal_notes" class="form-control bg-white rounded-2 border-light-subtle shadow-none" :class="{ 'is-invalid': form.errors.internal_notes }" rows="3" placeholder="Enter notes visible only to CRM staff and admins..."></textarea>
+                                        <div class="invalid-feedback" v-if="form.errors.internal_notes">{{ form.errors.internal_notes }}</div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-end mt-4">
-                                <Link :href="route('projects.index')" class="btn btn-light me-2">Cancel</Link>
-                                <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                                <Link :href="route('projects.index')" class="btn btn-light rounded-pill px-4 me-2">Cancel</Link>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4" :disabled="form.processing">
                                     <span v-if="form.processing" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                     Create Project
                                 </button>

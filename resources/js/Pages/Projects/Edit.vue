@@ -22,6 +22,8 @@ const form = useForm({
     end_date: props.project.end_date || '',
     tech_stack: props.project.tech_stack || '',
     budget: props.project.budget || '',
+    vmcore_profit: props.project.vmcore_profit || '',
+    internal_notes: props.project.internal_notes || '',
     priority: props.project.priority || 'medium',
     max_file_size: props.project.max_file_size || 10,
     milestones: props.project.milestones || [],
@@ -121,6 +123,11 @@ const submit = () => {
                                     <input type="number" step="0.01" id="budget" v-model="form.budget" class="form-control" :class="{ 'is-invalid': form.errors.budget }" placeholder="0.00">
                                     <div class="invalid-feedback" v-if="form.errors.budget">{{ form.errors.budget }}</div>
                                 </div>
+                                <div class="col-md-4" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                    <label for="vmcore_profit" class="form-label fw-semibold text-success">VmCore Profit <i class="ti ti-lock text-muted ms-1" title="Internal Only"></i></label>
+                                    <input type="number" step="0.01" id="vmcore_profit" v-model="form.vmcore_profit" class="form-control border-success-subtle" :class="{ 'is-invalid': form.errors.vmcore_profit }" placeholder="0.00">
+                                    <div class="invalid-feedback" v-if="form.errors.vmcore_profit">{{ form.errors.vmcore_profit }}</div>
+                                </div>
                                 <div class="col-md-4">
                                     <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
                                     <select id="priority" v-model="form.priority" class="form-select" :class="{ 'is-invalid': form.errors.priority }" required>
@@ -193,6 +200,20 @@ const submit = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Internal Notes (Visible only to Admin and Staff) -->
+                            <div class="row mb-3 mt-3" v-if="$page.props.auth.roles.includes('admin') || $page.props.auth.roles.includes('staff')">
+                                <div class="col-12">
+                                    <div class="p-3 bg-light border border-dashed rounded-3">
+                                        <label for="internal_notes" class="form-label fw-bold text-success fs-13 d-flex align-items-center">
+                                            <i class="ti ti-shield-lock me-1 fs-15 text-success"></i> Internal Notes
+                                            <span class="badge bg-soft-success text-success ms-2 fs-10 fw-normal">Staff Only</span>
+                                        </label>
+                                        <textarea id="internal_notes" v-model="form.internal_notes" class="form-control bg-white rounded-2 border-light-subtle shadow-none" :class="{ 'is-invalid': form.errors.internal_notes }" rows="3" placeholder="Enter notes visible only to CRM staff and admins..."></textarea>
+                                        <div class="invalid-feedback" v-if="form.errors.internal_notes">{{ form.errors.internal_notes }}</div>
                                     </div>
                                 </div>
                             </div>

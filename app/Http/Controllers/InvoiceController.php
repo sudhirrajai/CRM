@@ -27,6 +27,9 @@ class InvoiceController extends Controller
         
         if (!$user->hasRole(['admin', 'staff'])) {
             $invoices = $this->invoiceRepo->getByClient($user->client_id)->load(['client', 'project', 'currency']);
+            $invoices->each(function ($invoice) {
+                $invoice->makeHidden(['vmcore_profit']);
+            });
         } else {
             $invoices = $this->invoiceRepo->all()->load(['client', 'project', 'currency']);
         }
@@ -67,6 +70,7 @@ class InvoiceController extends Controller
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
             'tax' => 'nullable|numeric|min:0',
+            'vmcore_profit' => 'nullable|numeric|min:0',
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',
@@ -102,6 +106,10 @@ class InvoiceController extends Controller
 
         if (!$user->hasRole(['admin', 'staff']) && !$this->canClientAccessInvoice($invoice, $user->client_id)) {
             abort(403);
+        }
+
+        if (!$user->hasRole(['admin', 'staff'])) {
+            $invoice->makeHidden(['vmcore_profit']);
         }
 
         return Inertia::render('Invoices/Show', [
@@ -147,6 +155,7 @@ class InvoiceController extends Controller
             'payment_reference' => 'nullable|string',
             'payment_note' => 'nullable|string',
             'tax' => 'nullable|numeric|min:0',
+            'vmcore_profit' => 'nullable|numeric|min:0',
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',

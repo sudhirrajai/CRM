@@ -103,9 +103,11 @@ class ReportController extends Controller
             }
         }
 
+        // Calculate adjusted profit based on COALESCE(vmcore_profit, total_amount)
+        $invoiceProfit = (float)(clone $queryIncome)->sum(DB::raw('COALESCE(vmcore_profit, total_amount)'));
         $income = $queryIncome->sum('total_amount');
         $expense = $queryExpense->sum('amount');
-        $profit = $income - $expense;
+        $profit = $invoiceProfit - $expense;
 
         // Group by category for breakdown
         $expenseBreakdown = DB::table('expenses')
@@ -145,6 +147,13 @@ class ReportController extends Controller
             ->groupBy('month')
             ->get()->pluck('total', 'month')->toArray();
 
+        $profitByMonth = DB::table('invoices')
+            ->where('status', 'paid')
+            ->whereYear('issue_date', $year)
+            ->select(DB::raw('MONTH(issue_date) as month'), DB::raw('SUM(COALESCE(vmcore_profit, total_amount)) as total'))
+            ->groupBy('month')
+            ->get()->pluck('total', 'month')->toArray();
+
         $expensesByMonth = DB::table('expenses')
             ->whereYear('date', $year)
             ->select(DB::raw('MONTH(date) as month'), DB::raw('SUM(amount) as total'))
@@ -154,12 +163,13 @@ class ReportController extends Controller
         $data = [];
         for ($m = 1; $m <= 12; $m++) {
             $rev = $revenueByMonth[$m] ?? 0;
+            $profContrib = $profitByMonth[$m] ?? 0;
             $exp = $expensesByMonth[$m] ?? 0;
             $data[] = [
                 'month' => Carbon::create()->month($m)->format('M'),
                 'revenue' => (float)$rev,
                 'expenses' => (float)$exp,
-                'profit' => (float)($rev - $exp)
+                'profit' => (float)($profContrib - $exp)
             ];
         }
 

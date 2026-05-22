@@ -19,6 +19,9 @@ class ProjectController extends Controller
 
         if (!$user->hasRole(['admin', 'staff'])) {
             $projects = $this->projectRepo->getByClient($user->client_id)->load('client');
+            $projects->each(function ($project) {
+                $project->makeHidden(['internal_notes', 'vmcore_profit']);
+            });
         } else {
             $projects = $query->load('client');
         }
@@ -48,6 +51,8 @@ class ProjectController extends Controller
             'budget' => 'nullable|numeric|min:0',
             'priority' => 'required|string|in:low,medium,high',
             'max_file_size' => 'nullable|integer|min:1',
+            'vmcore_profit' => 'nullable|numeric|min:0',
+            'internal_notes' => 'nullable|string',
         ]);
 
         $this->projectRepo->create($validated);
@@ -61,6 +66,17 @@ class ProjectController extends Controller
 
         if (!$user->hasRole(['admin', 'staff']) && $project->client_id !== $user->client_id) {
             abort(403);
+        }
+
+        if (!$user->hasRole(['admin', 'staff'])) {
+            $project->makeHidden(['internal_notes', 'vmcore_profit']);
+            
+            // Also hide sensitive fields on nested invoices for clients
+            if ($project->invoices) {
+                $project->invoices->each(function ($invoice) {
+                    $invoice->makeHidden(['vmcore_profit']);
+                });
+            }
         }
 
         return Inertia::render('Projects/Show', [
@@ -109,6 +125,8 @@ class ProjectController extends Controller
             'budget' => 'nullable|numeric|min:0',
             'priority' => 'required|string|in:low,medium,high',
             'max_file_size' => 'nullable|integer|min:1',
+            'vmcore_profit' => 'nullable|numeric|min:0',
+            'internal_notes' => 'nullable|string',
             'milestones' => 'nullable|array',
             'milestones.*.id' => 'nullable|string',
             'milestones.*.name' => 'required|string|max:255',

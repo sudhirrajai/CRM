@@ -32,12 +32,17 @@ const formatInvoiceAmount = (invoice) => {
 // Profit calculation
 const netProfit = computed(() => {
     if (!props.analytics.is_admin) return 0;
-    return (parseFloat(props.analytics.total_revenue) || 0) - (parseFloat(props.analytics.total_expenses) || 0);
+    const revenue = props.analytics.total_revenue_profit !== undefined 
+        ? parseFloat(props.analytics.total_revenue_profit) 
+        : parseFloat(props.analytics.total_revenue);
+    return (revenue || 0) - (parseFloat(props.analytics.total_expenses) || 0);
 });
 
 const profitMargin = computed(() => {
     if (!props.analytics.is_admin) return 0;
-    const revenue = parseFloat(props.analytics.total_revenue) || 0;
+    const revenue = props.analytics.total_revenue_profit !== undefined 
+        ? parseFloat(props.analytics.total_revenue_profit) 
+        : parseFloat(props.analytics.total_revenue);
     if (revenue === 0) return 0;
     return ((netProfit.value / revenue) * 100).toFixed(1);
 });

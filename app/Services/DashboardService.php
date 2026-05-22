@@ -60,6 +60,9 @@ class DashboardService
 
             // Financial data
             'total_revenue' => $this->invoiceRepo->getTotalRevenue(),
+            'total_revenue_profit' => (float)\App\Models\Invoice::where('status', 'paid')
+                ->get()
+                ->sum(fn($inv) => $inv->vmcore_profit !== null ? (float)$inv->vmcore_profit : (float)$inv->total_amount),
             'total_expenses' => $this->expenseRepo->all()->sum('amount'),
             'outstanding_count' => $this->invoiceRepo->getOutstandingCount(),
             'outstanding_amount' => $this->invoiceRepo->getOutstandingAmount(),

@@ -25,6 +25,7 @@ class Invoice extends Model
         'payment_mode',
         'payment_reference',
         'payment_note',
+        'vmcore_profit',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class Invoice extends Model
         return [
             'issue_date' => 'date',
             'due_date' => 'date',
+            'vmcore_profit' => 'float',
         ];
     }
 
