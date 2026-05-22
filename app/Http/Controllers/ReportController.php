@@ -91,153 +91,111 @@ class ReportController extends Controller
             ? \App\Models\Currency::find($defaultCurrencyId) 
             : \App\Models\Currency::first();
 
-        $queryIncome = DB::table('invoices')->where('status', 'paid');
-        $queryExpense = DB::table('expenses');
-
         $year = null;
         $month = null;
 
-        if ($filterType === 'monthly') {
-            $year = substr($date, 0, 4);
-            $month = substr($date, 5, 2);
-            $queryIncome->whereYear('issue_date', $year)->whereMonth('issue_date', $month);
-            $queryExpense->whereYear('date', $year)->whereMonth('date', $month);
-        } elseif ($filterType === 'yearly') {
-            $queryIncome->whereYear('issue_date', $date);
-            $queryExpense->whereYear('date', $date);
-        } elseif ($filterType === 'date_range') {
-            if ($startDate && $endDate) {
-                $queryIncome->whereBetween('issue_date', [$startDate, $endDate]);
-                $queryExpense->whereBetween('date', [$startDate, $endDate]);
+        // Build date filter closures to reuse across queries
+        $applyDateFilter = function($query, $dateColumn) use ($filterType, $date, $startDate, $endDate, &$year, &$month) {
+            if ($filterType === 'monthly') {
+                $year = $year ?: substr($date, 0, 4);
+                $month = $month ?: substr($date, 5, 2);
+                $query->whereYear($dateColumn, $year)->whereMonth($dateColumn, $month);
+            } elseif ($filterType === 'yearly') {
+                $query->whereYear($dateColumn, $date);
+            } elseif ($filterType === 'date_range') {
+                if ($startDate && $endDate) {
+                    $query->whereBetween($dateColumn, [$startDate, $endDate]);
+                }
             }
-        }
+            return $query;
+        };
 
-        // Calculate adjusted profit based on COALESCE(vmcore_profit, total_amount)
-        $invoiceProfit = (float)(clone $queryIncome)->sum(DB::raw('COALESCE(vmcore_profit, total_amount)'));
-        $income = $queryIncome->sum('total_amount');
-        $expense = $queryExpense->sum('amount');
-        $profit = $invoiceProfit - $expense;
+        // --- Core financial queries (all from real data) ---
 
-        // Group by category for breakdown
+        // 1. Paid invoices (Revenue received)
+        $queryPaidInvoices = DB::table('invoices')->where('status', 'paid');
+        $applyDateFilter($queryPaidInvoices, 'issue_date');
+        $paidIncome = (float)(clone $queryPaidInvoices)->sum('total_amount');
+        $invoiceProfit = (float)(clone $queryPaidInvoices)->sum(DB::raw('COALESCE(vmcore_profit, total_amount)'));
+
+        // 2. Unpaid invoices (Accounts Receivable)
+        $queryUnpaidInvoices = DB::table('invoices')->whereIn('status', ['sent', 'overdue']);
+        $applyDateFilter($queryUnpaidInvoices, 'issue_date');
+        $accountsReceivable = (float)$queryUnpaidInvoices->sum('total_amount');
+
+        // 3. Total revenue (paid + unpaid)
+        $totalRevenue = $paidIncome + $accountsReceivable;
+
+        // 4. Expenses
+        $queryExpense = DB::table('expenses');
+        $applyDateFilter($queryExpense, 'date');
+        $totalExpenses = (float)$queryExpense->sum('amount');
+
+        // 5. Derived values (no hardcoded numbers)
+        $cashAtBank = $paidIncome - $totalExpenses;     // Actual cash position
+        $netProfit = $invoiceProfit - $totalExpenses;    // VmCore-adjusted profit
+
+        // --- Expense breakdown by category ---
         $expenseBreakdown = DB::table('expenses')
             ->leftJoin('expense_categories', 'expenses.category_id', '=', 'expense_categories.id')
             ->select(
                 DB::raw("COALESCE(expense_categories.name, 'Uncategorized') as name"),
                 DB::raw('SUM(expenses.amount) as total')
-            )
-            ->when($filterType === 'monthly', function($q) use ($year, $month) {
-                return $q->whereYear('expenses.date', $year)->whereMonth('expenses.date', $month);
-            })
-             ->when($filterType === 'yearly', function($q) use ($date) {
-                return $q->whereYear('expenses.date', $date);
-            })
-            ->when($filterType === 'date_range', function($q) use ($startDate, $endDate) {
-                if ($startDate && $endDate) {
-                    return $q->whereBetween('expenses.date', [$startDate, $endDate]);
-                }
-                return $q;
-            })
-            ->groupBy('name')
-            ->get();
+            );
+        $applyDateFilter($expenseBreakdown, 'expenses.date');
+        $expenseBreakdown = $expenseBreakdown->groupBy('name')->get();
 
-        // TRADITIONAL INDIAN BALANCE SHEET CALCULATIONS
-        $openingCapital = 500000.00;
-        
-        // 1. Sundry Debtors (Accounts Receivable): Invoices that are sent or overdue in the period
-        $queryUnpaidIncome = DB::table('invoices')->whereIn('status', ['sent', 'overdue']);
-        if ($filterType === 'monthly') {
-            $queryUnpaidIncome->whereYear('issue_date', $year)->whereMonth('issue_date', $month);
-        } elseif ($filterType === 'yearly') {
-            $queryUnpaidIncome->whereYear('issue_date', $date);
-        } elseif ($filterType === 'date_range') {
-            if ($startDate && $endDate) {
-                $queryUnpaidIncome->whereBetween('issue_date', [$startDate, $endDate]);
-            }
-        }
-        $accountsReceivable = (float)$queryUnpaidIncome->sum('total_amount');
-
-        // 2. Fixed Assets: Server infrastructure based on count of active servers + baseline office equipment
-        $serverCount = DB::table('servers')->where('status', 'active')->count();
-        $serverEquipmentVal = max($serverCount, 1) * 45000.00;
-        $officeEquipVal = 120000.00;
-        $fixedAssetsTotal = $serverEquipmentVal + $officeEquipVal;
-
-        // 3. Sundry Creditors (Accounts Payable): Dynamic percentage of expenses
-        $accountsPayable = $expense > 0 ? round($expense * 0.15, 2) : 0.00;
-
-        // 4. Provision for Taxes (Income Tax Provision, e.g. 10% of profit if positive)
-        $taxProvision = $profit > 0 ? round($profit * 0.10, 2) : 0.00;
-
-        // 5. Drawings (Partner drawings to look authentic, e.g. ₹20,000)
-        $drawings = $profit > 20000 ? 20000.00 : 0.00;
-
-        // Ensure Cash at Bank is always mathematically balanced:
-        $liabilitiesTotalWithoutCashCheck = $openingCapital + $profit - $drawings + $accountsPayable + $taxProvision;
-        $assetsOtherThanCash = $fixedAssetsTotal + $accountsReceivable;
-        
-        $cashAtBank = $liabilitiesTotalWithoutCashCheck - $assetsOtherThanCash;
-
-        if ($cashAtBank < 50000.00) {
-            // Adjust opening capital dynamically so cash at bank is always positive and healthy
-            $openingCapital += abs($cashAtBank) + 50000.00;
-            $liabilitiesTotalWithoutCashCheck = $openingCapital + $profit - $drawings + $accountsPayable + $taxProvision;
-            $cashAtBank = $liabilitiesTotalWithoutCashCheck - $assetsOtherThanCash;
-        }
-
-        $totalVal = $liabilitiesTotalWithoutCashCheck; // Left Side Total = Right Side Total
+        // --- Balance Sheet structure (100% real data) ---
+        // Accounting equation: Assets = Liabilities + Owner's Equity
+        // Since we don't track liabilities separately, Equity = Revenue - Expenses
+        // Assets = Cash at Bank + Accounts Receivable
+        // Equity = Total Revenue - Total Expenses = (Paid - Expenses) + Unpaid = Cash + AR ✓
 
         $liabilities = [
             [
-                'name' => 'Capital Account',
-                'is_header' => true,
+                'name' => "Owner's Equity",
                 'items' => [
-                    ['name' => 'Opening Balance', 'amount' => (float)$openingCapital],
-                    ['name' => 'Add: Net Profit for the period', 'amount' => (float)$profit, 'is_positive' => true],
-                    ['name' => 'Less: Drawings', 'amount' => (float)$drawings, 'is_negative' => true],
+                    ['name' => 'Revenue Earned (Paid Invoices)', 'amount' => (float)$paidIncome],
+                    ['name' => 'Revenue Accrued (Unpaid Invoices)', 'amount' => (float)$accountsReceivable],
+                    ['name' => 'Less: Total Expenses', 'amount' => (float)$totalExpenses, 'is_negative' => true],
                 ],
-                'total' => (float)($openingCapital + $profit - $drawings)
+                'total' => (float)($totalRevenue - $totalExpenses)
             ],
-            [
-                'name' => 'Current Liabilities & Provisions',
-                'is_header' => true,
-                'items' => [
-                    ['name' => 'Sundry Creditors (Accounts Payable)', 'amount' => (float)$accountsPayable],
-                    ['name' => 'Provision for Income Tax', 'amount' => (float)$taxProvision],
-                ],
-                'total' => (float)($accountsPayable + $taxProvision)
-            ]
         ];
 
         $assets = [
             [
-                'name' => 'Fixed Assets',
-                'is_header' => true,
+                'name' => 'Current Assets',
                 'items' => [
-                    ['name' => "Server Equipment ($serverCount Nodes)", 'amount' => (float)$serverEquipmentVal],
-                    ['name' => 'Office Systems & Computers', 'amount' => (float)$officeEquipVal],
+                    ['name' => 'Cash & Bank Balance', 'amount' => (float)$cashAtBank],
+                    ['name' => 'Accounts Receivable', 'amount' => (float)$accountsReceivable],
                 ],
-                'total' => (float)$fixedAssetsTotal
+                'total' => (float)($cashAtBank + $accountsReceivable)
             ],
-            [
-                'name' => 'Current Assets, Loans & Advances',
-                'is_header' => true,
-                'items' => [
-                    ['name' => 'Sundry Debtors (Outstanding Invoices)', 'amount' => (float)$accountsReceivable],
-                    ['name' => 'Cash at Bank', 'amount' => (float)$cashAtBank],
-                ],
-                'total' => (float)($accountsReceivable + $cashAtBank)
-            ]
         ];
 
+        $totalVal = (float)($totalRevenue - $totalExpenses);
+
+        // Build period label for the heading
+        $periodLabel = '';
+        if ($filterType === 'monthly') {
+            $periodLabel = Carbon::createFromFormat('Y-m', $date)->format('F Y');
+        } elseif ($filterType === 'yearly') {
+            $periodLabel = 'Year ' . $date;
+        } elseif ($filterType === 'date_range' && $startDate && $endDate) {
+            $periodLabel = Carbon::parse($startDate)->format('d M Y') . ' – ' . Carbon::parse($endDate)->format('d M Y');
+        }
+
         return Inertia::render('Reports/BalanceSheet', [
-            'income' => (float)$income,
-            'expense' => (float)$expense,
-            'profit' => (float)$profit,
+            'income' => (float)$paidIncome,
+            'expense' => (float)$totalExpenses,
+            'profit' => (float)$netProfit,
             'expenseBreakdown' => $expenseBreakdown,
             'currency' => $currency,
             'liabilities' => $liabilities,
             'assets' => $assets,
-            'totalVal' => (float)$totalVal,
+            'totalVal' => $totalVal,
+            'periodLabel' => $periodLabel,
             'filters' => [
                 'filter_type' => $filterType,
                 'date' => $date,

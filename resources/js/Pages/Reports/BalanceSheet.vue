@@ -12,6 +12,7 @@ const props = defineProps({
     liabilities: Array,
     assets: Array,
     totalVal: Number,
+    periodLabel: String,
     filters: Object
 });
 
@@ -33,11 +34,13 @@ const formatCurrency = (amount) => {
     const formatted = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: props.currency.decimal_places,
         maximumFractionDigits: props.currency.decimal_places
-    }).format(amount);
+    }).format(Math.abs(amount));
 
-    return props.currency.symbol_position === 'prefix'
+    const symbol = props.currency.symbol_position === 'prefix'
         ? `${props.currency.symbol}${formatted}`
         : `${formatted} ${props.currency.symbol}`;
+
+    return amount < 0 ? `-${symbol}` : symbol;
 };
 
 const profitPercent = computed(() => {
@@ -59,7 +62,7 @@ const profitPercent = computed(() => {
         <!-- Filter Controls -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card shadow-sm border-0 rounded-3">
+                <div class="card shadow-sm border-0">
                     <div class="card-body">
                         <div class="row align-items-end">
                             <div class="col-md-3">
@@ -70,12 +73,12 @@ const profitPercent = computed(() => {
                                     <option value="date_range">Date Range</option>
                                 </select>
                             </div>
-                            
+
                             <div v-if="filterForm.filter_type === 'monthly'" class="col-md-3">
                                 <label class="form-label small text-uppercase fw-bold">Month</label>
                                 <input v-model="filterForm.date" type="month" class="form-control" @change="applyFilters">
                             </div>
-                            
+
                             <div v-if="filterForm.filter_type === 'yearly'" class="col-md-3">
                                 <label class="form-label small text-uppercase fw-bold">Year</label>
                                 <select v-model="filterForm.date" class="form-select" @change="applyFilters">
@@ -102,13 +105,13 @@ const profitPercent = computed(() => {
             </div>
         </div>
 
-        <!-- Classic Overview Cards -->
+        <!-- Overview Cards -->
         <div class="row mb-4 g-3">
             <div class="col-md-4">
-                <div class="card bg-soft-success border-success-subtle h-100 border-0 shadow-sm">
+                <div class="card bg-soft-success h-100 border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-success rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm">
+                            <div class="avatar-sm bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
                                 <i class="ti ti-trending-up text-white fs-4"></i>
                             </div>
                             <div>
@@ -120,10 +123,10 @@ const profitPercent = computed(() => {
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card bg-soft-danger border-danger-subtle h-100 border-0 shadow-sm">
+                <div class="card bg-soft-danger h-100 border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-danger rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm">
+                            <div class="avatar-sm bg-danger rounded-circle d-flex align-items-center justify-content-center me-3">
                                 <i class="ti ti-trending-down text-white fs-4"></i>
                             </div>
                             <div>
@@ -135,10 +138,10 @@ const profitPercent = computed(() => {
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm" :class="profit >= 0 ? 'bg-soft-primary border-primary-subtle' : 'bg-soft-warning border-warning-subtle'">
+                <div class="card h-100 border-0 shadow-sm" :class="profit >= 0 ? 'bg-soft-primary' : 'bg-soft-warning'">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" :class="profit >= 0 ? 'bg-primary' : 'bg-warning'">
+                            <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3" :class="profit >= 0 ? 'bg-primary' : 'bg-warning'">
                                 <i class="ti text-white fs-4" :class="profit >= 0 ? 'ti-cash' : 'ti-alert-triangle'"></i>
                             </div>
                             <div>
@@ -151,79 +154,83 @@ const profitPercent = computed(() => {
             </div>
         </div>
 
-        <!-- Dynamic Traditional Indian T-Shaped Balance Sheet -->
+        <!-- Balance Sheet -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center border-bottom border-warning border-2">
-                        <h5 class="text-white mb-0 fw-bold d-flex align-items-center">
-                            <i class="ti ti-notebook me-2 text-warning fs-3"></i>
-                            Traditional T-Shaped Balance Sheet (Indian Format)
-                        </h5>
-                        <span class="badge bg-warning text-dark px-3 py-2 fw-bold font-12 shadow-sm rounded-pill">
-                            Active Currency: {{ currency?.name || 'INR' }} ({{ currency?.code || 'INR' }})
-                        </span>
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <!-- Clean professional header -->
+                    <div class="card-header bg-dark py-3">
+                        <div class="text-center">
+                            <h5 class="text-white mb-1 fw-bold">Balance Sheet</h5>
+                            <p class="text-white-50 mb-0 small" v-if="periodLabel">As on {{ periodLabel }}</p>
+                        </div>
                     </div>
-                    <div class="card-body p-0 bg-white">
+
+                    <div class="card-body p-0">
                         <div class="row g-0">
-                            <!-- Left Column: Capital & Liabilities -->
-                            <div class="col-lg-6 border-end border-light-subtle">
+                            <!-- Left Column: Equity & Liabilities -->
+                            <div class="col-lg-6 bs-col-left">
                                 <div class="p-4">
-                                    <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2 tracking-wider uppercase font-12 d-flex align-items-center">
-                                        <i class="ti ti-scale me-2 text-danger"></i>
-                                        LIABILITIES & CAPITAL
-                                    </h5>
-                                    
+                                    <h6 class="fw-bold text-uppercase text-secondary mb-3 pb-2 border-bottom small ls-1">
+                                        Equity & Liabilities
+                                    </h6>
+
                                     <div v-for="group in liabilities" :key="group.name" class="mb-4">
-                                        <div class="d-flex justify-content-between align-items-center py-2 bg-light px-3 rounded-3 mb-2 shadow-xs">
-                                            <span class="fw-bold text-dark font-13">{{ group.name }}</span>
-                                            <span class="fw-bold text-dark font-13">{{ formatCurrency(group.total) }}</span>
+                                        <div class="d-flex justify-content-between align-items-center py-2 px-3 bg-light rounded mb-2">
+                                            <span class="fw-bold text-dark">{{ group.name }}</span>
+                                            <span class="fw-bold text-dark">{{ formatCurrency(group.total) }}</span>
                                         </div>
-                                        <div class="ps-3 pe-2">
-                                            <div v-for="item in group.items" :key="item.name" class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                                                <span class="text-muted font-13">{{ item.name }}</span>
-                                                <span class="fw-medium font-13" :class="item.is_positive ? 'text-success' : (item.is_negative ? 'text-danger' : 'text-dark')">
-                                                    {{ item.is_negative ? '-' : '' }}{{ formatCurrency(item.amount) }}
+                                        <div class="ps-3">
+                                            <div v-for="item in group.items" :key="item.name"
+                                                 class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted">{{ item.name }}</span>
+                                                <span class="fw-medium" :class="{
+                                                    'text-danger': item.is_negative,
+                                                    'text-dark': !item.is_negative
+                                                }">
+                                                    {{ item.is_negative ? '(' + formatCurrency(item.amount) + ')' : formatCurrency(item.amount) }}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Right Column: Assets -->
-                            <div class="col-lg-6">
+                            <div class="col-lg-6 bs-col-right">
                                 <div class="p-4">
-                                    <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2 tracking-wider uppercase font-12 d-flex align-items-center">
-                                        <i class="ti ti-briefcase me-2 text-success"></i>
-                                        ASSETS
-                                    </h5>
-                                    
+                                    <h6 class="fw-bold text-uppercase text-secondary mb-3 pb-2 border-bottom small ls-1">
+                                        Assets
+                                    </h6>
+
                                     <div v-for="group in assets" :key="group.name" class="mb-4">
-                                        <div class="d-flex justify-content-between align-items-center py-2 bg-light px-3 rounded-3 mb-2 shadow-xs">
-                                            <span class="fw-bold text-dark font-13">{{ group.name }}</span>
-                                            <span class="fw-bold text-dark font-13">{{ formatCurrency(group.total) }}</span>
+                                        <div class="d-flex justify-content-between align-items-center py-2 px-3 bg-light rounded mb-2">
+                                            <span class="fw-bold text-dark">{{ group.name }}</span>
+                                            <span class="fw-bold text-dark">{{ formatCurrency(group.total) }}</span>
                                         </div>
-                                        <div class="ps-3 pe-2">
-                                            <div v-for="item in group.items" :key="item.name" class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                                                <span class="text-muted font-13">{{ item.name }}</span>
-                                                <span class="fw-medium font-13 text-dark">{{ formatCurrency(item.amount) }}</span>
+                                        <div class="ps-3">
+                                            <div v-for="item in group.items" :key="item.name"
+                                                 class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted">{{ item.name }}</span>
+                                                <span class="fw-medium" :class="item.amount < 0 ? 'text-danger' : 'text-dark'">
+                                                    {{ item.amount < 0 ? '(' + formatCurrency(Math.abs(item.amount)) + ')' : formatCurrency(item.amount) }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Traditional Matching Totals Row -->
-                        <div class="row g-0 bg-dark text-white py-3 border-top border-warning border-3 font-14">
-                            <div class="col-lg-6 border-end border-light-subtle d-flex justify-content-between align-items-center px-4 py-2">
-                                <span class="fw-bold text-warning-emphasis tracking-wider">TOTAL LIABILITIES & CAPITAL</span>
-                                <span class="fw-bold border-double-bottom text-warning fs-5">{{ formatCurrency(totalVal) }}</span>
+
+                        <!-- Totals Row -->
+                        <div class="row g-0 bs-total-row">
+                            <div class="col-lg-6 d-flex justify-content-between align-items-center px-4 py-3 bs-total-left">
+                                <span class="fw-bold text-white">Total Equity & Liabilities</span>
+                                <span class="fw-bold text-warning fs-5 bs-total-amount">{{ formatCurrency(totalVal) }}</span>
                             </div>
-                            <div class="col-lg-6 d-flex justify-content-between align-items-center px-4 py-2">
-                                <span class="fw-bold text-warning-emphasis tracking-wider">TOTAL ASSETS</span>
-                                <span class="fw-bold border-double-bottom text-warning fs-5">{{ formatCurrency(totalVal) }}</span>
+                            <div class="col-lg-6 d-flex justify-content-between align-items-center px-4 py-3 bs-total-right">
+                                <span class="fw-bold text-white">Total Assets</span>
+                                <span class="fw-bold text-warning fs-5 bs-total-amount">{{ formatCurrency(totalVal) }}</span>
                             </div>
                         </div>
                     </div>
@@ -231,12 +238,12 @@ const profitPercent = computed(() => {
             </div>
         </div>
 
-        <!-- breakdown section -->
+        <!-- Expense Breakdown & Summary -->
         <div class="row">
             <div class="col-md-8">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-light-subtle py-3">
-                        <h5 class="card-title mb-0 fw-bold text-dark">Expense Breakdown by Category</h5>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold">Expense Breakdown by Category</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -255,7 +262,7 @@ const profitPercent = computed(() => {
                                         <td class="text-end">
                                             <div class="d-flex align-items-center justify-content-end">
                                                 <span class="me-2">{{ ((item.total / (expense || 1)) * 100).toFixed(1) }}%</span>
-                                                <div class="progress progress-sm w-25" style="height: 6px;">
+                                                <div class="progress progress-sm w-25" style="height: 5px;">
                                                     <div class="progress-bar bg-info rounded-pill" :style="{ width: ((item.total / (expense || 1)) * 100) + '%' }"></div>
                                                 </div>
                                             </div>
@@ -271,29 +278,29 @@ const profitPercent = computed(() => {
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-light-subtle py-3">
-                        <h5 class="card-title mb-0 fw-bold text-dark">Summary Breakdown</h5>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold">Summary</h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom border-light">
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
                             <span class="text-muted">Income</span>
                             <span class="fw-bold text-success">{{ formatCurrency(income) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom border-light">
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
                             <span class="text-muted">Expense</span>
                             <span class="fw-bold text-danger">{{ formatCurrency(expense) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted font-16">Gross Profit</span>
+                            <span class="text-muted">Gross Profit</span>
                             <span class="fw-bold fs-4" :class="profit >= 0 ? 'text-primary' : 'text-danger'">{{ formatCurrency(profit) }}</span>
                         </div>
-                        <div class="mt-4 pt-3 border-top border-light">
+                        <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Profit Margin</span>
                                 <span class="fw-bold" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent.toFixed(2) }}%</span>
                             </div>
-                            <div class="progress progress-sm" style="height: 6px;">
+                            <div class="progress" style="height: 5px;">
                                 <div class="progress-bar rounded-pill" :class="profitPercent >= 0 ? 'bg-success' : 'bg-danger'" :style="{ width: Math.min(Math.max(profitPercent, 0), 100) + '%' }"></div>
                             </div>
                         </div>
@@ -309,13 +316,35 @@ const profitPercent = computed(() => {
 .bg-soft-danger { background-color: rgba(255, 91, 91, 0.1); }
 .bg-soft-primary { background-color: rgba(54, 131, 252, 0.1); }
 .bg-soft-warning { background-color: rgba(255, 187, 51, 0.1); }
-.bg-soft-info { background-color: rgba(57, 181, 224, 0.1); }
 
-.border-double-bottom {
-    border-bottom: 3px double currentColor;
+.ls-1 { letter-spacing: 0.05em; }
+
+.bs-col-left {
+    border-right: 1px solid #e9ecef;
+}
+
+.bs-total-row {
+    background-color: #212529;
+    border-top: 3px solid #ffc107;
+}
+
+.bs-total-left {
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.bs-total-amount {
+    border-bottom: 3px double #ffc107;
     padding-bottom: 2px;
 }
-.shadow-xs {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+@media (max-width: 991.98px) {
+    .bs-col-left {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .bs-total-left {
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 }
 </style>
