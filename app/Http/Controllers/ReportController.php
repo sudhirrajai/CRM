@@ -82,9 +82,14 @@ class ReportController extends Controller
     {
         $filterType = $request->get('filter_type', 'monthly'); // monthly, yearly, date_range
         $date = $request->get('date', Carbon::now()->format('Y-m'));
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
 
         $queryIncome = DB::table('invoices')->where('status', 'paid');
         $queryExpense = DB::table('expenses');
+
+        $year = null;
+        $month = null;
 
         if ($filterType === 'monthly') {
             $year = substr($date, 0, 4);
@@ -95,8 +100,6 @@ class ReportController extends Controller
             $queryIncome->whereYear('issue_date', $date);
             $queryExpense->whereYear('date', $date);
         } elseif ($filterType === 'date_range') {
-            $startDate = $request->get('start_date');
-            $endDate = $request->get('end_date');
             if ($startDate && $endDate) {
                 $queryIncome->whereBetween('issue_date', [$startDate, $endDate]);
                 $queryExpense->whereBetween('date', [$startDate, $endDate]);
@@ -111,15 +114,24 @@ class ReportController extends Controller
 
         // Group by category for breakdown
         $expenseBreakdown = DB::table('expenses')
-            ->join('expense_categories', 'expenses.category_id', '=', 'expense_categories.id')
-            ->select('expense_categories.name', DB::raw('SUM(expenses.amount) as total'))
-            ->when($filterType === 'monthly', function($q) use ($date) {
-                return $q->whereYear('expenses.date', substr($date, 0, 4))->whereMonth('expenses.date', substr($date, 5, 2));
+            ->leftJoin('expense_categories', 'expenses.category_id', '=', 'expense_categories.id')
+            ->select(
+                DB::raw("COALESCE(expense_categories.name, 'Uncategorized') as name"),
+                DB::raw('SUM(expenses.amount) as total')
+            )
+            ->when($filterType === 'monthly', function($q) use ($year, $month) {
+                return $q->whereYear('expenses.date', $year)->whereMonth('expenses.date', $month);
             })
              ->when($filterType === 'yearly', function($q) use ($date) {
                 return $q->whereYear('expenses.date', $date);
             })
-            ->groupBy('expense_categories.name')
+            ->when($filterType === 'date_range', function($q) use ($startDate, $endDate) {
+                if ($startDate && $endDate) {
+                    return $q->whereBetween('expenses.date', [$startDate, $endDate]);
+                }
+                return $q;
+            })
+            ->groupBy('name')
             ->get();
 
         return Inertia::render('Reports/BalanceSheet', [
@@ -130,8 +142,8 @@ class ReportController extends Controller
             'filters' => [
                 'filter_type' => $filterType,
                 'date' => $date,
-                'start_date' => $request->get('start_date'),
-                'end_date' => $request->get('end_date'),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]
         ]);
     }
