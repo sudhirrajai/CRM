@@ -23,6 +23,7 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
         unset($attributes['selected_crs']);
         unset($attributes['shared_client_ids']);
         unset($attributes['extra_recipients']);
+        unset($attributes['send_email']);
 
         return DB::transaction(function () use ($attributes, $items, $selectedCrs, $sharedClientIds, $extraRecipients) {
             $invoice = parent::create($attributes);
@@ -73,6 +74,8 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
         unset($attributes['items']);
         unset($attributes['shared_client_ids']);
         unset($attributes['extra_recipients']);
+        unset($attributes['selected_crs']);
+        unset($attributes['send_email']);
 
         return DB::transaction(function () use ($id, $attributes, $items, $sharedClientIds, $extraRecipients) {
             $record = parent::update($id, $attributes);
