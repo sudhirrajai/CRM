@@ -57,7 +57,19 @@ const subscribeToWebPush = async () => {
             applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY)
         };
 
-        const subscription = await registration.pushManager.subscribe(subscribeOptions);
+        let subscription;
+        try {
+            subscription = await registration.pushManager.subscribe(subscribeOptions);
+        } catch (err) {
+            if (err.name === 'InvalidStateError' || err.message.includes('applicationServerKey')) {
+                // Subscription exists with a different key. Unsubscribe and try again.
+                const existing = await registration.pushManager.getSubscription();
+                if (existing) await existing.unsubscribe();
+                subscription = await registration.pushManager.subscribe(subscribeOptions);
+            } else {
+                throw err;
+            }
+        }
 
         await axios.post(route('push-subscriptions.store'), subscription.toJSON());
     } catch (e) {

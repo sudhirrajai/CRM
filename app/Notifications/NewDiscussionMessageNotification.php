@@ -46,8 +46,8 @@ class NewDiscussionMessageNotification extends Notification implements ShouldQue
             : "New message in group: {$this->message->group->name}";
 
         $url = $this->message->project_id 
-            ? route('projects.discussions.index', $this->message->project_id)
-            : route('groups.discussions.index', $this->message->group_id);
+            ? url('/discussions?project_id=' . $this->message->project_id)
+            : url('/discussions?group_id=' . $this->message->group_id);
 
         return [
             'message_id' => $this->message->id,
