@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import NotificationBell from './NotificationBell.vue';
 </script>
 
 <template>
@@ -44,33 +45,7 @@ import { Link } from '@inertiajs/vue3';
                 </div> -->
 
                 <!-- Notification Dropdown -->
-                <!-- <div class="topbar-item">
-                    <div class="dropdown">
-                        <button class="topbar-link btn btn-outline-primary btn-icon dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,24" type="button" data-bs-auto-close="outside" aria-haspopup="false" aria-expanded="false">
-                            <i class="ti ti-bell animate-ring fs-22"></i>
-                            <span class="noti-icon-badge"></span>
-                        </button>
-
-                        <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg" style="min-height: 300px;">
-                            <div class="p-3 border-bottom border-dashed">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="m-0 fs-16 fw-semibold"> Notifications</h6>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="position-relative z-2 rounded-0" style="max-height: 300px;" data-simplebar>
-                                
-                            </div>
-
-                            
-                            <a href="javascript:void(0);" class="dropdown-item notification-item text-center text-reset text-decoration-underline link-offset-2 fw-bold notify-item border-top border-light py-2">
-                                View All
-                            </a>
-                        </div>
-                    </div>
-                </div> -->
+                <NotificationBell />
 
                 <!-- Light/Dark Mode Button -->
                 <!-- <div class="topbar-item d-none d-sm-flex">

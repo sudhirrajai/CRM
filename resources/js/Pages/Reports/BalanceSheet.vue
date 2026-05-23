@@ -219,6 +219,7 @@ const profitPercent = computed(() => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </div>
                 </div>
             </div>
