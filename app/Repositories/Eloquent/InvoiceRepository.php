@@ -178,7 +178,12 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function getMonthlyRevenue($months = 12)
     {
-        return $this->model->selectRaw('DATE_FORMAT(issue_date, "%Y-%m") as month, SUM(total_amount) as total')
+        $driver = $this->model->getConnection()->getDriverName();
+        $dateSql = $driver === 'sqlite' 
+            ? "strftime('%Y-%m', issue_date)" 
+            : "DATE_FORMAT(issue_date, '%Y-%m')";
+
+        return $this->model->selectRaw("{$dateSql} as month, SUM(total_amount) as total")
             ->where('issue_date', '>=', now()->subMonths($months))
             ->groupBy('month')
             ->orderBy('month')
@@ -187,6 +192,11 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
 
     public function getMonthlyRevenueByClient($clientId, $months = 12)
     {
+        $driver = $this->model->getConnection()->getDriverName();
+        $dateSql = $driver === 'sqlite' 
+            ? "strftime('%Y-%m', issue_date)" 
+            : "DATE_FORMAT(issue_date, '%Y-%m')";
+
         return $this->model
             ->where(function ($query) use ($clientId) {
                 $query->where('client_id', $clientId)
@@ -194,7 +204,7 @@ class InvoiceRepository extends BaseRepository implements InvoiceRepositoryInter
                         $sharedQuery->whereKey($clientId);
                     });
             })
-            ->selectRaw('DATE_FORMAT(issue_date, "%Y-%m") as month, SUM(total_amount) as total')
+            ->selectRaw("{$dateSql} as month, SUM(total_amount) as total")
             ->where('issue_date', '>=', now()->subMonths($months))
             ->groupBy('month')
             ->orderBy('month')
