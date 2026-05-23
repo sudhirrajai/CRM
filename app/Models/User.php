@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Spatie\Permission\Traits\HasRoles;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 
-#[Fillable(['name', 'email', 'password', 'client_id'])]
+#[Fillable(['name', 'email', 'password', 'client_id', 'is_sandbox'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -36,6 +36,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_sandbox' => 'boolean',
         ];
     }
 
