@@ -32,6 +32,17 @@ return [
 
     'connections' => [
 
+        'sandbox' => [
+            'driver' => 'sqlite',
+            'database' => database_path('sandbox.sqlite'),
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),

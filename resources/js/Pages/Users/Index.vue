@@ -27,6 +27,7 @@ const form = useForm({
     password: '',
     roles: [],
     permissions: [],
+    is_sandbox: false,
     send_email: false,
 });
 
@@ -44,6 +45,7 @@ const openEditModal = (user) => {
     form.password = '';
     form.roles = user.roles.map(r => r.name);
     form.permissions = user.permissions ? user.permissions.map(p => p.name) : [];
+    form.is_sandbox = !!user.is_sandbox;
     showingUserModal.value = true;
 };
 
@@ -129,6 +131,9 @@ const deleteUser = (id) => {
                                             <span v-for="role in user.roles" :key="role.id" class="badge bg-info-subtle text-info me-1 text-capitalize">
                                                 {{ role.name }}
                                             </span>
+                                            <span v-if="user.is_sandbox" class="badge bg-warning-subtle text-warning me-1">
+                                                Sandbox
+                                            </span>
                                         </td>
                                         <td>{{ new Date(user.created_at).toLocaleDateString() }}</td>
                                         <td class="text-end">
@@ -209,6 +214,16 @@ const deleteUser = (id) => {
                                     </label>
                                 </div>
                                 <div v-if="form.errors.send_email" class="text-danger small mt-1">{{ form.errors.send_email }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isSandbox" v-model="form.is_sandbox">
+                                    <label class="form-check-label fw-semibold text-warning" for="isSandbox">
+                                        Enable Sandbox Mode (Isolated Demo Environment)
+                                    </label>
+                                    <p class="text-muted small mb-0 mt-1">When enabled, this user will have a completely isolated SQLite database to play in, keeping your real production data 100% hidden and secure.</p>
+                                </div>
+                                <div v-if="form.errors.is_sandbox" class="text-danger small mt-1">{{ form.errors.is_sandbox }}</div>
                             </div>
 
                         </div>

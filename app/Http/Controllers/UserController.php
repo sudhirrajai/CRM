@@ -64,6 +64,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             'roles' => 'required|array',
             'permissions' => 'nullable|array',
+            'is_sandbox' => 'nullable|boolean',
             'send_email' => 'nullable|boolean',
         ]);
 
@@ -71,6 +72,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'is_sandbox' => $request->boolean('is_sandbox'),
         ]);
 
         $user->assignRole($validated['roles']);
@@ -117,12 +119,14 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8',
             'roles' => 'required|array',
             'permissions' => 'nullable|array',
+            'is_sandbox' => 'nullable|boolean',
             'send_email' => 'nullable|boolean',
         ]);
 
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'is_sandbox' => $request->boolean('is_sandbox'),
         ]);
 
         if (!empty($validated['password'])) {
