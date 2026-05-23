@@ -147,23 +147,29 @@ const calculateTotal = () => {
 };
 
 const submit = () => {
-    calculateTotal();
+    try {
+        calculateTotal();
 
-    const rawInput = form.extra_recipients_input;
-    form.extra_recipients = (rawInput || '')
-        .split(/[\n,;]+/)
-        .map((email) => email.trim().toLowerCase())
-        .filter((email, index, arr) => email && arr.indexOf(email) === index);
+        const rawInput = form.extra_recipients_input;
+        form.extra_recipients = (rawInput || '')
+            .split(/[\n,;]+/)
+            .map((email) => email.trim().toLowerCase())
+            .filter((email, index, arr) => email && arr.indexOf(email) === index);
 
-    form.put(route('invoices.update', props.invoice.id), {
-        preserveScroll: true,
-        onError: (errors) => {
-            alert('Validation errors: ' + JSON.stringify(errors));
-        },
-        onSuccess: () => {
-            // Successfully updated
-        },
-    });
+        const url = route('invoices.update', props.invoice.id);
+
+        form.put(url, {
+            preserveScroll: true,
+            onError: (errors) => {
+                alert('Validation errors: ' + JSON.stringify(errors));
+            },
+            onSuccess: () => {
+                // Successfully updated
+            },
+        });
+    } catch (e) {
+        alert('JS Error in submit: ' + e.message);
+    }
 };
 </script>
 
