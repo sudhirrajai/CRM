@@ -38,16 +38,27 @@ class ReportController extends Controller
 
     public function index()
     {
+        $driver = DB::connection()->getDriverName();
+        $monthIssueDate = $driver === 'sqlite' 
+            ? "cast(strftime('%m', issue_date) as integer)" 
+            : "MONTH(issue_date)";
+        $monthDate = $driver === 'sqlite' 
+            ? "cast(strftime('%m', date) as integer)" 
+            : "MONTH(date)";
+        $monthCreatedAt = $driver === 'sqlite' 
+            ? "cast(strftime('%m', created_at) as integer)" 
+            : "MONTH(created_at)";
+
         $monthlyRevenue = DB::table('invoices')
             ->where('status', 'paid')
             ->whereYear('issue_date', Carbon::now()->year)
-            ->select(DB::raw('MONTH(issue_date) as month'), DB::raw('SUM(total_amount) as total'))
+            ->select(DB::raw("{$monthIssueDate} as month"), DB::raw('SUM(total_amount) as total'))
             ->groupBy('month')
             ->get();
 
         $monthlyExpenses = DB::table('expenses')
             ->whereYear('date', Carbon::now()->year)
-            ->select(DB::raw('MONTH(date) as month'), DB::raw('SUM(amount) as total'))
+            ->select(DB::raw("{$monthDate} as month"), DB::raw('SUM(amount) as total'))
             ->groupBy('month')
             ->get();
 
@@ -58,7 +69,7 @@ class ReportController extends Controller
 
         $clientGrowth = DB::table('clients')
             ->whereYear('created_at', Carbon::now()->year)
-            ->select(DB::raw('MONTH(created_at) as month'), DB::raw('count(*) as total'))
+            ->select(DB::raw("{$monthCreatedAt} as month"), DB::raw('count(*) as total'))
             ->groupBy('month')
             ->get();
 
@@ -208,24 +219,31 @@ class ReportController extends Controller
     public function profitLoss(Request $request)
     {
         $year = $request->get('year', Carbon::now()->year);
-        
+        $driver = DB::connection()->getDriverName();
+        $monthIssueDate = $driver === 'sqlite' 
+            ? "cast(strftime('%m', issue_date) as integer)" 
+            : "MONTH(issue_date)";
+        $monthDate = $driver === 'sqlite' 
+            ? "cast(strftime('%m', date) as integer)" 
+            : "MONTH(date)";
+
         $revenueByMonth = DB::table('invoices')
             ->where('status', 'paid')
             ->whereYear('issue_date', $year)
-            ->select(DB::raw('MONTH(issue_date) as month'), DB::raw('SUM(total_amount) as total'))
+            ->select(DB::raw("{$monthIssueDate} as month"), DB::raw('SUM(total_amount) as total'))
             ->groupBy('month')
             ->get()->pluck('total', 'month')->toArray();
 
         $profitByMonth = DB::table('invoices')
             ->where('status', 'paid')
             ->whereYear('issue_date', $year)
-            ->select(DB::raw('MONTH(issue_date) as month'), DB::raw('SUM(COALESCE(vmcore_profit, total_amount)) as total'))
+            ->select(DB::raw("{$monthIssueDate} as month"), DB::raw('SUM(COALESCE(vmcore_profit, total_amount)) as total'))
             ->groupBy('month')
             ->get()->pluck('total', 'month')->toArray();
 
         $expensesByMonth = DB::table('expenses')
             ->whereYear('date', $year)
-            ->select(DB::raw('MONTH(date) as month'), DB::raw('SUM(amount) as total'))
+            ->select(DB::raw("{$monthDate} as month"), DB::raw('SUM(amount) as total'))
             ->groupBy('month')
             ->get()->pluck('total', 'month')->toArray();
 
