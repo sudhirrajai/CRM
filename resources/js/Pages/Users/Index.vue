@@ -11,6 +11,10 @@ const props = defineProps({
     roles: {
         type: Array,
         required: true
+    },
+    groupedPermissions: {
+        type: Object,
+        required: true
     }
 });
 
@@ -22,6 +26,7 @@ const form = useForm({
     email: '',
     password: '',
     roles: [],
+    permissions: [],
     send_email: false,
 });
 
@@ -38,7 +43,13 @@ const openEditModal = (user) => {
     form.email = user.email;
     form.password = '';
     form.roles = user.roles.map(r => r.name);
+    form.permissions = user.permissions ? user.permissions.map(p => p.name) : [];
     showingUserModal.value = true;
+};
+
+const formatPermissionLabel = (name) => {
+    const parts = name.split('.');
+    return parts.length > 1 ? parts[1] : name;
 };
 
 const submit = () => {
@@ -171,6 +182,24 @@ const deleteUser = (id) => {
                                     </div>
                                 </div>
                                 <div v-if="form.errors.roles" class="text-danger small mt-1">{{ form.errors.roles }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Direct Permissions (Overriding Roles)</label>
+                                <p class="text-muted small mb-2">Select individual permissions to assign directly to this user, bypassing or extending their role-based limits.</p>
+                                <div style="max-height: 200px; overflow-y: auto;" class="border rounded p-3 bg-light shadow-inner">
+                                    <div v-for="(perms, moduleName) in groupedPermissions" :key="moduleName" class="mb-3">
+                                        <h6 class="text-capitalize border-bottom pb-1 text-primary fw-semibold fs-13 mb-2">{{ moduleName }}</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <div v-for="permission in perms" :key="permission.id" class="form-check me-2">
+                                                <input class="form-check-input" type="checkbox" :id="'perm'+permission.id" :value="permission.name" v-model="form.permissions">
+                                                <label class="form-check-label text-capitalize small" :for="'perm'+permission.id">
+                                                    {{ formatPermissionLabel(permission.name) }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="form.errors.permissions" class="text-danger small mt-1">{{ form.errors.permissions }}</div>
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">

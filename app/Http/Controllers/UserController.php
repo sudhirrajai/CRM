@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserCredentialsMail;
 
@@ -14,16 +15,44 @@ class UserController extends Controller
 {
     public function index()
     {
+        $permissions = Permission::all();
+        $grouped = [];
+        foreach ($permissions as $permission) {
+            $parts = explode('.', $permission->name);
+            if (count($parts) > 1) {
+                $module = $parts[0];
+                $grouped[$module][] = [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                ];
+            }
+        }
+
         return Inertia::render('Users/Index', [
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'permissions'])->get(),
             'roles' => Role::all(),
+            'groupedPermissions' => $grouped,
         ]);
     }
 
     public function create()
     {
+        $permissions = Permission::all();
+        $grouped = [];
+        foreach ($permissions as $permission) {
+            $parts = explode('.', $permission->name);
+            if (count($parts) > 1) {
+                $module = $parts[0];
+                $grouped[$module][] = [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                ];
+            }
+        }
+
         return Inertia::render('Users/Create', [
             'roles' => Role::all(),
+            'groupedPermissions' => $grouped,
         ]);
     }
 
@@ -34,6 +63,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'roles' => 'required|array',
+            'permissions' => 'nullable|array',
             'send_email' => 'nullable|boolean',
         ]);
 
@@ -44,6 +74,10 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($validated['roles']);
+        
+        if ($request->has('permissions')) {
+            $user->syncPermissions($validated['permissions'] ?? []);
+        }
 
         if ($request->boolean('send_email')) {
             Mail::to($user->email)->send(new UserCredentialsMail($user, $validated['password']));
@@ -54,9 +88,24 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $permissions = Permission::all();
+        $grouped = [];
+        foreach ($permissions as $permission) {
+            $parts = explode('.', $permission->name);
+            if (count($parts) > 1) {
+                $module = $parts[0];
+                $grouped[$module][] = [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                ];
+            }
+        }
+
         return Inertia::render('Users/Edit', [
             'user' => $user->load('roles'),
             'roles' => Role::all(),
+            'groupedPermissions' => $grouped,
+            'directPermissions' => $user->permissions->pluck('name'),
         ]);
     }
 
@@ -67,6 +116,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'roles' => 'required|array',
+            'permissions' => 'nullable|array',
             'send_email' => 'nullable|boolean',
         ]);
 
@@ -84,6 +134,7 @@ class UserController extends Controller
         }
 
         $user->syncRoles($validated['roles']);
+        $user->syncPermissions($validated['permissions'] ?? []);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

@@ -25,8 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Management Routes (Admin/Staff only)
-    Route::middleware('role:admin,staff')->group(function () {
+    // Management Routes (Authorized by granular permissions)
+    Route::middleware('permission')->group(function () {
         Route::resource('clients', \App\Http\Controllers\ClientController::class)->except(['index', 'show']);
         Route::resource('projects', \App\Http\Controllers\ProjectController::class)->except(['index', 'show']);
         Route::resource('orders', \App\Http\Controllers\OrderController::class)->except(['index', 'show']);
