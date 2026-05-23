@@ -21,11 +21,17 @@ class SandboxDatabase
         if ($user && $user->is_sandbox) {
             $sandboxPath = database_path('sandbox.sqlite');
 
-            // 1. Automatically create and seed the sandbox database if it doesn't exist yet
+            // 1. Swaps the default connection name and package connections for the request context first
+            Config::set('database.default', 'sandbox');
+            Config::set('webpush.database_connection', 'sandbox');
+            DB::purge('sandbox');
+            DB::reconnect('sandbox');
+
+            // 2. Automatically create and seed the sandbox database if it doesn't exist yet
             if (!file_exists($sandboxPath)) {
                 touch($sandboxPath);
 
-                // Run migrations on the sandbox connection
+                // Run migrations on the sandbox connection (default is now sandbox)
                 Artisan::call('migrate', [
                     '--database' => 'sandbox',
                     '--force' => true,
@@ -37,11 +43,6 @@ class SandboxDatabase
                     '--force' => true,
                 ]);
             }
-
-            // 2. Swaps the default connection name for the current request context
-            Config::set('database.default', 'sandbox');
-            DB::purge('sandbox');
-            DB::reconnect('sandbox');
 
             // 3. Eagerly bind the authenticated user instance to the sandbox connection
             $user->setConnection('sandbox');
