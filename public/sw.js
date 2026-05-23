@@ -8,7 +8,11 @@ self.addEventListener('push', function (event) {
     event.waitUntil(
         self.registration.showNotification(data.title || 'New Notification', {
             body: data.body || '',
-            icon: data.icon || '/images/logo.png',
+            icon: data.icon || '/assets/images/favicon.png',
+            badge: data.badge || '/assets/images/logo-sm.png',
+            vibrate: data.vibrate || [100, 50, 100],
+            tag: data.tag || undefined,
+            renotify: data.renotify || false,
             data: data.data || {},
             actions: data.actions || [],
             requireInteraction: true,

@@ -67,11 +67,18 @@ class NewDiscussionMessageNotification extends Notification implements ShouldQue
     public function toWebPush($notifiable, $notification)
     {
         $data = $this->toArray($notifiable);
+        $tag = $this->message->project_id 
+            ? "project-{$this->message->project_id}" 
+            : "group-{$this->message->group_id}";
         
         return (new WebPushMessage)
             ->title($data['title'])
-            ->icon('/images/logo.png')
+            ->icon('/assets/images/favicon.png')
+            ->badge('/assets/images/logo-sm.png')
             ->body($data['body'])
+            ->tag($tag)
+            ->renotify()
+            ->vibrate([100, 50, 100])
             ->action('View Message', 'view_message')
             ->data(['url' => $data['url']]);
     }
