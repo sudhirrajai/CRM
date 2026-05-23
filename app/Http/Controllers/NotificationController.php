@@ -43,7 +43,7 @@ class NotificationController extends Controller
      */
     public function storePushSubscription(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'endpoint'    => 'required|string',
             'keys.auth'   => 'required|string',
             'keys.p256dh' => 'required|string'
