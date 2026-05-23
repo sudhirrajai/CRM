@@ -148,72 +148,77 @@ const profitPercent = computed(() => {
                         </span>
                     </div>
                     <div class="card-body p-0">
-                        <div class="row g-0">
+                        <div class="row g-0 bs-sheet-row">
                             <!-- Left Column: Equity & Liabilities -->
-                            <div class="col-lg-6 bs-col-left">
-                                <table class="table table-borderless mb-0">
-                                    <thead>
-                                        <tr class="bg-light">
-                                            <th class="ps-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em;">Equity & Liabilities</th>
-                                            <th class="text-end pe-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em; width: 160px;">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody v-for="group in liabilities" :key="group.name">
-                                        <!-- Group header -->
-                                        <tr class="bs-group-header">
-                                            <td class="ps-4 py-2 fw-bold text-dark">{{ group.name }}</td>
-                                            <td class="text-end pe-4 py-2 fw-bold text-dark">{{ formatCurrency(group.total) }}</td>
-                                        </tr>
-                                        <!-- Line items -->
-                                        <tr v-for="item in group.items" :key="item.name" class="bs-line-item">
-                                            <td class="ps-5 py-2 text-muted">{{ item.name }}</td>
-                                            <td class="text-end pe-4 py-2" :class="item.is_negative ? 'text-danger' : 'text-body'">
-                                                {{ item.is_negative ? '(' + formatCurrency(item.amount) + ')' : formatCurrency(item.amount) }}
-                                            </td>
-                                        </tr>
-                                        <!-- Spacer -->
-                                        <tr><td colspan="2" class="py-1 border-0"></td></tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="bs-total-row">
-                                            <td class="ps-4 py-3 fw-bold">Total Equity & Liabilities</td>
-                                            <td class="text-end pe-4 py-3 fw-bold fs-6 bs-total-val">{{ formatCurrency(totalVal) }}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="col-lg-6 bs-col-left d-flex flex-column">
+                                <div class="flex-grow-1">
+                                    <table class="table table-borderless mb-0">
+                                        <thead>
+                                            <tr class="bg-light">
+                                                <th class="ps-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em;">Equity & Liabilities</th>
+                                                <th class="text-end pe-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em; width: 160px;">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody v-for="group in liabilities" :key="group.name">
+                                            <!-- Group header -->
+                                            <tr class="bs-group-header">
+                                                <td class="ps-4 py-2 fw-bold text-dark">{{ group.name }}</td>
+                                                <td class="text-end pe-4 py-2 fw-bold text-dark">{{ formatCurrency(group.total) }}</td>
+                                            </tr>
+                                            <!-- Line items -->
+                                            <tr v-for="item in group.items" :key="item.name" class="bs-line-item">
+                                                <td class="ps-5 py-2 text-muted">{{ item.name }}</td>
+                                                <td class="text-end pe-4 py-2" :class="item.is_negative ? 'text-danger' : 'text-body'">
+                                                    {{ item.is_negative ? '(' + formatCurrency(item.amount) + ')' : formatCurrency(item.amount) }}
+                                                </td>
+                                            </tr>
+                                            <!-- Spacer -->
+                                            <tr><td colspan="2" class="py-1 border-0"></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Pinned total bar -->
+                                <div class="bs-total-bar mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center px-4 py-3">
+                                        <span class="fw-bold">Total Equity & Liabilities</span>
+                                        <span class="fw-bold fs-6 bs-total-val">{{ formatCurrency(totalVal) }}</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Right Column: Assets -->
-                            <div class="col-lg-6">
-                                <table class="table table-borderless mb-0">
-                                    <thead>
-                                        <tr class="bg-light">
-                                            <th class="ps-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em;">Assets</th>
-                                            <th class="text-end pe-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em; width: 160px;">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody v-for="group in assets" :key="group.name">
-                                        <tr class="bs-group-header">
-                                            <td class="ps-4 py-2 fw-bold text-dark">{{ group.name }}</td>
-                                            <td class="text-end pe-4 py-2 fw-bold text-dark">{{ formatCurrency(group.total) }}</td>
-                                        </tr>
-                                        <tr v-for="item in group.items" :key="item.name" class="bs-line-item">
-                                            <td class="ps-5 py-2 text-muted">{{ item.name }}</td>
-                                            <td class="text-end pe-4 py-2" :class="item.amount < 0 ? 'text-danger' : 'text-body'">
-                                                {{ item.amount < 0 ? '(' + formatCurrency(Math.abs(item.amount)) + ')' : formatCurrency(item.amount) }}
-                                            </td>
-                                        </tr>
-                                        <tr><td colspan="2" class="py-1 border-0"></td></tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="bs-total-row">
-                                            <td class="ps-4 py-3 fw-bold">Total Assets</td>
-                                            <td class="text-end pe-4 py-3 fw-bold fs-6 bs-total-val">{{ formatCurrency(totalVal) }}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="col-lg-6 d-flex flex-column">
+                                <div class="flex-grow-1">
+                                    <table class="table table-borderless mb-0">
+                                        <thead>
+                                            <tr class="bg-light">
+                                                <th class="ps-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em;">Assets</th>
+                                                <th class="text-end pe-4 py-2 text-uppercase small fw-bold text-secondary" style="letter-spacing: 0.05em; width: 160px;">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody v-for="group in assets" :key="group.name">
+                                            <tr class="bs-group-header">
+                                                <td class="ps-4 py-2 fw-bold text-dark">{{ group.name }}</td>
+                                                <td class="text-end pe-4 py-2 fw-bold text-dark">{{ formatCurrency(group.total) }}</td>
+                                            </tr>
+                                            <tr v-for="item in group.items" :key="item.name" class="bs-line-item">
+                                                <td class="ps-5 py-2 text-muted">{{ item.name }}</td>
+                                                <td class="text-end pe-4 py-2" :class="item.amount < 0 ? 'text-danger' : 'text-body'">
+                                                    {{ item.amount < 0 ? '(' + formatCurrency(Math.abs(item.amount)) + ')' : formatCurrency(item.amount) }}
+                                                </td>
+                                            </tr>
+                                            <tr><td colspan="2" class="py-1 border-0"></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Pinned total bar -->
+                                <div class="bs-total-bar mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center px-4 py-3">
+                                        <span class="fw-bold">Total Assets</span>
+                                        <span class="fw-bold fs-6 bs-total-val">{{ formatCurrency(totalVal) }}</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -320,6 +325,11 @@ const profitPercent = computed(() => {
     border-right: 1px solid #e9ecef;
 }
 
+/* Ensure both columns stretch to equal height */
+.bs-sheet-row {
+    align-items: stretch;
+}
+
 /* Group header row - subtle highlight */
 .bs-group-header td {
     background-color: #f8f9fa;
@@ -332,17 +342,16 @@ const profitPercent = computed(() => {
     border-bottom: 1px solid #f1f3f5;
 }
 
-/* Footer totals - strong visual anchor */
-.bs-total-row {
+/* Pinned total bar at bottom of each column */
+.bs-total-bar {
     background-color: #212529;
-}
-.bs-total-row td {
     color: #fff;
     border-top: 2px solid #3e60d5;
 }
+
 .bs-total-val {
     border-bottom: 3px double #ffc107;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
 }
 
 /* Responsive stacking */
