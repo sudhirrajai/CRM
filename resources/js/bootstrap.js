@@ -20,3 +20,14 @@ window.Echo = new Echo({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
 });
+
+// Debug Echo connection issues
+if (window.Echo && window.Echo.connector && window.Echo.connector.pusher) {
+    console.log('[Echo] Initialized. Reverb host:', import.meta.env.VITE_REVERB_HOST, 'port:', import.meta.env.VITE_REVERB_PORT, 'scheme:', import.meta.env.VITE_REVERB_SCHEME);
+    window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+        console.log('[Echo] Connection state changed:', states);
+    });
+    window.Echo.connector.pusher.connection.bind('error', (err) => {
+        console.error('[Echo] Connection error:', err);
+    });
+}

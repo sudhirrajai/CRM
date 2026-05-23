@@ -56,9 +56,19 @@ const subscribeToWebPush = async () => {
 
         if (permission !== 'granted') return;
 
+        const rawKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        console.log('[WebPush] VITE_VAPID_PUBLIC_KEY raw value in JS bundle:', rawKey);
+
+        const applicationServerKey = urlBase64ToUint8Array(rawKey);
+        
+        if (!applicationServerKey || applicationServerKey.length === 0) {
+            console.error('[WebPush] Decoded applicationServerKey is empty. Subscription aborted.');
+            return;
+        }
+
         const subscribeOptions = {
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+            applicationServerKey
         };
 
         let subscription;
@@ -77,25 +87,43 @@ const subscribeToWebPush = async () => {
 
         await axios.post(route('push-subscriptions.store'), subscription.toJSON());
     } catch (e) {
-        console.error('Failed to subscribe to web push', e);
+        console.error('[WebPush] Failed to subscribe to web push. Error:', e);
     }
 };
 
 // Utility function for VAPID key
 function urlBase64ToUint8Array(base64String) {
-    if (!base64String) return new Uint8Array(0);
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\-/g, '+')
-        .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
+    if (!base64String) {
+        console.error('[WebPush] urlBase64ToUint8Array: base64String is undefined or empty.');
+        return new Uint8Array(0);
     }
-    return outputArray;
+    
+    // Clean up key: strip outer quotes and whitespace
+    let cleaned = base64String.replace(/^["']|["']$/g, '').trim();
+    
+    // Check if it's an unexpanded placeholder
+    if (cleaned.startsWith('${') || cleaned.includes('VAPID_PUBLIC_KEY')) {
+        console.error('[WebPush] urlBase64ToUint8Array: VAPID public key appears to be an unexpanded variable placeholder:', cleaned);
+        return new Uint8Array(0);
+    }
+
+    try {
+        const padding = '='.repeat((4 - cleaned.length % 4) % 4);
+        const base64 = (cleaned + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    } catch (e) {
+        console.error('[WebPush] urlBase64ToUint8Array: Failed to decode base64 string. Cleaned string was:', cleaned, 'Error:', e);
+        return new Uint8Array(0);
+    }
 }
 
 const setupEcho = () => {
