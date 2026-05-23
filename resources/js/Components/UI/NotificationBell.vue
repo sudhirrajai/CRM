@@ -19,13 +19,17 @@ const fetchNotifications = async () => {
     }
 };
 
+import { router } from '@inertiajs/vue3';
+
 const markAsRead = async (id, url) => {
     try {
         await axios.post(route('notifications.read', id));
         unreadCount.value = Math.max(0, unreadCount.value - 1);
         const notif = notifications.value.find(n => n.id === id);
         if (notif) notif.read_at = new Date().toISOString();
-        if (url) window.location.href = url;
+        if (url) {
+            router.visit(url);
+        }
     } catch (e) {
         console.error('Failed to mark notification as read', e);
     }
