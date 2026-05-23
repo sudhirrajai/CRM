@@ -46,49 +46,52 @@ class SandboxDatabase
 
             // 3. Synchronize the sandbox user, their direct permissions, roles, and mappings from MySQL production to SQLite sandbox on-the-fly
             try {
+                // To prevent unique constraint violations and UUID mismatches between MySQL and SQLite seeders,
+                // we wipe the Spatie permission tables in SQLite first and perform a clean replica copy.
+                DB::connection('sandbox')->table('model_has_permissions')->delete();
+                DB::connection('sandbox')->table('model_has_roles')->delete();
+                DB::connection('sandbox')->table('role_has_permissions')->delete();
+                DB::connection('sandbox')->table('roles')->delete();
+                DB::connection('sandbox')->table('permissions')->delete();
+
                 // Copy roles from mysql to sandbox sqlite
                 $roles = DB::connection('mysql')->table('roles')->get();
                 foreach ($roles as $role) {
-                    DB::connection('sandbox')->table('roles')->updateOrInsert(['id' => $role->id], (array)$role);
+                    DB::connection('sandbox')->table('roles')->insert((array)$role);
                 }
 
                 // Copy permissions from mysql to sandbox sqlite
                 $permissions = DB::connection('mysql')->table('permissions')->get();
                 foreach ($permissions as $permission) {
-                    DB::connection('sandbox')->table('permissions')->updateOrInsert(['id' => $permission->id], (array)$permission);
+                    DB::connection('sandbox')->table('permissions')->insert((array)$permission);
                 }
 
                 // Copy role_has_permissions from mysql to sandbox sqlite
                 $roleHasPermissions = DB::connection('mysql')->table('role_has_permissions')->get();
                 foreach ($roleHasPermissions as $rhp) {
-                    DB::connection('sandbox')->table('role_has_permissions')->updateOrInsert(
-                        ['permission_id' => $rhp->permission_id, 'role_id' => $rhp->role_id],
-                        (array)$rhp
-                    );
+                    DB::connection('sandbox')->table('role_has_permissions')->insert((array)$rhp);
                 }
 
                 // Copy the sandbox user record from mysql to sandbox sqlite
                 $userRecord = DB::connection('mysql')->table('users')->where('id', $user->id)->first();
                 if ($userRecord) {
-                    DB::connection('sandbox')->table('users')->updateOrInsert(['id' => $userRecord->id], (array)$userRecord);
+                    // Wipe any existing conflicting user records with the same ID or email in SQLite
+                    DB::connection('sandbox')->table('users')->where('id', $user->id)->delete();
+                    DB::connection('sandbox')->table('users')->where('email', $userRecord->email)->delete();
+
+                    DB::connection('sandbox')->table('users')->insert((array)$userRecord);
                 }
 
                 // Copy the user's role mappings from mysql to sandbox sqlite
                 $userRoles = DB::connection('mysql')->table('model_has_roles')->where('model_id', $user->id)->get();
                 foreach ($userRoles as $ur) {
-                    DB::connection('sandbox')->table('model_has_roles')->updateOrInsert(
-                        ['role_id' => $ur->role_id, 'model_type' => $ur->model_type, 'model_id' => $ur->model_id],
-                        (array)$ur
-                    );
+                    DB::connection('sandbox')->table('model_has_roles')->insert((array)$ur);
                 }
 
                 // Copy the user's direct permission mappings from mysql to sandbox sqlite
                 $userPermissions = DB::connection('mysql')->table('model_has_permissions')->where('model_id', $user->id)->get();
                 foreach ($userPermissions as $up) {
-                    DB::connection('sandbox')->table('model_has_permissions')->updateOrInsert(
-                        ['permission_id' => $up->permission_id, 'model_type' => $up->model_type, 'model_id' => $up->model_id],
-                        (array)$up
-                    );
+                    DB::connection('sandbox')->table('model_has_permissions')->insert((array)$up);
                 }
             } catch (\Exception $e) {
                 // Log sync error so the request doesn't crash in case of edge cases
