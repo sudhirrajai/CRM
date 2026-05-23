@@ -42,7 +42,7 @@ class NewDiscussionMessageNotification extends Notification implements ShouldQue
     public function toArray(object $notifiable): array
     {
         $title = $this->message->project_id 
-            ? "New message in project: {$this->message->project->title}" 
+            ? "New message in project: {$this->message->project->name}" 
             : "New message in group: {$this->message->group->name}";
 
         $url = $this->message->project_id 
@@ -52,7 +52,7 @@ class NewDiscussionMessageNotification extends Notification implements ShouldQue
         return [
             'message_id' => $this->message->id,
             'title' => $title,
-            'body' => $this->message->user->name . ': ' . strip_tags($this->message->content),
+            'body' => $this->message->user->name . ': ' . strip_tags($this->message->message),
             'url' => $url,
             'user_id' => $this->message->user_id,
             'user_name' => $this->message->user->name,
