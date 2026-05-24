@@ -74,10 +74,10 @@ class InvoiceController extends Controller
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.total' => 'required|numeric|min:0',
+            'items.*.description' => 'nullable|string',
+            'items.*.quantity' => 'nullable|numeric|min:0',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.total' => 'nullable|numeric|min:0',
         ]);
 
         $this->syncInvoiceTotals($validated);
@@ -159,10 +159,10 @@ class InvoiceController extends Controller
             'selected_crs' => 'nullable|array',
             'selected_crs.*' => 'exists:change_requests,id',
             'items' => 'nullable|array',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.total' => 'required|numeric|min:0',
+            'items.*.description' => 'nullable|string',
+            'items.*.quantity' => 'nullable|numeric|min:0',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.total' => 'nullable|numeric|min:0',
         ]);
 
         $this->syncInvoiceTotals($validated);

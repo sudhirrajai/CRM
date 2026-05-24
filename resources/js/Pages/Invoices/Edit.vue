@@ -147,29 +147,17 @@ const calculateTotal = () => {
 };
 
 const submit = () => {
-    try {
-        calculateTotal();
+    calculateTotal();
 
-        const rawInput = form.extra_recipients_input;
-        form.extra_recipients = (rawInput || '')
-            .split(/[\n,;]+/)
-            .map((email) => email.trim().toLowerCase())
-            .filter((email, index, arr) => email && arr.indexOf(email) === index);
+    const rawInput = form.extra_recipients_input;
+    form.extra_recipients = (rawInput || '')
+        .split(/[\n,;]+/)
+        .map((email) => email.trim().toLowerCase())
+        .filter((email, index, arr) => email && arr.indexOf(email) === index);
 
-        const url = route('invoices.update', props.invoice.id);
-
-        form.put(url, {
-            preserveScroll: true,
-            onError: (errors) => {
-                alert('Validation errors: ' + JSON.stringify(errors));
-            },
-            onSuccess: () => {
-                // Successfully updated
-            },
-        });
-    } catch (e) {
-        alert('JS Error in submit: ' + e.message);
-    }
+    form.put(route('invoices.update', props.invoice.id), {
+        preserveScroll: true,
+    });
 };
 </script>
 
