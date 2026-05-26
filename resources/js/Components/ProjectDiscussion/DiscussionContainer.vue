@@ -24,6 +24,7 @@ const searchQuery = ref('');
 const isSearchFocused = ref(false);
 const lastReadId = ref(null);
 const replyTo = ref(null);
+const showScrollButton = ref(false);
 
 // Real-time State
 const onlineUsers = ref([]);
@@ -51,11 +52,15 @@ const fetchDiscussions = async () => {
     }
 };
 
-const scrollToBottom = () => {
+const scrollToBottom = (behavior = 'auto') => {
     nextTick(() => {
         const container = document.getElementById('discussion-scroll');
         if (container) {
-            container.scrollTop = container.scrollHeight;
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: behavior
+            });
+            showScrollButton.value = false;
         }
     });
 };
@@ -198,9 +203,13 @@ onMounted(() => {
     const container = document.getElementById('discussion-scroll');
     if (container) {
         container.addEventListener('scroll', () => {
-            if (container.scrollHeight - container.scrollTop - container.clientHeight < 50) {
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            if (distanceFromBottom < 50) {
                 markAsRead();
             }
+            
+            // Show scroll button if user has scrolled up more than 200px
+            showScrollButton.value = distanceFromBottom > 200;
         });
     }
 });
@@ -289,6 +298,16 @@ onUnmounted(() => {
                         <div class="typing-container position-absolute bottom-0 start-0 w-100 p-2 pe-none">
                             <TypingIndicator :users="usersTyping" />
                         </div>
+                        
+                        <!-- Scroll to bottom button -->
+                        <button 
+                            v-show="showScrollButton"
+                            @click="scrollToBottom('smooth')"
+                            class="btn btn-primary rounded-circle shadow scroll-bottom-btn d-flex align-items-center justify-content-center"
+                            title="Scroll to bottom"
+                        >
+                            <i class="ti ti-chevron-down fs-5"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -427,6 +446,24 @@ onUnmounted(() => {
     padding: 10px 16px 12px;
     background: #fff;
     border-top: 1px solid #eef2f7;
+    z-index: 10;
+}
+
+/* Scroll to bottom button */
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    z-index: 100;
+    opacity: 0.9;
+    transition: all 0.2s ease;
+}
+
+.scroll-bottom-btn:hover {
+    opacity: 1;
+    transform: translateY(-2px);
 }
 
 /* --- Right sidebar column --- */
