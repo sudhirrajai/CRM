@@ -87,7 +87,7 @@ class ProjectDiscussionController extends Controller
         }
 
         $discussions = $project->discussions()
-            ->with(['user', 'attachments', 'replies.user', 'replies.attachments'])
+            ->with(['user', 'attachments', 'parent.user'])
             ->oldest()
             ->paginate(100);
 
@@ -143,7 +143,7 @@ class ProjectDiscussionController extends Controller
             }
         }
 
-        $discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']);
+        $discussion->load(['user', 'attachments', 'parent.user']);
 
         // Broadcast the new message
         broadcast(new NewDiscussionMessage($discussion))->toOthers();
@@ -185,7 +185,7 @@ class ProjectDiscussionController extends Controller
             'edited_at' => Carbon::now(),
         ]);
 
-        $discussion->load(['user', 'attachments', 'replies.user', 'replies.attachments']);
+        $discussion->load(['user', 'attachments', 'parent.user']);
 
         // Broadcast the update
         broadcast(new DiscussionMessageUpdated($discussion))->toOthers();

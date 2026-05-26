@@ -30,7 +30,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['updated', 'deleted', 'reply']);
+const emit = defineEmits(['updated', 'deleted', 'reply', 'scroll-to']);
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 
@@ -39,6 +39,8 @@ const editMessage = ref(props.message.message);
 const updating = ref(false);
 const showDeleteModal = ref(false);
 const isDeleting = ref(false);
+
+const isMe = computed(() => props.message.user_id === authUser.value.id);
 
 const canEdit = computed(() => {
     if (props.message.user_id !== authUser.value.id) return false;
@@ -131,11 +133,15 @@ const renderedMessage = computed(() => {
 </script>
 
 <template>
-    <div class="message-wrapper animate-slide-in" :class="{ 'is-me': message.user_id === authUser.id, 'is-reply': isReply }">
-        <div class="message-item d-flex gap-2 position-relative group" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
+    <div 
+        :id="`msg-${message.id}`"
+        class="message-wrapper animate-slide-in" 
+        :class="{ 'is-me': isMe }"
+    >
+        <div class="message-item d-flex gap-2 position-relative group" :class="{ 'flex-row-reverse': isMe }">
             
             <!-- Avatar -->
-            <div v-if="message.user_id !== authUser.id" class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
+            <div v-if="!isMe" class="avatar flex-shrink-0 align-self-end mb-1 d-none d-sm-block">
                 <div 
                     class="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold bg-light text-muted border"
                     style="width: 32px; height: 32px; font-size: 11px;"
@@ -144,24 +150,28 @@ const renderedMessage = computed(() => {
                 </div>
             </div>
             
-            <div class="content-container d-flex flex-column" :class="message.user_id === authUser.id ? 'align-items-end self' : 'align-items-start other'" style="max-width: 85%;">
+            <div class="content-container d-flex flex-column" :class="isMe ? 'align-items-end self' : 'align-items-start other'" style="max-width: 85%;">
                 <!-- User name (Only for others) -->
-                <div v-if="message.user_id !== authUser.id && !isReply" class="user-name text-muted mb-1 px-2 fw-medium" style="font-size: 0.7rem;">
+                <div v-if="!isMe" class="user-name text-muted mb-1 px-2 fw-medium" style="font-size: 0.7rem;">
                     {{ message.user.name }}
                 </div>
                 
-                <div class="message-bubble-row d-flex align-items-center gap-2 w-100" :class="{ 'flex-row-reverse': message.user_id === authUser.id }">
+                <div class="message-bubble-row d-flex align-items-center gap-2 w-100" :class="{ 'flex-row-reverse': isMe }">
                     <!-- Message Bubble -->
                     <div v-if="!isEditing" class="message-bubble" :class="[
-                        message.user_id === authUser.id 
+                        isMe 
                             ? 'bubble-self' 
                             : 'bubble-other'
                     ]">
-                        <!-- Reply Context In Bubble -->
-                        <div v-if="message.parent" class="reply-context-bubble mb-2 p-2 rounded border-start border-3 border-primary small cursor-pointer" @click="$emit('scroll-to', message.parent_id)"
-                             :class="message.user_id === authUser.id ? 'bg-white bg-opacity-10' : 'bg-light'">
-                           <div class="fw-bold opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-primary'" style="font-size: 0.7rem;">{{ message.parent.user?.name }}</div>
-                           <div class="text-truncate opacity-75" :class="message.user_id === authUser.id ? 'text-white' : 'text-muted'" style="font-size: 0.7rem;">{{ message.parent.message }}</div>
+                        <!-- Quoted Reply Context (WhatsApp-style) -->
+                        <div 
+                            v-if="message.parent" 
+                            class="reply-quote cursor-pointer"
+                            :class="isMe ? 'reply-quote-self' : 'reply-quote-other'"
+                            @click="$emit('scroll-to', message.parent_id)"
+                        >
+                            <div class="reply-quote-name">{{ message.parent.user?.name }}</div>
+                            <div class="reply-quote-text">{{ message.parent.message || '📎 Attachment' }}</div>
                         </div>
 
                         <!-- Message Text -->
@@ -173,10 +183,10 @@ const renderedMessage = computed(() => {
                         </div>
 
                         <!-- Bottom Metadata -->
-                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1 opacity-60" style="font-size: 10px;">
+                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1 message-meta">
                             <span class="timestamp">{{ formatDate(message.created_at) }}</span>
                             <span v-if="message.is_edited">· edited</span>
-                            <ReadReceipts v-if="message.user_id === authUser.id" :message="message" :read-by="message.read_by || []" />
+                            <ReadReceipts v-if="isMe" :message="message" :read-by="message.read_by || []" />
                         </div>
                     </div>
                     
@@ -218,28 +228,30 @@ const renderedMessage = computed(() => {
 
 <style scoped>
 .message-wrapper {
-    margin-bottom: 0.6rem;
-    padding: 0 0.5rem;
+    margin-bottom: 0.35rem;
+    padding: 2px 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.5s ease;
 }
 
 .message-bubble {
     max-width: 80%;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     position: relative;
     line-height: 1.5;
     font-size: 0.875rem;
     transition: all 0.2s ease;
 }
 
-/* Self (my messages) - use admin primary color */
+/* Self (my messages) - WhatsApp-style teal/green tint */
 .bubble-self {
     background-color: var(--bs-primary, #3e60d5);
     color: #ffffff;
     border-radius: 0.75rem 0.75rem 0.2rem 0.75rem;
-    box-shadow: 0 2px 8px rgba(62, 96, 213, 0.15);
+    box-shadow: 0 1px 4px rgba(62, 96, 213, 0.12);
 }
 
-/* Other (received messages) */
+/* Other (received messages) - clean white */
 .bubble-other {
     background-color: #ffffff;
     color: #343a40;
@@ -248,10 +260,71 @@ const renderedMessage = computed(() => {
     border: 1px solid #eef2f7;
 }
 
-.reply-context-bubble {
-    max-width: 100%;
+/* ===========================
+   REPLY QUOTE (WhatsApp-style)
+   =========================== */
+.reply-quote {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    border-left: 3px solid;
+    cursor: pointer;
+    transition: filter 0.15s ease;
     overflow: hidden;
-    border-radius: 4px;
+}
+
+.reply-quote:hover {
+    filter: brightness(0.95);
+}
+
+/* Quote inside my bubble (light overlay on primary bg) */
+.reply-quote-self {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+.reply-quote-self .reply-quote-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.reply-quote-self .reply-quote-text {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Quote inside other's bubble (subtle tint) */
+.reply-quote-other {
+    background-color: #f0f4ff;
+    border-left-color: var(--bs-primary, #3e60d5);
+}
+
+.reply-quote-other .reply-quote-name {
+    color: var(--bs-primary, #3e60d5);
+}
+
+.reply-quote-other .reply-quote-text {
+    color: #6c757d;
+}
+
+.reply-quote-name {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1px;
+}
+
+.reply-quote-text {
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+/* ===========================
+   MESSAGE METADATA
+   =========================== */
+.message-meta {
+    font-size: 10px;
+    opacity: 0.6;
 }
 
 /* Actions */
@@ -323,7 +396,7 @@ const renderedMessage = computed(() => {
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
-.opacity-60 {
-    opacity: 0.6;
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

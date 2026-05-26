@@ -70,9 +70,6 @@ const getFriendlyDate = (dateString) => {
 // Check if a message is unread
 const isUnread = (message) => {
     if (!props.lastReadId) return true;
-    // This is simplified; in a production app, we'd compare message dates 
-    // or keep an ordered list of IDs to find what came after the last read ID.
-    // For now, if current message ID is after last read ID in our array, it's new.
     const lastReadIdx = props.discussions.findIndex(d => d.id === props.lastReadId);
     const currentIdx = props.discussions.findIndex(d => d.id === message.id);
     return currentIdx > lastReadIdx;
@@ -85,6 +82,16 @@ const firstUnreadId = computed(() => {
     if (lastReadIdx === -1 || lastReadIdx === props.discussions.length - 1) return null;
     return props.discussions[lastReadIdx + 1]?.id;
 });
+
+// Smooth scroll to a specific message with pulse animation
+const scrollToMessage = (messageId) => {
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight-pulse');
+        setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
+    }
+};
 </script>
 
 <template>
@@ -115,26 +122,8 @@ const firstUnreadId = computed(() => {
                     @updated="emit('message-updated')" 
                     @deleted="emit('message-deleted')"
                     @reply="emit('reply', $event)"
-                    @scroll-to="$emit('scroll-to', $event)"
+                    @scroll-to="scrollToMessage($event)"
                 />
-                
-                <!-- Replies -->
-                <div v-if="item.value.replies && item.value.replies.length > 0" class="replies-container ms-5 ps-3 border-start border-2 border-light-subtle">
-                    <MessageItem 
-                        v-for="reply in item.value.replies" 
-                        :key="reply.id" 
-                        :message="reply" 
-                        :is-reply="true"
-                        :project="project"
-                        :members="members"
-                        :search-query="searchQuery"
-                        :is-group="isGroup"
-                        @updated="emit('message-updated')" 
-                        @deleted="emit('message-deleted')"
-                        @reply="emit('reply', $event)"
-                        @scroll-to="$emit('scroll-to', $event)"
-                    />
-                </div>
             </div>
         </div>
     </div>
@@ -154,23 +143,22 @@ const firstUnreadId = computed(() => {
     letter-spacing: 0.15em;
 }
 
-.replies-container {
-    transition: all 0.3s ease;
-    margin-top: -0.25rem;
-    margin-bottom: 0.5rem;
-}
-
-@media (max-width: 576px) {
-    .replies-container {
-        margin-left: 1.25rem !important;
-    }
-}
-
 .letter-spacing-2 {
     letter-spacing: 0.15em;
 }
 
 .message-list-container {
     padding-bottom: 20px;
+}
+
+/* Pulse highlight animation for scroll-to-message */
+:deep(.highlight-pulse) {
+    animation: highlightPulse 2s ease-out;
+}
+
+@keyframes highlightPulse {
+    0% { background-color: rgba(62, 96, 213, 0.15); }
+    30% { background-color: rgba(62, 96, 213, 0.2); }
+    100% { background-color: transparent; }
 }
 </style>

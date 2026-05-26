@@ -113,40 +113,18 @@ const setupEcho = () => {
 };
 
 const handleNewMessage = (newMessage) => {
-    if (newMessage.parent_id) {
-        const parent = discussions.value.find(d => d.id === newMessage.parent_id);
-        if (parent) {
-            if (!parent.replies) parent.replies = [];
-            parent.replies.push(newMessage);
-        }
-    } else {
-        discussions.value.push(newMessage);
-        scrollToBottom();
-    }
+    // Flat chat: always append to the main list
+    discussions.value.push(newMessage);
+    scrollToBottom();
 };
 
 const handleMessageUpdated = (updatedMessage) => {
-    if (updatedMessage.parent_id) {
-        const parent = discussions.value.find(d => d.id === updatedMessage.parent_id);
-        if (parent) {
-            const index = parent.replies.findIndex(r => r.id === updatedMessage.id);
-            if (index !== -1) parent.replies[index] = updatedMessage;
-        }
-    } else {
-        const index = discussions.value.findIndex(d => d.id === updatedMessage.id);
-        if (index !== -1) discussions.value[index] = updatedMessage;
-    }
+    const index = discussions.value.findIndex(d => d.id === updatedMessage.id);
+    if (index !== -1) discussions.value[index] = updatedMessage;
 };
 
 const handleMessageDeleted = (e) => {
-    if (e.parentId) {
-        const parent = discussions.value.find(d => d.id === e.parentId);
-        if (parent) {
-            parent.replies = parent.replies.filter(r => r.id !== e.messageId);
-        }
-    } else {
-        discussions.value = discussions.value.filter(d => d.id !== e.messageId);
-    }
+    discussions.value = discussions.value.filter(d => d.id !== e.messageId);
 };
 
 const handleReadEvent = (e) => {

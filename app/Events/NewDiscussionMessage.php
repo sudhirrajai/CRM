@@ -18,7 +18,7 @@ class NewDiscussionMessage implements ShouldBroadcast
 
     public function __construct(ProjectDiscussion $message)
     {
-        $this->message = $message->load(['user', 'attachments', 'replies.user', 'replies.attachments']);
+        $this->message = $message->load(['user', 'attachments', 'parent.user']);
     }
 
     public function broadcastOn(): array
