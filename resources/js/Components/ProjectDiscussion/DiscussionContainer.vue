@@ -187,6 +187,8 @@ const filteredDiscussions = computed(() => {
 const searchInput = ref(null);
 let handleGlobalKeydown = null;
 
+let observer = null;
+
 onMounted(() => {
     fetchDiscussions();
     
@@ -202,16 +204,25 @@ onMounted(() => {
     setupEcho();
     
     const container = document.getElementById('discussion-scroll');
-    if (container) {
-        container.addEventListener('scroll', () => {
-            const distanceFromBottom = container.scrollHeight - Math.ceil(container.scrollTop) - container.clientHeight;
-            if (distanceFromBottom < 50) {
+    const bottomAnchor = document.getElementById('scroll-bottom-anchor');
+    
+    if (container && bottomAnchor) {
+        observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            // If the anchor is NOT visible (intersecting), it means we are scrolled up.
+            showScrollButton.value = !entry.isIntersecting;
+            
+            // If the anchor is visible, mark messages as read.
+            if (entry.isIntersecting) {
                 markAsRead();
             }
-            
-            // Show scroll button if user has scrolled up more than 100px from the absolute bottom
-            showScrollButton.value = distanceFromBottom > 100;
+        }, {
+            root: container,
+            threshold: 0,
+            rootMargin: '150px 0px 0px 0px' // Trigger slightly before hitting absolute bottom
         });
+        
+        observer.observe(bottomAnchor);
     }
 });
 
@@ -222,6 +233,9 @@ onUnmounted(() => {
     }
     if (handleGlobalKeydown) {
         window.removeEventListener('keydown', handleGlobalKeydown);
+    }
+    if (observer) {
+        observer.disconnect();
     }
 });
 </script>
@@ -295,21 +309,24 @@ onUnmounted(() => {
                             @scroll-to="scrollToBottom"
                         />
                         
+                        <!-- Invisible anchor for Intersection Observer -->
+                        <div id="scroll-bottom-anchor" style="height: 10px; width: 100%; flex-shrink: 0;"></div>
+
                         <!-- Typing Feedback (Floating) -->
                         <div class="typing-container position-absolute bottom-0 start-0 w-100 p-2 pe-none">
                             <TypingIndicator :users="usersTyping" />
                         </div>
-                        
-                        <!-- Scroll to bottom button -->
-                        <button 
-                            v-show="showScrollButton"
-                            @click="scrollToBottom('smooth')"
-                            class="btn btn-primary rounded-circle shadow scroll-bottom-btn d-flex align-items-center justify-content-center"
-                            title="Scroll to bottom"
-                        >
-                            <i class="ti ti-chevron-down fs-5"></i>
-                        </button>
                     </div>
+
+                    <!-- Scroll to bottom button (Moved OUTSIDE scroll container for proper absolute positioning) -->
+                    <button 
+                        v-show="showScrollButton"
+                        @click="scrollToBottom('smooth')"
+                        class="btn btn-primary rounded-circle shadow scroll-bottom-btn d-flex align-items-center justify-content-center"
+                        title="Scroll to bottom"
+                    >
+                        <i class="ti ti-chevron-down fs-5"></i>
+                    </button>
                 </div>
 
                 <!-- Input Area -->
