@@ -53,6 +53,7 @@ const fetchDiscussions = async () => {
 };
 
 const scrollToBottom = (behavior = 'auto') => {
+    showScrollButton.value = false;
     nextTick(() => {
         const container = document.getElementById('discussion-scroll');
         if (container) {
@@ -60,7 +61,7 @@ const scrollToBottom = (behavior = 'auto') => {
                 top: container.scrollHeight,
                 behavior: behavior
             });
-            showScrollButton.value = false;
+            setTimeout(() => { showScrollButton.value = false; }, 300);
         }
     });
 };
@@ -203,13 +204,13 @@ onMounted(() => {
     const container = document.getElementById('discussion-scroll');
     if (container) {
         container.addEventListener('scroll', () => {
-            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            const distanceFromBottom = container.scrollHeight - Math.ceil(container.scrollTop) - container.clientHeight;
             if (distanceFromBottom < 50) {
                 markAsRead();
             }
             
-            // Show scroll button if user has scrolled up more than 200px
-            showScrollButton.value = distanceFromBottom > 200;
+            // Show scroll button if user has scrolled up more than 100px from the absolute bottom
+            showScrollButton.value = distanceFromBottom > 100;
         });
     }
 });
