@@ -23,6 +23,8 @@ const props = defineProps({
 });
 
 const filterStatus = ref('all');
+const filterSub = ref('all');
+const searchQuery = ref('');
 const selectedResults = ref([]);
 const showQualifyModal = ref(false);
 const showBulkQualifyModal = ref(false);
@@ -30,8 +32,32 @@ const qualifyingResult = ref(null);
 
 // Filter results
 const filteredResults = computed(() => {
-    if (filterStatus.value === 'all') return props.results;
-    return props.results.filter(r => r.status === filterStatus.value);
+    let list = props.results;
+    if (filterStatus.value !== 'all') {
+        list = list.filter(r => r.status === filterStatus.value);
+    }
+    if (filterSub.value === 'has_email') {
+        list = list.filter(r => !!r.email);
+    } else if (filterSub.value === 'has_whatsapp') {
+        list = list.filter(r => !!r.whatsapp_url || !!r.whatsapp_number);
+    } else if (filterSub.value === 'no_website') {
+        list = list.filter(r => !r.website);
+    } else if (filterSub.value === 'has_website') {
+        list = list.filter(r => !!r.website);
+    }
+
+    if (searchQuery.value && searchQuery.value.trim() !== '') {
+        const q = searchQuery.value.toLowerCase().trim();
+        list = list.filter(r =>
+            (r.title && r.title.toLowerCase().includes(q)) ||
+            (r.category && r.category.toLowerCase().includes(q)) ||
+            (r.address && r.address.toLowerCase().includes(q)) ||
+            (r.phone && r.phone.toLowerCase().includes(q)) ||
+            (r.email && r.email.toLowerCase().includes(q))
+        );
+    }
+
+    return list;
 });
 
 // Stats
@@ -242,24 +268,54 @@ function getRowClass(result) {
         <div class="card">
             <div class="card-body py-2">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <div class="d-flex gap-2">
-                        <button @click="filterStatus = 'all'" class="btn btn-sm" :class="filterStatus === 'all' ? 'btn-primary' : 'btn-outline-secondary'">
-                            All ({{ stats.total }})
-                        </button>
-                        <button @click="filterStatus = 'new'" class="btn btn-sm" :class="filterStatus === 'new' ? 'btn-primary' : 'btn-outline-secondary'">
-                            New ({{ stats.new }})
-                        </button>
-                        <button @click="filterStatus = 'qualified'" class="btn btn-sm" :class="filterStatus === 'qualified' ? 'btn-success' : 'btn-outline-secondary'">
-                            Qualified ({{ stats.qualified }})
-                        </button>
-                        <button @click="filterStatus = 'disqualified'" class="btn btn-sm" :class="filterStatus === 'disqualified' ? 'btn-secondary' : 'btn-outline-secondary'">
-                            Disqualified ({{ stats.disqualified }})
-                        </button>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="btn-group btn-group-sm">
+                            <button @click="filterStatus = 'all'" class="btn" :class="filterStatus === 'all' ? 'btn-primary' : 'btn-outline-secondary'">
+                                All ({{ stats.total }})
+                            </button>
+                            <button @click="filterStatus = 'new'" class="btn" :class="filterStatus === 'new' ? 'btn-primary' : 'btn-outline-secondary'">
+                                New ({{ stats.new }})
+                            </button>
+                            <button @click="filterStatus = 'qualified'" class="btn" :class="filterStatus === 'qualified' ? 'btn-success' : 'btn-outline-secondary'">
+                                Qualified ({{ stats.qualified }})
+                            </button>
+                            <button @click="filterStatus = 'disqualified'" class="btn" :class="filterStatus === 'disqualified' ? 'btn-secondary' : 'btn-outline-secondary'">
+                                Disqualified ({{ stats.disqualified }})
+                            </button>
+                        </div>
+
+                        <div class="vr mx-1"></div>
+
+                        <div class="btn-group btn-group-sm">
+                            <button @click="filterSub = 'all'" class="btn" :class="filterSub === 'all' ? 'btn-dark' : 'btn-outline-secondary'">
+                                All Attributes
+                            </button>
+                            <button @click="filterSub = 'has_email'" class="btn" :class="filterSub === 'has_email' ? 'btn-info' : 'btn-outline-secondary'">
+                                <i class="ti ti-mail me-1"></i> Has Email
+                            </button>
+                            <button @click="filterSub = 'has_whatsapp'" class="btn" :class="filterSub === 'has_whatsapp' ? 'btn-success' : 'btn-outline-secondary'">
+                                <i class="ti ti-brand-whatsapp me-1"></i> Has WhatsApp
+                            </button>
+                            <button @click="filterSub = 'no_website'" class="btn" :class="filterSub === 'no_website' ? 'btn-warning' : 'btn-outline-secondary'">
+                                <i class="ti ti-world-off me-1"></i> No Website
+                            </button>
+                            <button @click="filterSub = 'has_website'" class="btn" :class="filterSub === 'has_website' ? 'btn-outline-primary' : 'btn-outline-secondary'">
+                                <i class="ti ti-world me-1"></i> Has Website
+                            </button>
+                        </div>
                     </div>
-                    <div v-if="selectedResults.length > 0">
-                        <button @click="openBulkQualify" class="btn btn-sm btn-success">
-                            <i class="ti ti-check me-1"></i> Qualify Selected ({{ selectedResults.length }})
-                        </button>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="width: 220px;">
+                            <span class="input-group-text"><i class="ti ti-search"></i></span>
+                            <input type="text" v-model="searchQuery" class="form-control" placeholder="Search results...">
+                        </div>
+
+                        <div v-if="selectedResults.length > 0">
+                            <button @click="openBulkQualify" class="btn btn-sm btn-success">
+                                <i class="ti ti-check me-1"></i> Qualify Selected ({{ selectedResults.length }})
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,12 +354,16 @@ function getRowClass(result) {
                                     <small v-if="result.category" class="text-muted">{{ result.category }}</small>
                                 </td>
                                 <td>
-                                    <div class="mb-1">
+                                    <div class="mb-1 d-flex align-items-center flex-wrap gap-1">
                                         <i class="ti ti-phone text-muted me-1"></i>
                                         <span v-if="result.phone">
-                                            <a :href="'tel:' + result.phone" class="text-dark">{{ result.phone }}</a>
+                                            <a :href="'tel:' + result.phone" class="text-dark me-1">{{ result.phone }}</a>
                                         </span>
-                                        <span v-else class="text-muted small">No Phone</span>
+                                        <span v-else class="text-muted small me-1">No Phone</span>
+
+                                        <a v-if="result.whatsapp_url" :href="result.whatsapp_url" target="_blank" class="badge bg-success-subtle text-success text-decoration-none" title="Chat on WhatsApp">
+                                            <i class="ti ti-brand-whatsapp me-1"></i>WhatsApp
+                                        </a>
                                     </div>
                                     <div>
                                         <i class="ti ti-mail text-muted me-1"></i>

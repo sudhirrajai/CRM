@@ -117,6 +117,10 @@ class LeadGetterController extends Controller
         $validated = $request->validate([
             'query' => 'required|string|max:255',
             'location' => 'required|string|max:255',
+            'extract_emails' => 'nullable|boolean',
+            'unique_only' => 'nullable|boolean',
+            'website_filter' => 'nullable|string|in:all,no_website,has_website',
+            'phone_filter' => 'nullable|string|in:all,require_phone',
         ]);
 
         // Verify API key is configured
@@ -127,11 +131,19 @@ class LeadGetterController extends Controller
 
         $group = LeadGetterGroup::findOrFail($groupId);
 
+        $filters = [
+            'extract_emails' => $request->boolean('extract_emails', true),
+            'unique_only' => $request->boolean('unique_only', true),
+            'website_filter' => $validated['website_filter'] ?? 'all',
+            'phone_filter' => $validated['phone_filter'] ?? 'all',
+        ];
+
         $task = LeadGetterTask::create([
             'lead_getter_group_id' => $group->id,
             'query' => $validated['query'],
             'location' => $validated['location'],
             'api_provider' => 'serpapi',
+            'filters' => $filters,
             'status' => 'pending',
             'user_id' => auth()->id(),
         ]);
@@ -320,12 +332,13 @@ class LeadGetterController extends Controller
         $task = LeadGetterTask::findOrFail($taskId);
         $results = LeadGetterResult::where('lead_getter_task_id', $taskId)->get();
 
-        $csv = "Business Name,Company,Phone,Email,Website,Address,Rating,Reviews,Category,Status\n";
+        $csv = "Business Name,Company,Phone,WhatsApp Link,Email,Website,Address,Rating,Reviews,Category,Status\n";
 
         foreach ($results as $result) {
             $csv .= '"' . str_replace('"', '""', $result->title) . '",';
             $csv .= '"' . str_replace('"', '""', $result->company ?? '') . '",';
             $csv .= '"' . ($result->phone ?? '') . '",';
+            $csv .= '"' . ($result->whatsapp_url ?? '') . '",';
             $csv .= '"' . ($result->email ?? '') . '",';
             $csv .= '"' . ($result->website ?? '') . '",';
             $csv .= '"' . str_replace('"', '""', $result->address ?? '') . '",';

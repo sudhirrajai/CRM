@@ -27,6 +27,10 @@ const showSearchModal = ref(false);
 const searchForm = useForm({
     query: '',
     location: '',
+    extract_emails: true,
+    unique_only: true,
+    website_filter: 'all',
+    phone_filter: 'all',
 });
 
 function openSearch() {
@@ -232,6 +236,43 @@ onUnmounted(() => {
                                     <option v-for="loc in locations" :key="loc" :value="loc"></option>
                                 </datalist>
                                 <div v-if="searchForm.errors.location" class="text-danger small mt-1">{{ searchForm.errors.location }}</div>
+                            </div>
+
+                            <hr class="my-3">
+                            <h6 class="fw-bold mb-3"><i class="ti ti-adjustments me-1"></i> Search & Enrichment Filters</h6>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small mb-1">Website Filter</label>
+                                    <select v-model="searchForm.website_filter" class="form-select form-select-sm">
+                                        <option value="all">All Businesses</option>
+                                        <option value="no_website">No Website Only (Target Leads)</option>
+                                        <option value="has_website">With Website Only</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small mb-1">Phone / WhatsApp</label>
+                                    <select v-model="searchForm.phone_filter" class="form-select form-select-sm">
+                                        <option value="all">All Businesses (Format WhatsApp)</option>
+                                        <option value="require_phone">Must Have Phone Number</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="card p-2 bg-light border-0">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="extractEmailsCheck" v-model="searchForm.extract_emails">
+                                    <label class="form-check-label small" for="extractEmailsCheck">
+                                        <strong>Scrape Business Emails</strong> — Fetch website homepages to extract contact emails.
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="uniqueOnlyCheck" v-model="searchForm.unique_only">
+                                    <label class="form-check-label small" for="uniqueOnlyCheck">
+                                        <strong>Unique Records Only</strong> — Skip duplicate businesses already saved in CRM.
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">

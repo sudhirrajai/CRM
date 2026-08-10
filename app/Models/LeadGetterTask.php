@@ -14,11 +14,19 @@ class LeadGetterTask extends Model
         'query',
         'location',
         'api_provider',
+        'filters',
         'status',
         'total_results',
         'error_message',
         'user_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'filters' => 'array',
+        ];
+    }
 
     public function group()
     {

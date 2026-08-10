@@ -16,6 +16,8 @@ class LeadGetterResult extends Model
         'contact_name',
         'email',
         'phone',
+        'whatsapp_number',
+        'whatsapp_url',
         'website',
         'address',
         'rating',
